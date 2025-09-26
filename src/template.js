@@ -1,14 +1,4 @@
-import Home from "@pages/Home.js";
-
-const enableMocking = () =>
-  import("./mocks/browser.js").then(({ worker }) =>
-    worker.start({
-      onUnhandledRequest: "bypass",
-    }),
-  );
-
-function main() {
-  const 상품목록_레이아웃_로딩 = `
+const 상품목록_레이아웃_로딩 = `
     <div class="min-h-screen bg-gray-50">
       <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4">
@@ -158,7 +148,7 @@ function main() {
     </div>
   `;
 
-  const 상품목록_레이아웃_로딩완료 = `
+const 상품목록_레이아웃_로딩완료 = `
     <div class="bg-gray-50">
       <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4">
@@ -331,7 +321,7 @@ function main() {
     </div>
   `;
 
-  const 상품목록_레이아웃_카테고리_1Depth = `
+const 상품목록_레이아웃_카테고리_1Depth = `
     <main class="max-w-md mx-auto px-4 py-4">
       <!-- 검색 및 필터 -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -411,7 +401,7 @@ function main() {
     </main>
   `;
 
-  const 상품목록_레이아웃_카테고리_2Depth = `
+const 상품목록_레이아웃_카테고리_2Depth = `
     <main class="max-w-md mx-auto px-4 py-4">
       <!-- 검색 및 필터 -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -491,7 +481,7 @@ function main() {
     </main>
   `;
 
-  const 토스트 = `
+const 토스트 = `
     <div class="flex flex-col gap-2 items-center justify-center mx-auto" style="width: fit-content;">
       <div class="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
         <div class="flex-shrink-0">
@@ -537,7 +527,7 @@ function main() {
     </div>
   `;
 
-  const 장바구니_비어있음 = `
+const 장바구니_비어있음 = `
     <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
       <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
         <!-- 헤더 -->
@@ -575,7 +565,7 @@ function main() {
     </div>
   `;
 
-  const 장바구니_선택없음 = `
+const 장바구니_선택없음 = `
     <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
       <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
         <!-- 헤더 -->
@@ -726,7 +716,7 @@ function main() {
     </div>
   `;
 
-  const 장바구니_선택있음 = `
+const 장바구니_선택있음 = `
     <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
       <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
         <!-- 헤더 -->
@@ -885,7 +875,7 @@ function main() {
     </div>
   `;
 
-  const 상세페이지_로딩 = `
+const 상세페이지_로딩 = `
     <div class="min-h-screen bg-gray-50">
       <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4">
@@ -925,7 +915,7 @@ function main() {
     </div>
   `;
 
-  const 상세페이지_로딩완료 = `
+const 상세페이지_로딩완료 = `
     <div class="min-h-screen bg-gray-50">
       <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4">
@@ -1086,7 +1076,7 @@ function main() {
     </div>
   `;
 
-  const _404_ = `
+const _404_ = `
     <main class="max-w-md mx-auto px-4 py-4">
       <div class="text-center my-4 py-20 shadow-md p-6 bg-white rounded-lg">
       <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
@@ -1120,35 +1110,3 @@ function main() {
     </div>
     </main>
   `;
-
-  document.querySelector("#root").innerHTML = `
-    ${상품목록_레이아웃_로딩}
-    <br />
-    ${상품목록_레이아웃_로딩완료}
-    <br />
-    ${상품목록_레이아웃_카테고리_1Depth}
-    <br />
-    ${상품목록_레이아웃_카테고리_2Depth}
-    <br />
-    ${토스트}
-    <br />
-    ${장바구니_비어있음}
-    <br />
-    ${장바구니_선택없음}
-    <br />
-    ${장바구니_선택있음}
-    <br />
-    ${상세페이지_로딩}
-    <br />
-    ${상세페이지_로딩완료}
-    <br />
-    ${_404_}
-  `;
-}
-
-// 애플리케이션 시작
-if (import.meta.env.MODE !== "test") {
-  enableMocking().then(main);
-} else {
-  main();
-}
