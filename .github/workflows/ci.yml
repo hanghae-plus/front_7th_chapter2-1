@@ -23,10 +23,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          node-version: 22
           cache: 'pnpm'
       - run: |
+      - run: |
           pnpm install
-          pnpm exec playwright install
           pnpm run test:e2e:basic
   advanced:
     timeout-minutes: 60
@@ -42,9 +43,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          node-version: 22
           cache: 'pnpm'
       - name: Install dependencies
         run: |
           pnpm install
+          pnpm exec playwright install
+          pnpm run test:e2e:advanced
           pnpm exec playwright install
           pnpm run test:e2e:advanced
