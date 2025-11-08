@@ -1,16 +1,21 @@
 import { defineConfig } from "vitest/config";
+import { loadEnv } from "vite";
 
-export default defineConfig({
-  base: "/milmilkim/front_7th_chapter2-1/",
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./src/setupTests.js",
-    exclude: ["**/e2e/**", "**/*.e2e.spec.js", "**/node_modules/**"],
-    poolOptions: {
-      threads: {
-        singleThread: true,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+
+  return {
+    base: env.VITE_BASE_PATH || "/",
+    test: {
+      globals: true,
+      environment: "jsdom",
+      setupFiles: "./src/setupTests.js",
+      exclude: ["**/e2e/**", "**/*.e2e.spec.js", "**/node_modules/**"],
+      poolOptions: {
+        threads: {
+          singleThread: true,
+        },
       },
     },
-  },
+  };
 });

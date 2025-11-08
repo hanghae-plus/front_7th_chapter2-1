@@ -12,6 +12,12 @@ const routes = [
   },
 ];
 
+const BASE_PATH = import.meta.env.BASE_URL || "/";
+
+const normalizePath = (pathname) => {
+  return pathname.startsWith(BASE_PATH) ? pathname.slice(BASE_PATH.length - 1) : pathname;
+};
+
 export const Router = (() => {
   let currentPath = window.location.pathname;
 
@@ -20,14 +26,14 @@ export const Router = (() => {
     push: (path) => {
       if (currentPath === path) return;
       currentPath = path;
-      window.history.pushState({}, "", path);
+      window.history.pushState({}, "", `${BASE_PATH}${path.replace(/^\//, "")}`);
       renderPage();
     },
   });
 })();
 
 export const renderPage = (routerId = "router-view") => {
-  const path = window.location.pathname;
+  const path = normalizePath(window.location.pathname);
   const route = routes.find((r) => r.path === path);
   const routerRoot = document.getElementById(routerId);
 
