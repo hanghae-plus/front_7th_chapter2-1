@@ -71,9 +71,11 @@ export const initRouter = () => {
   window.addEventListener("popstate", () => renderPage());
 
   document.addEventListener("click", (e) => {
-    const { target } = e;
-    if (target.dataset.link) {
-      router.push(target.dataset.routerLink);
-    }
+    const linkEl = e.target.closest("[data-link]");
+    if (!linkEl) return;
+
+    e.preventDefault();
+    const path = linkEl.getAttribute("data-link")?.trim() || "/";
+    router.push(path);
   });
 };
