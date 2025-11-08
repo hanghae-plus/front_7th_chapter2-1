@@ -35,10 +35,14 @@ export const Router = (() => {
   return () => ({
     getPath: () => currentPath,
     push: (path) => {
-      if (currentPath === path) return;
+      const normalizedCurrent = normalizePath(window.location.pathname);
+      if (normalizedCurrent === path) return;
       currentPath = path;
       window.history.pushState({}, "", `${BASE_PATH}${path.replace(/^\//, "")}`);
       renderPage();
+    },
+    updateCurrentPath: (path) => {
+      currentPath = path;
     },
   });
 })();
@@ -68,7 +72,11 @@ export const initRouter = () => {
   renderPage();
 
   // 뒤로가기
-  window.addEventListener("popstate", () => renderPage());
+  window.addEventListener("popstate", () => {
+    const path = normalizePath(window.location.pathname);
+    router.updateCurrentPath(path);
+    renderPage();
+  });
 
   document.addEventListener("click", (e) => {
     const linkEl = e.target.closest("[data-link]");
