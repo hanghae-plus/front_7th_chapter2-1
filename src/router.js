@@ -12,7 +12,7 @@ const routes = [
   },
 ];
 
-const BASE_PATH = import.meta.env.BASE_URL || "/";
+const BASE_PATH = import.meta.env.VITE_BASE_PATH || "/";
 
 const normalizePath = (pathname) => {
   return pathname.startsWith(BASE_PATH) ? pathname.slice(BASE_PATH.length - 1) : pathname;
