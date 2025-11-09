@@ -1,3 +1,5 @@
+import "./styles.css";
+
 import { getProducts } from "./api/productApi.js";
 import HomePage from "./pages/HomePage.js";
 
