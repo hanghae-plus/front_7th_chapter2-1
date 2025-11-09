@@ -24,6 +24,8 @@ const state = {
   filters: {
     search: "",
     categories: [],
+    category1: "",
+    category2: "",
     isSubItem: false,
     limit: 20,
     sort: "price_asc",
@@ -34,29 +36,6 @@ const state = {
   hasPrev: false,
   isLoading: false,
 };
-
-// ===== 유틸리티 함수 =====
-function showToast(message, type = "success") {
-  const toastHTML = commonTemplates.toast(message, type);
-  const toastContainer = document.createElement("div");
-  toastContainer.className = "fixed top-4 right-4 z-50 transition-all duration-300";
-  toastContainer.innerHTML = toastHTML;
-
-  document.body.appendChild(toastContainer);
-
-  // 닫기 버튼 이벤트
-  const closeBtn = toastContainer.querySelector("#toast-close-btn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      toastContainer.remove();
-    });
-  }
-
-  // 3초 후 자동 제거
-  setTimeout(() => {
-    toastContainer.remove();
-  }, 3000);
-}
 
 function initMain() {
   init();
@@ -137,6 +116,30 @@ function renderInitialPage() {
   addInitEventListeners();
 }
 
+function updateCategorys() {
+  const targetrDiv = document.getElementById("category-filters");
+  const filters = state.filters;
+  let categories = {};
+
+  const categoryBreadcrumb = document.getElementById("category-breadcrumb");
+  categoryBreadcrumb.innerHTML = searchTemplates.breadcrumb(filters.category1, filters.category2);
+
+  if (!filters.category1) {
+    categories = state.categories;
+    targetrDiv.innerHTML = Object.keys(categories)
+      .map((category) => searchTemplates.categoryButton1(category))
+      .join("");
+  } else {
+    categories = state.categories[filters.category1];
+    if (categories.length > 0 && filters.category2) {
+      categories = categories[filters.category2];
+    }
+    targetrDiv.innerHTML = Object.keys(categories)
+      .map((category) => searchTemplates.categoryButton2(category))
+      .join("");
+  }
+}
+
 // 상품 목록 업데이트
 function updateProductList(append = false) {
   const productListContainer = document.getElementById("product-list-container");
@@ -155,7 +158,7 @@ function updateProductList(append = false) {
 function updateProductCount() {
   const countElement = document.querySelector('[data-testid="product-count"]');
   if (countElement) {
-    countElement.textContent = `총 ${state.totalCount}개의 상품`;
+    countElement.innerHTML = `총 <span class="font-medium text-gray-900">${state.totalCount}</span>개의 상품`;
   }
 }
 
@@ -198,14 +201,48 @@ function addInitEventListeners() {
     if (event.key === "Enter") {
       event.preventDefault();
       const searchTerm = event.target.value.trim();
-      if (!searchTerm) {
-        showToast("검색어를 입력해주세요.", "info");
-        return;
+      state.currentPage = 1;
+      state.filters.search = searchTerm;
+      await loadProducts();
+      updateProductList();
+    }
+  });
+
+  // 카테고리 필터 버튼 클릭 이벤트
+  document.body.addEventListener("click", async (event) => {
+    if (event.target.matches(".category-filter-btn")) {
+      state.currentPage = 1;
+
+      if (event.target.getAttribute("data-category1")) {
+        const category1 = event.target.textContent.trim();
+        state.filters.category1 = category1;
+      } else if (event.target.getAttribute("data-category2")) {
+        const category2 = event.target.textContent.trim();
+        state.filters.category2 = category2;
       }
 
-      state.filters.search = searchTerm;
+      await Promise.all([loadProducts()]);
+      updateCategorys();
+      updateProductList();
+    }
+  });
+
+  // 전체 클릭 시 리셋
+  document.body.addEventListener("click", async (event) => {
+    if (event.target.matches("button[data-breadcrumb='reset']")) {
+      state.filters.category1 = "";
+      state.filters.category2 = "";
+      state.filters.search = "";
       state.currentPage = 1;
-      await loadProducts();
+      await Promise.all([loadProducts()]);
+      updateCategorys();
+      updateProductList();
+    } else if (event.target.matches("button[data-breadcrumb='category1']")) {
+      state.filters.category1 = event.target.getAttribute("data-category1");
+      state.filters.category2 = "";
+      state.currentPage = 1;
+      await Promise.all([loadProducts()]);
+      updateCategorys();
       updateProductList();
     }
   });

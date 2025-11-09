@@ -18,7 +18,7 @@ export const productTemplates = {
           </h3>
           <p class="text-xs text-gray-500 mb-2">${product.brand || ""}</p>
           <p class="text-lg font-bold text-gray-900">
-            ${product.lprice.toLocaleString()}원
+            ${Number(product.lprice).toLocaleString()}원
           </p>
         </div>
         <!-- 장바구니 버튼 -->
@@ -52,7 +52,7 @@ export const productTemplates = {
 
   count: (count) => /* html */ `
     <div class="mb-4 text-sm text-gray-600" data-testid="product-count">
-      총 <span class="font-medium text-gray-900">${count}개</span>의 상품
+      총 <span class="font-medium text-gray-900">${count}</span>개의 상품
     </div>
   `,
 
