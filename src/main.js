@@ -26,15 +26,8 @@ async function render() {
     setupEventListeners();
   } catch (error) {
     $root.innerHTML = HomePage({ loading: false, error: error, products: [] }); // 실패
+    setupRetryButton();
   }
-  setupRetryButton();
-}
-// 재시도 버튼 제공
-function setupRetryButton() {
-  const retryBtn = document.querySelector("#retry-btn");
-  retryBtn.addEventListener("click", () => {
-    render();
-  });
 }
 
 function setupEventListeners() {
@@ -62,6 +55,27 @@ function setupEventListeners() {
       render();
     });
   }
+  // 검색어
+  const searchInput = document.querySelector("#search-input");
+  if (searchInput) {
+    searchInput.value = urlParams.get("search") || "";
+    // enter 이벤트 등록 -> query 업데이트
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        updateQueryParams({ search: e.target.value });
+        console.log(e.target.value);
+        // 리렌더
+        render();
+      }
+    });
+  }
+}
+// 재시도 버튼 제공
+function setupRetryButton() {
+  const retryBtn = document.querySelector("#retry-btn");
+  retryBtn.addEventListener("click", () => {
+    render();
+  });
 }
 
 function main() {
