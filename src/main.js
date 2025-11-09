@@ -45,7 +45,20 @@ function setupEventListeners() {
   if (limitSelect) {
     limitSelect.value = urlParams.get("limit") || "20"; // url에서 쿼리파라미터로 뽑아옴 (기본값: 20)
     limitSelect.addEventListener("change", (e) => {
+      // change 이벤트 발생시 URL 반영
       updateQueryParams({ limit: e.target.value });
+      // 리렌더
+      render();
+    });
+  }
+  // 정렬
+  const sortSelect = document.querySelector("#sort-select");
+  if (sortSelect) {
+    sortSelect.value = urlParams.get("sort") || "price_asc";
+    sortSelect.addEventListener("change", (e) => {
+      // change 이벤트 발생시 URL 반영
+      updateQueryParams({ sort: e.target.value });
+      // 리렌더
       render();
     });
   }
