@@ -8,7 +8,7 @@ const routes = [
     component: HomePage,
   },
   {
-    path: "/detail",
+    path: "/product/:productId",
     component: DetailPage,
   },
 ];
@@ -29,34 +29,103 @@ const normalizePath = (pathname) => {
   return path === "" ? "/" : path;
 };
 
+// 경로 패턴을 정규식으로 변환하고 파라미터 이름 추출
+const pathToRegex = (path) => {
+  const paramNames = [];
+  const pattern = path.replace(/\//g, "\\/").replace(/:(\w+)/g, (_, paramName) => {
+    paramNames.push(paramName);
+    return "([^/]+)";
+  });
+
+  return {
+    regex: new RegExp(`^${pattern}$`),
+    paramNames,
+  };
+};
+
+// 경로와 라우트 패턴 매칭 및 파라미터 추출
+const matchRoute = (path, routePath) => {
+  if (routePath === path) {
+    return { match: true, params: {} };
+  }
+
+  if (routePath.includes(":")) {
+    const { regex, paramNames } = pathToRegex(routePath);
+    const match = path.match(regex);
+
+    if (match) {
+      const params = {};
+      paramNames.forEach((name, index) => {
+        params[name] = match[index + 1];
+      });
+      return { match: true, params };
+    }
+  }
+
+  return { match: false, params: {} };
+};
+
 export const Router = (() => {
   let currentPath = window.location.pathname;
+  let currentSearch = window.location.search;
 
   return () => ({
     getPath: () => currentPath,
     push: (path) => {
+      // 경로와 쿼리스트링 분리
+      const [pathname, queryString] = path.split("?");
       const normalizedCurrent = normalizePath(window.location.pathname);
-      if (normalizedCurrent === path) return;
-      currentPath = path;
-      window.history.pushState({}, "", `${BASE_PATH}${path.replace(/^\//, "")}`);
+      const normalizedNew = normalizePath(pathname);
+      const newSearch = queryString ? `?${queryString}` : "";
+
+      // pathname과 쿼리스트링이 모두 같으면 중복 이동 방지
+      if (normalizedCurrent === normalizedNew && currentSearch === newSearch) {
+        return;
+      }
+
+      currentPath = normalizedNew;
+      currentSearch = newSearch;
+      const fullPath = queryString
+        ? `${BASE_PATH}${pathname.replace(/^\//, "")}?${queryString}`
+        : `${BASE_PATH}${pathname.replace(/^\//, "")}`;
+      window.history.pushState({}, "", fullPath);
       renderPage();
     },
     updateCurrentPath: (path) => {
       currentPath = path;
+      currentSearch = window.location.search;
     },
   });
 })();
 
 export const renderPage = (routerId = "router-view") => {
   const path = normalizePath(window.location.pathname);
-  const route = routes.find((r) => r.path === path);
   const routerRoot = document.getElementById(routerId);
 
   if (!routerRoot) return;
 
-  if (route) {
-    route.component({
+  // 라우트 매칭 (정확한 매칭 우선, 그 다음 파라미터 매칭)
+  let matchedRoute = null;
+  let routeParams = {};
+
+  for (const route of routes) {
+    const { match, params } = matchRoute(path, route.path);
+    if (match) {
+      matchedRoute = route;
+      routeParams = params;
+      break;
+    }
+  }
+
+  if (matchedRoute) {
+    // 쿼리스트링 파라미터도 추가
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryParams = Object.fromEntries(searchParams);
+    const allParams = { ...routeParams, ...queryParams };
+
+    matchedRoute.component({
       root: routerRoot,
+      params: allParams,
     });
   } else {
     NotFound({
@@ -82,6 +151,7 @@ export const initRouter = () => {
     renderPage();
   });
 
+  // 이벤트 위임: data-link 속성을 가진 링크 처리
   document.addEventListener("click", (e) => {
     const linkEl = e.target.closest("[data-link]");
     if (!linkEl) return;
@@ -90,4 +160,7 @@ export const initRouter = () => {
     const path = linkEl.getAttribute("data-link")?.trim() || "/";
     router.push(path);
   });
+
+  // 초기 렌더링 시 currentPath 업데이트
+  router.updateCurrentPath(normalizePath(window.location.pathname));
 };
