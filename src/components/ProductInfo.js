@@ -1,3 +1,5 @@
+import { formatNumber } from "../utils/formatters";
+
 import Rating from "./Rating";
 import Breadcrumb from "./Breadcrumb";
 
@@ -24,7 +26,7 @@ const ProductInfo = (product, quantity = 1) => {
           </div>
           <!-- 가격 -->
           <div class="mb-4">
-            <span class="text-2xl font-bold text-blue-600">${Number(product.price ?? 0).toLocaleString()}원</span>
+            <span class="text-2xl font-bold text-blue-600">${formatNumber(product.lprice ?? 0)}원</span>
           </div>
           <!-- 재고 -->
           <div class="text-sm text-gray-600 mb-4">
