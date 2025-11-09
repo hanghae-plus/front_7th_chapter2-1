@@ -30,11 +30,34 @@ const state = {
   },
   currentPage: 1,
   totalCount: 0,
-  hasMore: true,
+  hasNext: true,
+  hasPrev: false,
   isLoading: false,
 };
 
-// ===== 초기화 =====
+// ===== 유틸리티 함수 =====
+function showToast(message, type = "success") {
+  const toastHTML = commonTemplates.toast(message, type);
+  const toastContainer = document.createElement("div");
+  toastContainer.className = "fixed top-4 right-4 z-50 transition-all duration-300";
+  toastContainer.innerHTML = toastHTML;
+
+  document.body.appendChild(toastContainer);
+
+  // 닫기 버튼 이벤트
+  const closeBtn = toastContainer.querySelector("#toast-close-btn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      toastContainer.remove();
+    });
+  }
+
+  // 3초 후 자동 제거
+  setTimeout(() => {
+    toastContainer.remove();
+  }, 3000);
+}
+
 function initMain() {
   init();
 }
@@ -45,9 +68,7 @@ async function init() {
 
     await Promise.all([loadCategories(), loadProducts()]);
 
-    renderProductList();
-
-    addInitEventListeners();
+    renderInitialPage();
   } catch (error) {
     console.error("초기화 실패:", error);
     renderError("데이터를 불러오는데 실패했습니다.");
@@ -55,7 +76,7 @@ async function init() {
 }
 
 // ===== 데이터 로딩 =====
-async function loadProducts(append = false) {
+async function loadProducts() {
   if (state.isLoading) return;
 
   state.isLoading = true;
@@ -70,15 +91,10 @@ async function loadProducts(append = false) {
       sort: state.filters.sort,
     });
 
-    // 데이터 업데이트
-    if (append) {
-      state.products = [...state.products, ...response.products];
-    } else {
-      state.products = response.products;
-    }
-
+    state.products = response.products;
     state.totalCount = response.pagination.total;
-    state.hasMore = response.hasMore;
+    state.hasNext = response.pagination.hasNext;
+    state.hasPrev = response.pagination.hasPrev;
 
     console.log("상품 로드 완료:", state.products.length, "개");
   } catch (error) {
@@ -106,15 +122,68 @@ function renderLoading() {
   document.body.innerHTML = layoutTemplates.page(content);
 }
 
-function renderProductList() {
+// 초기 렌더링: 전체 페이지 구조 (필터 + 상품 목록 컨테이너)
+function renderInitialPage() {
   const content = `
     ${searchTemplates.filterBox(state.filters)}
     ${productTemplates.count(state.totalCount)}
-    ${productTemplates.list(state.products)}
+    <div id="product-list-container">
+      ${productTemplates.list(state.products)}
+    </div>
   `;
   document.body.innerHTML = layoutTemplates.page(content, state.cart.length);
+
+  // 초기 렌더링 후 이벤트 리스너 등록 (한 번만)
+  addInitEventListeners();
 }
 
+// 상품 목록 업데이트
+function updateProductList(append = false) {
+  const productListContainer = document.getElementById("product-list-container");
+  if (productListContainer) {
+    if (!append) {
+      productListContainer.innerHTML = productTemplates.list(state.products);
+    } else {
+      removeInfiniteScrollLoader();
+      productTemplates.appendList("products-grid", state.products);
+    }
+  }
+  updateProductCount();
+}
+
+// 상품 개수만 업데이트
+function updateProductCount() {
+  const countElement = document.querySelector('[data-testid="product-count"]');
+  if (countElement) {
+    countElement.textContent = `총 ${state.totalCount}개의 상품`;
+  }
+}
+
+// 다음 상품 가져올 떄 스켈레톤 보여주기
+function showInfiniteScrollLoader() {
+  const productsGrid = document.getElementById("products-grid");
+  if (productsGrid) {
+    const loaderHTML = /* html */ `
+      <div class="col-span-2" id="infinite-scroll-loader">
+        ${commonTemplates.loading("상품을 더 불러오는 중...")}
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          ${productTemplates.skeletonCards(state.filters.limit)}
+        </div>
+      </div>
+    `;
+    productsGrid.insertAdjacentHTML("beforeend", loaderHTML);
+  }
+}
+
+// 스켈레톤 제거
+function removeInfiniteScrollLoader() {
+  const loadingIndicator = document.getElementById("infinite-scroll-loader");
+  if (loadingIndicator) {
+    loadingIndicator.remove();
+  }
+}
+
+// 에러 렌더링
 function renderError(message) {
   const content = commonTemplates.error(message);
   document.body.innerHTML = layoutTemplates.page(content);
@@ -123,7 +192,59 @@ function renderError(message) {
 // ===== 이벤트 리스너 =====
 function addInitEventListeners() {
   console.log("이벤트 리스너 등록");
-  // TODO: 이벤트 리스너 구현
+
+  // 검색 입력 이벤트
+  document.getElementById("search-input").addEventListener("keydown", async (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const searchTerm = event.target.value.trim();
+      if (!searchTerm) {
+        showToast("검색어를 입력해주세요.", "info");
+        return;
+      }
+
+      state.filters.search = searchTerm;
+      state.currentPage = 1;
+      await loadProducts();
+      updateProductList();
+    }
+  });
+
+  // 페이지당 상품 수 변경 이벤트
+  document.getElementById("limit-select").addEventListener("change", async (event) => {
+    event.preventDefault();
+    const newLimit = parseInt(event.target.value, 10);
+    state.filters.limit = newLimit;
+    state.currentPage = 1;
+    await loadProducts();
+    updateProductList();
+  });
+
+  // 정렬 변경 이벤트
+  document.getElementById("sort-select").addEventListener("change", async (event) => {
+    event.preventDefault();
+    const newSort = event.target.value;
+    state.filters.sort = newSort;
+    state.currentPage = 1;
+    await loadProducts();
+    updateProductList();
+  });
+
+  // 무한 스크롤 이벤트
+  window.addEventListener("scroll", async () => {
+    const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
+    if (scrollTop + clientHeight >= scrollHeight - 100) {
+      // 100px 남았을 때 다음 페이지 로드
+      if (state.hasNext && !state.isLoading) {
+        state.currentPage++;
+
+        showInfiniteScrollLoader();
+
+        await loadProducts();
+        updateProductList(true);
+      }
+    }
+  });
 }
 
 function main() {
