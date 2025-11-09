@@ -8,7 +8,7 @@ const toastTemplates = {
         </svg>
       </div>
       <p class="text-sm font-medium">${message}</p>
-      <button class="toast-close-btn flex-shrink-0 ml-2 text-white hover:text-gray-200">
+      <button id="toast-close-btn" class="toast-close-btn flex-shrink-0 ml-2 text-white hover:text-gray-200">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -23,7 +23,7 @@ const toastTemplates = {
         </svg>
       </div>
       <p class="text-sm font-medium">${message}</p>
-      <button class="toast-close-btn flex-shrink-0 ml-2 text-white hover:text-gray-200">
+      <button id="toast-close-btn" class="toast-close-btn flex-shrink-0 ml-2 text-white hover:text-gray-200">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -38,7 +38,7 @@ const toastTemplates = {
         </svg>
       </div>
       <p class="text-sm font-medium">${message}</p>
-      <button class="toast-close-btn flex-shrink-0 ml-2 text-white hover:text-gray-200">
+      <button id="toast-close-btn" class="toast-close-btn flex-shrink-0 ml-2 text-white hover:text-gray-200">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -69,7 +69,7 @@ export const showToast = (message, type = "success") => {
 
   container.appendChild(toastElement);
 
-  const closeBtn = toastElement.querySelector(".toast-close-btn");
+  const closeBtn = toastElement.querySelector("#toast-close-btn");
   const handleClose = () => {
     toastElement.remove();
     closeBtn?.removeEventListener("click", handleClose);
