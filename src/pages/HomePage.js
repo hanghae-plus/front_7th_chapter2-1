@@ -1,130 +1,92 @@
 import SearchFilter from "../components/SearchFilter";
 import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingSkeleton from "../components/LoadingSkeleton";
+import ProductCard from "../components/ProductCard";
 import { Router } from "../router";
+import { createPage } from "../core/BasePage";
+import { getProducts } from "../api/productApi";
 
-const LoadingSkeleton = () => {
-  return /*html*/ `
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
-      <div class="aspect-square bg-gray-200"></div>
-      <div class="p-3">
-        <div class="h-4 bg-gray-200 rounded mb-2"></div>
-        <div class="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
-        <div class="h-5 bg-gray-200 rounded w-1/2 mb-3"></div>
-        <div class="h-8 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-  `;
-};
-
-const ProductCard = (product) => {
-  return /*html*/ `
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
-        data-product-id="${product.productId}">
-          <!-- 상품 이미지 -->
-        <div class="aspect-square bg-gray-100 overflow-hidden cursor-pointer product-image">
-          <img src="${product.image}"
-                alt="${product.title}"
-                class="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                loading="lazy">
-        </div>
-        <!-- 상품 정보 -->
-        <div class="p-3">
-          <div class="cursor-pointer product-info mb-3">
-            <h3 class="text-sm font-medium text-#2b2929-900 line-clamp-2 mb-1">
-              ${product.title}
-            </h3>
-            <p class="text-xs text-gray-500 mb-2">${product.mallName}</p>
-            <p class="text-lg font-bold text-gray-900">
-              ${Number(product.lprice).toLocaleString()}원
-            </p>
-          </div>
-          <!-- 장바구니 버튼 -->
-          <button class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
-                  hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${product.productId}">
-            장바구니 담기
-          </button>
-        </div>
-      </div>
-  `;
-};
-
-const createFragment = (html) => {
-  const template = document.createElement("template");
-  template.innerHTML = html.trim();
-  return template.content;
-};
-
-const HomePage = async ({ root }) => {
-  let isLoading = true;
-  let searchValue = "";
-  let products = [];
-  let pagination = {};
-
+const HomePage = ({ root }) => {
   const router = Router();
 
-  // 이벤트 위임: product-card 클릭 처리 (장바구니 버튼 제외)
-  const handleProductCardClick = (e) => {
-    const addToCartBtn = e.target.closest(".add-to-cart-btn");
-    if (addToCartBtn) return;
+  return createPage(root, ({ setState, template, afterRender }) => {
+    setState({
+      isLoading: true,
+      searchValue: "",
+      products: [],
+      pagination: {},
+    });
 
-    const productCard = e.target.closest(".product-card");
-    if (productCard) {
-      e.preventDefault();
-      const productId = productCard.getAttribute("data-product-id");
-      if (productId) {
-        router.push(`/product/${productId}`);
-      }
-    }
-  };
+    template((state) => {
+      const { isLoading, searchValue = "", products = [], pagination = {} } = state;
 
-  // 이벤트 위임으로 root에 한 번만 등록
-  root.addEventListener("click", handleProductCardClick);
-
-  const getTemplate = () => /*html*/ `
-    ${SearchFilter({ isLoading, searchValue })}
-    <div class="mb-6">
-      <div>
-        ${
-          pagination.total
-            ? `<div class="mb-4 text-sm text-gray-600">
-              총 <span class="font-medium text-gray-900">${pagination.total}</span>개의 상품
-            </div>`
-            : ""
-        }
-        
-        <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-          ${isLoading ? LoadingSkeleton().repeat(4) : products.map(ProductCard).join("")}
+      return `
+        ${SearchFilter({ isLoading, searchValue })}
+        <div class="mb-6">
+          <div>
+            ${
+              pagination.total
+                ? `<div class="mb-4 text-sm text-gray-600">총 <span class="font-medium text-gray-900">${pagination.total}</span>개의 상품</div>`
+                : ""
+            }
+            <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
+              ${isLoading ? LoadingSkeleton().repeat(4) : products.map((p) => ProductCard(p)).join("")}
+            </div>
+            ${isLoading ? LoadingSpinner() : ""}
+          </div>
         </div>
-        ${isLoading ? LoadingSpinner() : ""}
-      </div>
-    </div>
-  `;
+      `;
+    });
 
-  const render = () => {
-    const fragment = createFragment(getTemplate());
-    root.replaceChildren(fragment);
+    afterRender(({ root }) => {
+      const onCardClick = (e) => {
+        const btn = e.target.closest(".add-to-cart-btn");
+        if (btn) return;
+        const card = e.target.closest(".product-card");
+        if (!card) return;
+        const id = card.getAttribute("data-product-id");
+        if (id) router.push(`/product/${id}`);
+      };
 
-    const input = document.getElementById("search-input");
-    if (input) {
-      input.value = searchValue;
-      input.addEventListener("input", (e) => {
-        searchValue = e.target.value;
-        console.log(searchValue);
-      });
-    }
-  };
+      const onAddToCart = (e) => {
+        const btn = e.target.closest(".add-to-cart-btn");
+        if (!btn) return;
+        const id = btn.getAttribute("data-product-id");
+        if (!id) return;
+        window.dispatchEvent(new CustomEvent("cart:add", { detail: { productId: id } }));
+      };
 
-  render();
+      const onSearch = (e) => {
+        const input = e.target.closest("#search-input");
+        if (!input) return;
+        setState({ searchValue: input.value });
+      };
 
-  const response = await fetch("/api/products");
-  const data = await response.json();
-  products = data.products;
-  pagination = data.pagination;
-  isLoading = false;
+      root.addEventListener("click", onCardClick);
+      root.addEventListener("click", onAddToCart);
+      root.addEventListener("input", onSearch);
 
-  render();
+      return () => {
+        root.removeEventListener("click", onCardClick);
+        root.removeEventListener("click", onAddToCart);
+        root.removeEventListener("input", onSearch);
+      };
+    });
 
-  return { render };
+    (async () => {
+      try {
+        const data = await getProducts();
+        setState({
+          products: data.products || [],
+          pagination: data.pagination || {},
+          isLoading: false,
+        });
+      } catch (err) {
+        console.error("상품 목록 로드 실패:", err);
+        setState({ products: [], pagination: { total: 0 }, isLoading: false });
+      }
+    })();
+  });
 };
 
 export default HomePage;
