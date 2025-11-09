@@ -1,3 +1,11 @@
+const depth1Categories = ["생활/건강", "디지털/가전"];
+
+const CategoryItem = (category1) => {
+  return `<button data-category1=${category1} class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+    ${category1}
+  </button>`;
+};
+
 export const SearchForm = ({ loading = false }) => {
   return `
         <!-- 검색 및 필터 -->
@@ -9,8 +17,7 @@ export const SearchForm = ({ loading = false }) => {
                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </div>
             </div>
@@ -24,23 +31,16 @@ export const SearchForm = ({ loading = false }) => {
                 <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
               </div>
               <!-- 1depth 카테고리 -->
+              <!-- 2depth 카테고리 -->
               <div class="flex flex-wrap gap-2">
                 ${
                   loading
                     ? `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
-                    : `              <div class="flex flex-wrap gap-2">
-                <button data-category1="생활/건강" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                   bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                  생활/건강
-                </button>
-                <button data-category1="디지털/가전" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                   bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                  디지털/가전
-                </button>
+                    : `<div class="flex flex-wrap gap-2">
+                    ${depth1Categories.map(CategoryItem).join("")}
               </div>`
                 }
               </div>
-              <!-- 2depth 카테고리 -->
             </div>
             <!-- 기존 필터들 -->
             <div class="flex gap-2 items-center justify-between">
