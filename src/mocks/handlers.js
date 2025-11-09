@@ -1,7 +1,9 @@
-import { http, HttpResponse } from "msw";
-import items from "./items.json";
+import { http, HttpResponse } from 'msw';
 
-const delay = async () => await new Promise((resolve) => setTimeout(resolve, 200));
+import items from './items.json';
+
+const delay = async () =>
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
 // 카테고리 추출 함수
 function getUniqueCategories() {
@@ -26,7 +28,9 @@ function filterProducts(products, query) {
   if (query.search) {
     const searchTerm = query.search.toLowerCase();
     filtered = filtered.filter(
-      (item) => item.title.toLowerCase().includes(searchTerm) || item.brand.toLowerCase().includes(searchTerm),
+      (item) =>
+        item.title.toLowerCase().includes(searchTerm) ||
+        item.brand.toLowerCase().includes(searchTerm)
     );
   }
 
@@ -41,17 +45,17 @@ function filterProducts(products, query) {
   // 정렬
   if (query.sort) {
     switch (query.sort) {
-      case "price_asc":
+      case 'price_asc':
         filtered.sort((a, b) => parseInt(a.lprice) - parseInt(b.lprice));
         break;
-      case "price_desc":
+      case 'price_desc':
         filtered.sort((a, b) => parseInt(b.lprice) - parseInt(a.lprice));
         break;
-      case "name_asc":
-        filtered.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+      case 'name_asc':
+        filtered.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
         break;
-      case "name_desc":
-        filtered.sort((a, b) => b.title.localeCompare(a.title, "ko"));
+      case 'name_desc':
+        filtered.sort((a, b) => b.title.localeCompare(a.title, 'ko'));
         break;
       default:
         // 기본은 가격 낮은 순
@@ -64,14 +68,17 @@ function filterProducts(products, query) {
 
 export const handlers = [
   // 상품 목록 API
-  http.get("/api/products", async ({ request }) => {
+  http.get('/api/products', async ({ request }) => {
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get("page") ?? url.searchParams.get("current")) || 1;
-    const limit = parseInt(url.searchParams.get("limit")) || 20;
-    const search = url.searchParams.get("search") || "";
-    const category1 = url.searchParams.get("category1") || "";
-    const category2 = url.searchParams.get("category2") || "";
-    const sort = url.searchParams.get("sort") || "price_asc";
+    const page =
+      parseInt(
+        url.searchParams.get('page') ?? url.searchParams.get('current')
+      ) || 1;
+    const limit = parseInt(url.searchParams.get('limit')) || 20;
+    const search = url.searchParams.get('search') || '';
+    const category1 = url.searchParams.get('category1') || '';
+    const category2 = url.searchParams.get('category2') || '';
+    const sort = url.searchParams.get('sort') || 'price_asc';
 
     // 필터링된 상품들
     const filteredProducts = filterProducts(items, {
@@ -111,12 +118,12 @@ export const handlers = [
   }),
 
   // 상품 상세 API
-  http.get("/api/products/:id", async ({ params }) => {
+  http.get('/api/products/:id', async ({ params }) => {
     const { id } = params;
     const product = items.find((item) => item.productId === id);
 
     if (!product) {
-      return HttpResponse.json({ error: "Product not found" }, { status: 404 });
+      return HttpResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     // 상세 정보에 추가 데이터 포함
@@ -126,7 +133,11 @@ export const handlers = [
       rating: Math.floor(Math.random() * 2) + 4, // 4~5점 랜덤
       reviewCount: Math.floor(Math.random() * 1000) + 50, // 50~1050개 랜덤
       stock: Math.floor(Math.random() * 100) + 10, // 10~110개 랜덤
-      images: [product.image, product.image.replace(".jpg", "_2.jpg"), product.image.replace(".jpg", "_3.jpg")],
+      images: [
+        product.image,
+        product.image.replace('.jpg', '_2.jpg'),
+        product.image.replace('.jpg', '_3.jpg'),
+      ],
     };
 
     await delay();
@@ -134,7 +145,7 @@ export const handlers = [
   }),
 
   // 카테고리 목록 API
-  http.get("/api/categories", async () => {
+  http.get('/api/categories', async () => {
     const categories = getUniqueCategories();
     await delay();
     return HttpResponse.json(categories);
