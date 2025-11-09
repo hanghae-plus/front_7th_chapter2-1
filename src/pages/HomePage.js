@@ -62,22 +62,22 @@ const HomePage = async ({ root }) => {
 
   const router = Router();
 
+  // 이벤트 위임: product-card 클릭 처리 (장바구니 버튼 제외)
   const handleProductCardClick = (e) => {
-    const productCard = e.target.closest(".product-card");
     const addToCartBtn = e.target.closest(".add-to-cart-btn");
+    if (addToCartBtn) return;
 
-    // 장바구니 버튼 클릭은 제외
-    if (addToCartBtn) {
-      return;
-    }
-
+    const productCard = e.target.closest(".product-card");
     if (productCard) {
       e.preventDefault();
       const productId = productCard.getAttribute("data-product-id");
-      router.push(`/detail?productId=${productId}`);
+      if (productId) {
+        router.push(`/product/${productId}`);
+      }
     }
   };
 
+  // 이벤트 위임으로 root에 한 번만 등록
   root.addEventListener("click", handleProductCardClick);
 
   const getTemplate = () => /*html*/ `
