@@ -2,13 +2,13 @@ const Products = () => {
   const isLoading = false;
 
   return (
-    /* html */
+    /* HTML */
     `
-    <div class="mb-6">
-    ${
-      isLoading
-        ? Skeleton()
-        : `
+      <div class="mb-6">
+        ${isLoading
+          ? Skeleton()
+          : /* HTML */
+            `
            <div>
             <!-- 상품 개수 정보 -->
             <div class="mb-4 text-sm text-gray-600">
@@ -77,9 +77,8 @@ const Products = () => {
             </div>
           </div>
         </div>
-        `
-    }
-         
+        `}
+      </div>
     `
   );
 };
@@ -88,35 +87,35 @@ export default Products;
 
 const Skeleton = () => {
   return (
-    /* html */
+    /* HTML */
     `
-    <div>
-      <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-        ${Array.from({ length: 4 }).map(() => {
-          return (
-            /* html */
-            `
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
-              <div class="aspect-square bg-gray-200"></div>
-              <div class="p-3">
-                <div class="h-4 bg-gray-200 rounded mb-2"></div>
-                <div class="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
-                <div class="h-5 bg-gray-200 rounded w-1/2 mb-3"></div>
-                <div class="h-8 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-            `
-          );
-        })}
+      <div>
+        <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
+          ${Array.from({ length: 4 }).map(() => {
+            return (
+              /* HTML */
+              `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+                  <div class="aspect-square bg-gray-200"></div>
+                  <div class="p-3">
+                    <div class="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
+                    <div class="h-5 bg-gray-200 rounded w-1/2 mb-3"></div>
+                    <div class="h-8 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              `
+            );
+          })}
+        </div>
       </div>
-    </div>
     `
   );
 };
 
 // const InfiniteScrollLoader = () => {
 //   return (
-//     /* html */
+//     /* HTML */
 //     `
 //     <div class="text-center py-4">
 //       <div class="inline-flex items-center">

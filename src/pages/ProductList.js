@@ -5,16 +5,13 @@ import ProductSearchFilter from "../components/ProductSearchFilter";
 
 const ProductList = () => {
   return (
-    /* html */
+    /* HTML */
     `
-    <div class="bg-gray-50">
-      ${Header({ title: "쇼핑몰" })}
-      <main class="max-w-md mx-auto px-4 py-4">
-        ${ProductSearchFilter()}
-        ${Products()}
-      </main>
-      ${Footer()}
-    </div>
+      <div class="bg-gray-50">
+        ${Header({ title: "쇼핑몰" })}
+        <main class="max-w-md mx-auto px-4 py-4">${ProductSearchFilter()} ${Products()}</main>
+        ${Footer()}
+      </div>
     `
   );
 };
