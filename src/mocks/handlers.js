@@ -65,8 +65,8 @@ function filterProducts(products, query) {
 export const handlers = [
   // 상품 목록 API
   http.get("/api/products", async ({ request }) => {
-    if (Math.random() < 0.3) {
-      // 30% 확률로 에러
+    if (Math.random() < 0.1) {
+      // 10% 확률로 에러
       return HttpResponse.error();
     }
     const url = new URL(request.url);
