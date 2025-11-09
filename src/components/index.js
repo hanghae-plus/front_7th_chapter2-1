@@ -1,4 +1,3 @@
-export { Header } from "./Header.js";
-export { Footer } from "./Footer.js";
+export { Header, Footer, PageLayout } from "./common";
 
 export { Loading, Skeleton } from "./Product";
