@@ -1,10 +1,12 @@
 import Header from "../components/Header";
+import Toast, { showToast } from "../components/Toast";
 
 const MainLayout = () => {
   console.log("MAIN LAYOUT");
 
   window.addEventListener("cart:add", (e) => {
     console.log("CART ADD", e);
+    showToast("장바구니에 추가되었습니다", "success");
   });
 
   return /*html*/ `
@@ -19,6 +21,8 @@ const MainLayout = () => {
             <p>© 2025 항해플러스 프론트엔드 쇼핑몰</p>
           </div>
         </footer>
+        <div id="notification-container"></div>
+        ${Toast()}
       </div>
     `;
 };
