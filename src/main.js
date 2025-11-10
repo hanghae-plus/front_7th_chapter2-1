@@ -1,16 +1,15 @@
 import { getProducts } from "./api/productApi.js";
 import { Home } from "./pages/home.js";
 
-const enableMocking = () => {
-  if (!import.meta.env.DEV) {
-    return Promise.resolve();
-  }
+const enableMocking = async () => {
+  const { worker } = await import("./mocks/browser.js");
 
-  return import("./mocks/browser.js").then(({ worker }) =>
-    worker.start({
-      onUnhandledRequest: "bypass",
-    }),
-  );
+  return worker.start({
+    onUnhandledRequest: "bypass",
+    serviceWorker: {
+      url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+    },
+  });
 };
 
 async function main() {
@@ -24,8 +23,4 @@ async function main() {
   }, 1000);
 }
 
-if (import.meta.env.MODE === "test") {
-  main();
-} else {
-  enableMocking().then(main);
-}
+enableMocking().then(main);
