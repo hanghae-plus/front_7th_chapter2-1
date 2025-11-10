@@ -1,4 +1,6 @@
-export const Search = () => {
+export const Search = ({ loading }) => {
+  // 카테고리 받아서 보여줘야 함
+  /*html*/
   return `   
       <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -23,10 +25,16 @@ export const Search = () => {
             <label class="text-sm text-gray-600">카테고리:</label>
             <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
           </div>
-          <!-- 1depth 카테고리 -->
-          <div class="flex flex-wrap gap-2">
-            <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
-          </div>
+          ${
+            loading
+              ? `    
+            <!-- 1depth 카테고리 -->
+            <div class="flex flex-wrap gap-2">
+              <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
+            </div>`
+              : ``
+          }
+      
           <!-- 2depth 카테고리 -->
         </div>
         <!-- 기존 필터들 -->
