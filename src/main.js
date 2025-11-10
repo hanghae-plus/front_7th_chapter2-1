@@ -1,6 +1,6 @@
 import { initRouter } from "./router/index.js";
 import { HomePage } from "./pages/HomePage.js";
-import { setupHomePageHandlers } from "./pages/HomePage.handlers.js";
+import { setupHomePageHandlers } from "./handlers/homeHandlers.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
 
