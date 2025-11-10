@@ -9,31 +9,48 @@ import { BaseComponent } from "../../components/common/BaseComponent";
 import { HomePageSkeleton } from "./HomePageSkeleton";
 import { html } from "../../utils/html";
 import { ProductList } from "../../components/product/ProductList";
-
+import { showToast } from "../../components/common/toast";
+const defaultParams = {
+  limit: 20,
+  search: "",
+  category1: "",
+  category2: "",
+  sort: "price_asc",
+  page: 1,
+};
 export class HomePage extends BaseComponent {
   constructor(props = {}) {
     super(props);
     this.state = {
       products: [],
-      pagination: {},
-      filters: {},
-      mainCategory: null,
-      subCategory: null,
       isLoading: true,
+      isFetching: true,
+      params: defaultParams,
+      hasNext: true,
     };
   }
 
   async init() {
-    const response = await getProducts();
+    try {
+      const response = await getProducts(this.state.params);
 
-    this.setState({
-      products: response.products,
-      pagination: response.pagination,
-      filters: response.filters,
-      mainCategory: response.filters.category1,
-      subCategory: response.filters.category2,
-      isLoading: false,
-    });
+      this.setState({
+        products: response.products,
+        isLoading: false,
+        isFetching: false,
+        hasNext: response.pagination.hasNext,
+      });
+    } catch (e) {
+      this.setState({
+        products: [],
+        isLoading: false,
+        isFetching: false,
+        hasNext: false,
+        error: e,
+      });
+
+      showToast({ type: "error", message: "상품을 불러올 수 없습니다" });
+    }
     this.render();
   }
 
@@ -42,7 +59,31 @@ export class HomePage extends BaseComponent {
       return HomePageSkeleton();
     }
 
-    const { mainCategory, subCategory, products } = this.state;
+    if (this.state.error) {
+      return html`
+        <div class="bg-gray-50">
+          ${Header({ cartCount: 4 })}
+          <main class="max-w-md mx-auto px-4 py-4">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4 text-center">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">상품을 불러올 수 없습니다</h3>
+              <p class="text-gray-600 mb-4">네트워크 연결을 확인하고 다시 시도해주세요.</p>
+              <button
+                data-action="retry"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+              >
+                다시 시도
+              </button>
+            </div>
+          </main>
+          ${Footer()}
+        </div>
+      `;
+    }
+
+    const {
+      params: { category1, category2, limit, sort },
+      products,
+    } = this.state;
 
     return html`
       <div class="bg-gray-50">
@@ -53,8 +94,10 @@ export class HomePage extends BaseComponent {
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
             <div class="mb-4">${SearchBar()}</div>
             <div class="space-y-3">
-              ${CategoryFilter({ mainCategory, subCategory })}
-              <div class="flex gap-2 items-center justify-between">${LimitSelect()} ${SortSelect()}</div>
+              ${CategoryFilter({ category1, category2 })}
+              <div class="flex gap-2 items-center justify-between">
+                ${LimitSelect({ limit })} ${SortSelect({ sort })}
+              </div>
             </div>
           </div>
 
@@ -74,5 +117,40 @@ export class HomePage extends BaseComponent {
   mount(selector) {
     super.mount(selector);
     this.init();
+  }
+
+  events() {
+    // 1. 재시도 이벤트
+    this.el.addEventListener("click", (e) => {
+      const action = e.target.dataset.action;
+
+      if (action === "retry") {
+        this.init();
+      }
+    });
+
+    // 2. 상품 limit 변경 이벤트
+    this.el.addEventListener("change", (e) => {
+      if (e.target.id === "limit-select") {
+        const limit = e.target.value;
+
+        this.setState({
+          params: { ...this.state.params, limit: Number(limit), page: 1 },
+        });
+        this.init();
+      }
+    });
+
+    // 3. 상품 sort 변경 이벤트
+    this.el.addEventListener("change", (e) => {
+      if (e.target.id === "sort-select") {
+        const sort = e.target.value;
+
+        this.setState({
+          params: { ...this.state.params, sort, page: 1 },
+        });
+        this.init();
+      }
+    });
   }
 }
