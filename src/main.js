@@ -1,3 +1,6 @@
+import { Footer } from "./components/Footer.js";
+import { Header } from "./components/Header.js";
+
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
@@ -7,7 +10,8 @@ const enableMocking = () =>
 
 function main() {
   document.body.innerHTML = `
-
+${Header()}
+${Footer()}
   `;
 }
 
