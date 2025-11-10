@@ -53,7 +53,23 @@ export const CategoryLoading = () => {
   return `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`;
 };
 
-export const Search = ({ loading }) => {
+export const FirstDepthCategory = ({ category1 }) => {
+  return /*HTML*/ ` 
+    ${category1
+      .map(
+        (category) => `
+      <button data-category1="${category}" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+        ${category}
+      </button>
+    `,
+      )
+      .join("")}
+  `;
+};
+
+export const Search = ({ loading, categories = {} }) => {
+  const category1 = Object.keys(categories);
+
   /*HTML*/
   return `   
       <!-- 검색 및 필터 -->
@@ -75,7 +91,8 @@ export const Search = ({ loading }) => {
             <div class="flex flex-wrap gap-2">
               ${CategoryLoading()}
             </div>`
-              : ``
+              : `   <div class="flex flex-wrap gap-2">
+${FirstDepthCategory({ category1 })}</div>`
           }
           <!-- 2depth 카테고리 -->
         </div>
