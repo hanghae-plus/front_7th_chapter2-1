@@ -20,14 +20,15 @@ const HomePage = async (render) => {
   const isLoading = new State(true);
   const products = new State([]);
 
-  const limit = new State(20);
+  const limit = new State("20");
+  const sort = new State("price_asc");
 
   function pageRender() {
     render(
       PageLayout({
         children: () => /*HTML*/ `
          <!-- 검색 및 필터 -->
-        ${SearchForm({ isLoading: isLoading.get(), limit: limit.get() })}
+        ${SearchForm({ isLoading: isLoading.get(), limit: limit.get(), sort: sort.get() })}
          <!-- 상품 목록 -->
         ${ProductList({ isLoading: isLoading.get(), products: products.get() })}
        `,
@@ -51,6 +52,13 @@ const HomePage = async (render) => {
 
       getProductsData({ limit: value });
       limit.set(value, pageRender);
+    }
+
+    if (e.target.id === "sort-select") {
+      const value = e.target.value;
+
+      getProductsData({ sort: value });
+      sort.set(value, pageRender);
     }
   });
 };
