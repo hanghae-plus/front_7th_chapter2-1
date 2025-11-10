@@ -8,6 +8,7 @@ import {
   // notFoundTemplates,
 } from "./templates/index.js";
 import { getProducts, getCategories } from "./api/productApi.js";
+import { showToast } from "./util/commonUtils.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -110,10 +111,14 @@ function renderInitialPage() {
       ${productTemplates.list(state.products)}
     </div>
   `;
+
+  const localStorageCart = window.localStorage.getItem("shopping_cart");
+  state.cart = localStorageCart ? JSON.parse(localStorageCart) : [];
+
   document.body.innerHTML = layoutTemplates.page(content, state.cart.length);
 
   // 초기 렌더링 후 이벤트 리스너 등록 (한 번만)
-  addInitEventListeners();
+  addEventListeners();
 }
 
 function updateCategorys() {
@@ -162,6 +167,28 @@ function updateProductCount() {
   }
 }
 
+// 장바구니 아이콘 업데이트
+function updateCartIcon() {
+  const cartIconBtn = document.getElementById("cart-icon-btn");
+  if (cartIconBtn) {
+    const existingBadge = cartIconBtn.querySelector("span");
+    if (existingBadge) {
+      if (state.cart.length > 0) {
+        existingBadge.textContent = state.cart.length;
+      } else {
+        existingBadge.remove();
+      }
+    } else if (!existingBadge && state.cart.length > 0) {
+      const badgeHTML = /* html */ `
+        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          ${state.cart.length}
+        </span>
+      `;
+      cartIconBtn.insertAdjacentHTML("beforeend", badgeHTML);
+    }
+  }
+}
+
 // 다음 상품 가져올 떄 스켈레톤 보여주기
 function showInfiniteScrollLoader() {
   const productsGrid = document.getElementById("products-grid");
@@ -192,10 +219,8 @@ function renderError(message) {
   document.body.innerHTML = layoutTemplates.page(content);
 }
 
-// ===== 이벤트 리스너 =====
-function addInitEventListeners() {
-  console.log("이벤트 리스너 등록");
-
+// 이벤트 등록
+function addEventListeners() {
   // 검색 입력 이벤트
   document.getElementById("search-input").addEventListener("keydown", async (event) => {
     if (event.key === "Enter") {
@@ -265,6 +290,24 @@ function addInitEventListeners() {
     state.currentPage = 1;
     await loadProducts();
     updateProductList();
+  });
+
+  // 장바구니 담기 이벤트
+  document.body.addEventListener("click", (event) => {
+    if (event.target.matches(".add-to-cart-btn")) {
+      const productId = event.target.getAttribute("data-product-id");
+
+      if (state.cart.includes(productId)) {
+        return;
+      }
+
+      state.cart.push(productId);
+      window.localStorage.setItem("shopping_cart", JSON.stringify(state.cart));
+
+      showToast("장바구니에 추가되었습니다.", "info");
+
+      updateCartIcon();
+    }
   });
 
   // 무한 스크롤 이벤트
