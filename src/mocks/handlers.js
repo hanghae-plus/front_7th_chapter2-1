@@ -27,9 +27,7 @@ function filterProducts(products, query) {
   if (query.search) {
     const searchTerm = query.search.toLowerCase();
     filtered = filtered.filter(
-      (item) =>
-        item.title.toLowerCase().includes(searchTerm) ||
-        item.brand.toLowerCase().includes(searchTerm),
+      (item) => item.title.toLowerCase().includes(searchTerm) || item.brand.toLowerCase().includes(searchTerm),
     );
   }
 
