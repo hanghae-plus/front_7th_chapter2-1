@@ -34,8 +34,9 @@ const main = async () => {
 };
 
 document.body.addEventListener("click", (e) => {
-  if (e.target.closest(".product-card")) {
-    const productId = e.target.closest(".product-card").dataset.productId;
+  const productCard = e.target.closest(".product-card") ?? e.target.closest(".related-product-card");
+  if (productCard) {
+    const productId = productCard.dataset.productId;
     history.pushState(null, null, `/product/${productId}`);
     render();
   }
