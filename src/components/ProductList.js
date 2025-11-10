@@ -3,7 +3,8 @@ import ProductCard from "./ProductCard";
 export default function ProductList({ response }) {
   const { products, pagination, filters } = response;
 
-  const limitOptions = [10, 20, 50, 100];
+  const limitOptions = response.limitOptions;
+  const sortOptions = response.sortOptions;
 
   return /* html */ `
   <main class="max-w-md mx-auto px-4 py-4">
@@ -66,10 +67,15 @@ export default function ProductList({ response }) {
             <label class="text-sm text-gray-600">정렬:</label>
             <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
                         focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-              <option value="price_asc" selected="">가격 낮은순</option>
-              <option value="price_desc">가격 높은순</option>
-              <option value="name_asc">이름순</option>
-              <option value="name_desc">이름 역순</option>
+              ${sortOptions
+                .map(
+                  (sort) => `
+                <option value="${sort.value}" ${sort.value === filters.sort ? "selected" : ""}>
+                  ${sort.label}
+                </option>
+              `,
+                )
+                .join("\n")}
             </select>
           </div>
         </div>
@@ -80,7 +86,7 @@ export default function ProductList({ response }) {
       <div>
         <!-- 상품 개수 정보 -->
         <div class="mb-4 text-sm text-gray-600">
-          총 <span class="font-medium text-gray-900">340개</span>의 상품
+          총 <span class="font-medium text-gray-900">${products.length}개</span>의 상품
         </div>
         <!-- 상품 그리드 -->
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">

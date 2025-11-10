@@ -83,6 +83,26 @@ async function main() {
       $root.innerHTML = `
         ${HomePage({ loading: false, response: listResponse, cart })}
       `;
+    } else if (event.target.id === "sort-select") {
+      const value = event.target.value;
+      if (value === listResponse.filters.sort) return;
+      listResponse.filters.sort = value;
+      listResponse.pagination.page = 1;
+      listResponse.pagination.hasNext = true;
+      listResponse.pagination.hasPrev = false;
+      listResponse.products = [];
+      $root.innerHTML = `
+        ${HomePage({ loading: true, response: listResponse, cart })}
+      `;
+      listResponse = await getProducts({
+        limit: listResponse.pagination.limit,
+        search: listResponse.filters.search,
+        sort: listResponse.filters.sort,
+      });
+      console.log("event", listResponse);
+      $root.innerHTML = `
+        ${HomePage({ loading: false, response: listResponse, cart })}
+      `;
     } else if (event.target.id === "add-to-cart-btn") {
       const productId = event.target.dataset.productId;
       console.log("add-to-cart-btn", productId);
