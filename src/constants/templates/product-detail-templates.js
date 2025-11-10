@@ -3,6 +3,8 @@
 // File exceeds 80 lines due to large HTML template constants
 // HTML 템플릿 상수로 인해 80줄 초과
 
+import { CommonFooter } from '@/components/commons/Footer';
+
 export const 상세페이지_로딩 = `
     <div class="min-h-screen bg-gray-50">
       <header class="bg-white shadow-sm sticky top-0 z-40">
@@ -35,11 +37,7 @@ export const 상세페이지_로딩 = `
           </div>
         </div>
       </main>
-      <footer class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="max-w-md mx-auto py-8 text-center text-gray-500">
-          <p>© 2025 항해플러스 프론트엔드 쇼핑몰</p>
-        </div>
-      </footer>
+      ${CommonFooter()}
     </div>
   `;
 
@@ -196,10 +194,6 @@ export const 상세페이지_로딩완료 = `
           </div>
         </div>
       </main>
-      <footer class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="max-w-md mx-auto py-8 text-center text-gray-500">
-          <p>© 2025 항해플러스 프론트엔드 쇼핑몰</p>
-        </div>
-      </footer>
+      ${CommonFooter()}
     </div>
   `;
