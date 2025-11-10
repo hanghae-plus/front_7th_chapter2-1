@@ -1,7 +1,7 @@
-import { Footer } from "../components/Footer";
-import { Header } from "../components/Header";
-import Products from "../components/Products";
-import ProductSearchFilter from "../components/ProductSearchFilter";
+import { Footer } from "../components/Footer.js";
+import { Header } from "../components/Header.js";
+import Products from "../components/Products.js";
+import ProductSearchFilter from "../components/ProductSearchFilter.js";
 
 const ProductList = () => {
   return (
