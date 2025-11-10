@@ -32,6 +32,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "latest",
     "@vitest/ui": "^2.1.8",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -40,7 +41,9 @@
     "jsdom": "^25.0.1",
     "lint-staged": "^15.2.11",
     "msw": "^2.10.2",
+    "postcss": "^8.5.6",
     "prettier": "^3.4.2",
+    "tailwindcss": "^4.1.17",
     "vite": "npm:rolldown-vite@latest",
     "vitest": "latest"
   },
