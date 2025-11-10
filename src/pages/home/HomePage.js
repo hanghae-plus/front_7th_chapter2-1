@@ -16,7 +16,6 @@ const defaultParams = {
   category1: "",
   category2: "",
   sort: "price_asc",
-  page: 1,
 };
 export class HomePage extends BaseComponent {
   constructor(props = {}) {
@@ -26,7 +25,10 @@ export class HomePage extends BaseComponent {
       isLoading: true,
       isFetching: true,
       params: defaultParams,
-      hasNext: true,
+      pagination: {
+        page: 1,
+        hasNext: true,
+      },
       cartItems: new Set(),
     };
     this.observer = null;
@@ -86,7 +88,7 @@ export class HomePage extends BaseComponent {
       params: { category1, category2, limit, sort },
       products,
       isFetching,
-      hasNext,
+      pagination: { hasNext },
     } = this.state;
 
     return html`
@@ -115,18 +117,18 @@ export class HomePage extends BaseComponent {
 
   /** 다음 페이지 데이터 로드 */
   async fetchNextPage() {
-    if (this.state.isFetching || !this.state.hasNext) return;
+    if (this.state.isFetching || !this.state.pagination.hasNext) return;
 
     this.setState({
       isFetching: true,
-      params: { ...this.state.params, page: this.state.params.page + 1 },
+      pagination: { ...this.state.pagination, page: this.state.pagination.page + 1 },
     });
 
     const response = await getProducts({ ...this.state.params });
 
     this.setState({
       products: [...this.state.products, ...response.products],
-      hasNext: response.pagination.hasNext,
+      pagination: { ...this.state.pagination, hasNext: response.pagination.hasNext },
       isFetching: false,
     });
   }
@@ -141,7 +143,11 @@ export class HomePage extends BaseComponent {
         const sentinel = entries[0];
 
         if (sentinel.isIntersecting) {
-          const { isLoading, isFetching, hasNext } = this.state;
+          const {
+            isLoading,
+            isFetching,
+            pagination: { hasNext },
+          } = this.state;
 
           if (hasNext && !isFetching && !isLoading) {
             this.fetchNextPage();
@@ -189,7 +195,8 @@ export class HomePage extends BaseComponent {
         const limit = e.target.value;
 
         this.setState({
-          params: { ...this.state.params, limit: Number(limit), page: 1 },
+          params: { ...this.state.params, limit: Number(limit) },
+          pagination: { ...this.state.pagination, page: 1 },
         });
         this.init();
       }
@@ -201,7 +208,8 @@ export class HomePage extends BaseComponent {
         const sort = e.target.value;
 
         this.setState({
-          params: { ...this.state.params, sort, page: 1 },
+          params: { ...this.state.params, sort },
+          pagination: { ...this.state.pagination, page: 1 },
         });
         this.init();
       }
@@ -229,7 +237,8 @@ export class HomePage extends BaseComponent {
       const search = e.target.value;
 
       this.setState({
-        params: { ...this.state.params, search, page: 1 },
+        params: { ...this.state.params, search },
+        pagination: { ...this.state.pagination, page: 1 },
       });
 
       this.init();
@@ -240,7 +249,8 @@ export class HomePage extends BaseComponent {
       if (e.target.classList.contains("category1-filter-btn")) {
         const category1 = e.target.dataset.category1;
         this.setState({
-          params: { ...this.state.params, category1, page: 1 },
+          params: { ...this.state.params, category1 },
+          pagination: { ...this.state.pagination, page: 1 },
         });
         this.init();
       }
@@ -251,7 +261,8 @@ export class HomePage extends BaseComponent {
       if (e.target.classList.contains("category2-filter-btn")) {
         const category2 = e.target.dataset.category2;
         this.setState({
-          params: { ...this.state.params, category2, page: 1 },
+          params: { ...this.state.params, category2 },
+          pagination: { ...this.state.pagination, page: 1 },
         });
         this.init();
       }
@@ -261,14 +272,16 @@ export class HomePage extends BaseComponent {
     this.el.addEventListener("click", (e) => {
       if (e.target.dataset.breadcrumb === "reset") {
         this.setState({
-          params: { ...this.state.params, category1: "", category2: "", page: 1 },
+          params: { ...this.state.params, category1: null, category2: null },
+          pagination: { ...this.state.pagination, page: 1 },
         });
         this.init();
       }
       if (e.target.dataset.breadcrumb === "category1") {
         const category1 = e.target.dataset.category1;
         this.setState({
-          params: { ...this.state.params, category1, category2: null, page: 1 },
+          params: { ...this.state.params, category1, category2: null },
+          pagination: { ...this.state.pagination, page: 1 },
         });
         this.init();
       }
