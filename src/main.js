@@ -10,21 +10,16 @@ const enableMocking = () =>
     }),
   );
 
+const router = new Router();
+
 const render = async () => {
-  const productId = (location.pathname ?? "").split("/")[2];
-  const newPathName = productId ? "/product/:productId" : location.pathname;
-  if (newPathName) {
-    router.handleRoute(newPathName);
-    return;
-  }
+  router.handleRoute(location.pathname);
 };
 
 const main = async () => {
   render();
-  router.handleRoute("/");
 };
 
-const router = new Router();
 router.addRoute("/", async () => {
   const $root = document.querySelector("#root");
   $root.innerHTML = HomePage({ loading: true });
