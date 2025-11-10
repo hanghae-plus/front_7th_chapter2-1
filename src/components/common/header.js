@@ -2,7 +2,7 @@
  * @param {string} title 페이지 타이틀
  * @param {number} cartNm 장바구니 갯수
  * */
-export function header(props) {
+export default function header(props) {
   // TODO - url정보에 따라 title값 변경 (라우터 연동)
   let title = props?.title || "쇼핑몰";
   let cartNum = props?.cartNum || 0;
