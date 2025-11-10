@@ -227,13 +227,9 @@ const CartModal = createComponent(({ root, getState, setState, template, onMount
   onMount(() => {
     // 장바구니 Store 구독
     unsubscribe = cartStore.subscribe((cartState) => {
-      const state = getState();
       setState({
         items: cartState.items || [],
-        // 기존 선택 상태 유지 (삭제된 아이템은 제거)
-        selectedItems: new Set(
-          Array.from(state.selectedItems || []).filter((id) => (cartState.items || []).some((item) => item.id === id)),
-        ),
+        selectedItems: new Set(Array.from(cartState.items.filter((item) => item.selected)).map((item) => item.id)),
       });
     });
 
@@ -284,8 +280,10 @@ const CartModal = createComponent(({ root, getState, setState, template, onMount
         setState({
           selectedItems: new Set(state.items.map((item) => item.id)),
         });
+        cartStore.updateAllItemSelected(true);
       } else {
         setState({ selectedItems: new Set() });
+        cartStore.updateAllItemSelected(false);
       }
     };
 
@@ -300,8 +298,10 @@ const CartModal = createComponent(({ root, getState, setState, template, onMount
 
       if (checkbox.checked) {
         newSelected.add(productId);
+        cartStore.updateItemSelected(productId, true);
       } else {
         newSelected.delete(productId);
+        cartStore.updateItemSelected(productId, false);
       }
 
       setState({ selectedItems: newSelected });

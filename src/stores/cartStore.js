@@ -77,6 +77,20 @@ export const cartStore = createStore((set, get) => {
       saveToStorage(get());
     },
 
+    updateItemSelected: (productId, selected) => {
+      const { items } = get();
+      const newItems = items.map((item) => (item.id === productId ? { ...item, selected: selected } : item));
+      set({ items: newItems });
+      saveToStorage(get());
+    },
+
+    updateAllItemSelected: (selected) => {
+      const { items } = get();
+      const newItems = items.map((item) => ({ ...item, selected: selected }));
+      set({ items: newItems });
+      saveToStorage(get());
+    },
+
     removeItems: (productIds) => {
       const { items } = get();
       const newItems = items.filter((item) => !productIds.includes(item.id));
