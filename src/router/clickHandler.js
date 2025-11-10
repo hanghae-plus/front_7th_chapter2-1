@@ -16,7 +16,7 @@ export const setupClickHandler = (routes) => {
     }
 
     // [고민]: 이거 별도 처리말고 클릭 이벤트로 한번에 처리할 방법 없을까?
-    const productCard = e.target.closest(".product-card");
+    const productCard = e.target.closest(".product-card, .related-product-card");
     if (productCard) {
       // 장바구니 버튼 클릭은 무시
       if (e.target.closest(".add-to-cart-btn")) {
