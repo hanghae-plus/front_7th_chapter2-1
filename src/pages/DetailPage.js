@@ -85,7 +85,7 @@ export const LoadedDetailPage = ({ product, relatedProducts }) => `
             </div>
             <!-- 상품 정보 -->
             <div>
-              <p class="text-sm text-gray-600 mb-1"></p>
+              <p class="text-sm text-gray-600 mb-1">${product.brand}</p>
               <h1 class="text-xl font-bold text-gray-900 mb-3">${product.title}</h1>
               <!-- 평점 및 리뷰 -->
               <div class="flex items-center mb-3">
@@ -138,8 +138,7 @@ export const LoadedDetailPage = ({ product, relatedProducts }) => `
         </div>
         <!-- 상품 목록으로 이동 -->
         <div class="mb-6">
-          <button class="block w-full text-center bg-gray-100 text-gray-700 py-3 px-4 rounded-md
-            hover:bg-gray-200 transition-colors go-to-product-list">
+          <button class="block w-full text-center bg-gray-100 text-gray-700 py-3 px-4 rounded-md hover:bg-gray-200 transition-colors go-to-product-list">
             상품 목록으로 돌아가기
           </button>
         </div>
