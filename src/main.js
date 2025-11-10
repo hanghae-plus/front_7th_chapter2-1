@@ -4,6 +4,9 @@ import { getCategories, getProducts } from "./api/productApi.js";
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
+      serviceWorker: {
+        url: "/front_7th_chapter2-1/mockServiceWorker.js",
+      },
       onUnhandledRequest: "bypass",
     }),
   );
