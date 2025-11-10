@@ -4,3 +4,4 @@ export * from "./SerachForm.js";
 export * from "./ProductList.js";
 export * from "./CategoryButton";
 export * from "./SearchFormBreadcrumb";
+export * from "./SearchBar";
