@@ -1,4 +1,5 @@
 import { HomePage } from "./pages/HomePage.js";
+import { getProducts } from "./api/productApi.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -7,9 +8,14 @@ const enableMocking = () =>
     }),
   );
 
-function main() {
+async function main() {
   const $root = document.querySelector("#root");
-  $root.innerHTML = HomePage();
+  // 처음에 렌더링
+  const data = await getProducts();
+  $root.innerHTML = HomePage({ loading: true });
+
+  // 렌더링 끝나고 다시 데이터 넘겨 줌
+  $root.innerHTML = HomePage({ ...data, loading: false });
 }
 
 // 애플리케이션 시작
