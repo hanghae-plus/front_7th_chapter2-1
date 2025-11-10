@@ -8,7 +8,6 @@ const enableMocking = () =>
 function main() {
   const 상품목록_레이아웃_로딩 = `
     <div class="min-h-screen bg-gray-50">
-      
       <main class="max-w-md mx-auto px-4 py-4">
         <!-- 검색 및 필터 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -131,11 +130,6 @@ function main() {
           </div>
         </div>
       </main>
-      <footer class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="max-w-md mx-auto py-8 text-center text-gray-500">
-          <p>© 2025 항해플러스 프론트엔드 쇼핑몰</p>
-        </div>
-      </footer>
     </div>
   `;
 
