@@ -1,22 +1,52 @@
 // TODO: 로딩상태 추가
 
-export default function ProductFilter({ loading }) {
+export default function ProductFilter({ loading, categories, selectedCategory1, category2List }) {
   const renderCategories = () => {
     if (loading) {
       return /*html*/ `
-        <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
+      <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
       `;
     }
-    return /*html*/ `
-      <button data-category1="생활/건강" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-        생활/건강
+    const categoryList = Object.keys(categories);
+    console.log(categoryList);
+    if (!categoryList.length) {
+      return /*html*/ `<div> 카테고리가 없습니다.</div>`;
+    }
+    return categoryList
+      .map(
+        (cat1) => /*html*/ `
+      <button data-category1=${cat1} class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+        ${cat1}
       </button>
-      <button data-category1="디지털/가전" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-        디지털/가전
-      </button>
-    `;
+      `,
+      )
+      .join(" ");
   };
 
+  const renderCategories2dep = () => {
+    if (!selectedCategory1 || !category2List.length) {
+      return "";
+    }
+    return /*html*/ `
+    <div class="flex flex-wrap gap-2">
+      ${category2List
+        .map(
+          (cat2) => /*html*/ `
+        <div>
+          <button
+            data-category1=${selectedCategory1}
+            data-category2=${cat2}
+            class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            ${cat2}
+          </button>
+        </div>
+      `,
+        )
+        .join(" ")}
+    </div>
+    `;
+  };
   return /*html*/ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
       <!-- 검색창 -->
@@ -50,10 +80,15 @@ export default function ProductFilter({ loading }) {
             <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
           </div>
           <!-- 1depth 카테고리 -->
-          <div class="flex flex-wrap gap-2">
-            ${renderCategories()}
-          </div>
+          ${
+            !selectedCategory1
+              ? `<div class="flex flex-wrap gap-2">
+                  ${renderCategories()}
+                </div>`
+              : ""
+          }
           <!-- 2depth 카테고리 -->
+          ${renderCategories2dep()}
         </div>
         <!-- 기존 필터들 -->
         <div class="flex gap-2 items-center justify-between">
