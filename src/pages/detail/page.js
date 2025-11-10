@@ -1,16 +1,16 @@
 import { BASE_PATH } from '@/constants';
-import { Layout } from '@/pages/Layout';
+import Layout from '@/pages/layout';
 
 /**
  * 상품 상세 페이지 컴포넌트
  *
  * @param {{
- *  product: Product,
+ *  product?: Product,
  *  loading: boolean
  * }} props
  * @returns {string}
  */
-export const Detail = ({ product, loading }) => {
+const DetailPage = ({ product, loading }) => {
   return Layout({
     children: loading
       ? /* HTML */ `
@@ -236,3 +236,5 @@ export const Detail = ({ product, loading }) => {
         `,
   });
 };
+
+export default DetailPage;

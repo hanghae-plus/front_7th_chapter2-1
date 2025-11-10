@@ -12,7 +12,7 @@ import {
   토스트,
 } from '@/template';
 
-export const Template = () => {
+const TemplatePage = () => {
   return /* HTML */ `
     ${상품목록_레이아웃_로딩}
     <br />
@@ -37,3 +37,5 @@ export const Template = () => {
     ${_404_}
   `;
 };
+
+export default TemplatePage;

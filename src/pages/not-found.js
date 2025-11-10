@@ -1,7 +1,7 @@
 import { BASE_PATH } from '@/constants';
-import { Layout } from '@/pages/Layout';
+import Layout from '@/pages/layout';
 
-export const NotFound = () => {
+const NotFound = () => {
   return Layout({
     children: /* HTML */ `
       <div class="text-center my-4 py-20 shadow-md p-6 bg-white rounded-lg">
@@ -76,3 +76,5 @@ export const NotFound = () => {
     `,
   });
 };
+
+export default NotFound;

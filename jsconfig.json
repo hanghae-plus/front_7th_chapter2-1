@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["vite/client"],
+    "checkJs": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

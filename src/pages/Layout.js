@@ -1,4 +1,5 @@
-import { Footer, Header } from '@/components';
+import Footer from '@/components/layout/Footer';
+import Header from '@/components/layout/Header';
 
 /**
  * 레이아웃 컴포넌트
@@ -6,7 +7,7 @@ import { Footer, Header } from '@/components';
  * @param {{ children: string }} props
  * @returns {string}
  */
-export const Layout = ({ children }) => {
+const Layout = ({ children }) => {
   return /* HTML */ `
     <div class="min-h-screen bg-gray-50">
       ${Header()}
@@ -15,3 +16,5 @@ export const Layout = ({ children }) => {
     </div>
   `;
 };
+
+export default Layout;

@@ -29,7 +29,7 @@
 // };
 
 // TODO: prop에 따른 동적 렌더링 구현 필요
-export const SearchForm = ({ loading }) => {
+const SearchForm = ({ loading }) => {
   return /* HTML */ `
     <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -155,3 +155,5 @@ export const SearchForm = ({ loading }) => {
     </div>
   `;
 };
+
+export default SearchForm;
