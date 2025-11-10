@@ -3,19 +3,55 @@ import SearchForm from "../component/SearchForm";
 import ProductList from "../component/ProductList";
 import { getProducts } from "../api/productApi";
 
-const HomePage = async () => {
-  // TODO: 이렇게 되면 loading이 항상 false가 되지 않나?
-  let isLoading = true;
-  const { products } = await getProducts();
-  isLoading = false;
+class State {
+  constructor(initState) {
+    this.state = initState;
+  }
+  set(newState, render) {
+    this.state = newState;
+    render();
+  }
+  get() {
+    return this.state;
+  }
+}
 
-  return PageLayout({
-    children: () => /*html*/ `
-     <!-- 검색 및 필터 -->
-    ${SearchForm({ isLoading })}
-     <!-- 상품 목록 -->
-    ${ProductList({ isLoading, products })}
-   `,
+const HomePage = async (render) => {
+  const isLoading = new State(true);
+  const products = new State([]);
+
+  const limit = new State(20);
+
+  function pageRender() {
+    render(
+      PageLayout({
+        children: () => /*HTML*/ `
+         <!-- 검색 및 필터 -->
+        ${SearchForm({ isLoading: isLoading.get(), limit: limit.get() })}
+         <!-- 상품 목록 -->
+        ${ProductList({ isLoading: isLoading.get(), products: products.get() })}
+       `,
+      }),
+    );
+  }
+
+  pageRender();
+
+  const getProductsData = async (params) => {
+    const productData = await getProducts(params);
+    products.set(productData.products, pageRender);
+    isLoading.set(false, pageRender);
+  };
+
+  await getProductsData();
+
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "limit-select") {
+      const value = e.target.value;
+
+      getProductsData({ limit: value });
+      limit.set(value, pageRender);
+    }
   });
 };
 

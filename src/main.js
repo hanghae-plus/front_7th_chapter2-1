@@ -10,7 +10,8 @@ const enableMocking = () =>
 async function main() {
   const $root = document.querySelector("#root");
 
-  $root.innerHTML = await HomePage();
+  const render = (HTML) => ($root.innerHTML = HTML);
+  await HomePage(render);
 }
 
 // const 상품목록_레이아웃_로딩완료 = /*html*/ `
