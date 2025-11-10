@@ -1,4 +1,4 @@
-export const ProductItemSkeleton = `          
+export const ProductItemSkeleton = /*HTML*/ `          
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
   <div class="aspect-square bg-gray-200"></div>
   <div class="p-3">
@@ -36,7 +36,7 @@ export const ProductItemSkeleton = `
  */
 
 export const ProductItem = ({ product }) => {
-  /*html*/
+  /*HTML*/
   return `<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
                  data-product-id="85067212996">
               <!-- 상품 이미지 -->

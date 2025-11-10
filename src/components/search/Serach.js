@@ -1,5 +1,5 @@
 export const SearchBar = () => {
-  return ` <div class="mb-4">
+  return /*HTML*/ ` <div class="mb-4">
         <div class="relative">
           <input type="text" id="search-input" placeholder="상품명을 검색해보세요..." value="" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -14,7 +14,7 @@ export const SearchBar = () => {
 };
 
 export const ItemCountSelector = () => {
-  return `<!-- 페이지당 상품 수 -->
+  return /*HTML*/ `<!-- 페이지당 상품 수 -->
           <div class="flex items-center gap-2">
           <label class="text-sm text-gray-600">개수:</label>
           <select id="limit-select"
@@ -36,10 +36,10 @@ export const ItemCountSelector = () => {
 };
 
 export const SortSelector = () => {
-  return `<!-- 정렬 -->
+  return /*HTML*/ `<!-- 정렬 -->
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600">정렬:</label>
-            <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
+              <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
                          focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
               <option value="price_asc" selected="">가격 낮은순</option>
               <option value="price_desc">가격 높은순</option>
@@ -54,7 +54,7 @@ export const CategoryLoading = () => {
 };
 
 export const Search = ({ loading }) => {
-  /*html*/
+  /*HTML*/
   return `   
       <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
