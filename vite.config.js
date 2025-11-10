@@ -1,16 +1,8 @@
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
-  base: '/hh-week4/',
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/setupTests.js',
-    exclude: ['**/e2e/**', '**/*.e2e.spec.js', '**/node_modules/**'],
-    poolOptions: {
-      threads: {
-        singleThread: true,
-      },
-    },
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/hh-week4/' : '/',
+  alias: {
+    '@': '/src',
   },
-});
+}));
