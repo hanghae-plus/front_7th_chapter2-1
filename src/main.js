@@ -1,6 +1,7 @@
 import { getProduct, getProducts } from "./api/productApi.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
+import { NotFoundPage } from "./pages/NotFoundPage.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -24,7 +25,7 @@ const render = async () => {
     );
     $root.innerHTML = DetailPage({ loading: false, product, relatedProducts });
   } else {
-    $root.innerHTML = `<div>404</div>`;
+    $root.innerHTML = NotFoundPage();
   }
 };
 
