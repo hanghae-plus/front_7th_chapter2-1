@@ -28,6 +28,7 @@ export class HomePage extends BaseComponent {
       params: defaultParams,
       hasNext: true,
     };
+    this.observer = null;
   }
 
   async init() {
@@ -42,7 +43,6 @@ export class HomePage extends BaseComponent {
       });
     } catch (e) {
       this.setState({
-        products: [],
         isLoading: false,
         isFetching: false,
         hasNext: false,
@@ -52,6 +52,7 @@ export class HomePage extends BaseComponent {
       showToast({ type: "error", message: "상품을 불러올 수 없습니다" });
     }
     this.render();
+    this.setupInfiniteScroll();
   }
 
   template() {
@@ -83,6 +84,8 @@ export class HomePage extends BaseComponent {
     const {
       params: { category1, category2, limit, sort },
       products,
+      isFetching,
+      hasNext,
     } = this.state;
 
     return html`
@@ -102,21 +105,77 @@ export class HomePage extends BaseComponent {
           </div>
 
           <!-- 상품 목록 -->
-          ${ProductList({ products })}
+          ${ProductList({ products, isFetching, hasNext })}
         </main>
         ${Footer()}
       </div>
     `;
   }
 
+  /** 장바구니 상품 추가 */
   onClickAddToCart(productId) {
     console.log(productId);
     alert("장바구니에 추가되었습니다");
   }
 
+  /** 다음 페이지 데이터 로드 */
+  async fetchNextPage() {
+    if (this.state.isFetching || !this.state.hasNext) return;
+
+    this.setState({
+      isFetching: true,
+      params: { ...this.state.params, page: this.state.params.page + 1 },
+    });
+
+    const response = await getProducts({ ...this.state.params });
+
+    this.setState({
+      products: [...this.state.products, ...response.products],
+      hasNext: response.pagination.hasNext,
+      isFetching: false,
+    });
+  }
+
+  setupInfiniteScroll() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        const sentinel = entries[0];
+
+        if (sentinel.isIntersecting) {
+          const { isLoading, isFetching, hasNext } = this.state;
+
+          if (hasNext && !isFetching && !isLoading) {
+            this.fetchNextPage();
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0.1,
+      },
+    );
+
+    const sentinel = this.el.querySelector("#load-more-sentinel");
+
+    if (sentinel) {
+      this.observer.observe(sentinel);
+    }
+  }
+
   mount(selector) {
     super.mount(selector);
     this.init();
+  }
+
+  /** 렌더가 발생할 때마다 Observer가 바라보고 있는 요소를 다시 관찰하도록 설정 */
+  render() {
+    super.render();
+    this.setupInfiniteScroll();
   }
 
   events() {
