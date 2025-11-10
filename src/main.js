@@ -8,15 +8,37 @@ const enableMocking = () =>
     }),
   );
 
+function itemLimitSelectEventListener() {
+  const itemLimitSelector = document.querySelector("#limit-select");
+
+  itemLimitSelector.addEventListener("change", async (event) => {
+    const selectedLimit = event.target.value;
+
+    const $root = document.querySelector("#root");
+    const data = await getProducts({ limit: selectedLimit });
+    const categories = await getCategories();
+
+    $root.innerHTML = HomePage({ ...data, categories, loading: false, limit: selectedLimit });
+    itemLimitSelectEventListener();
+  });
+}
+
 async function main() {
+  const state = {
+    limit: 20,
+    search: "",
+  };
+
   const $root = document.querySelector("#root");
   $root.innerHTML = HomePage({ loading: true, categories: {} });
   // 처음에 렌더링
   const data = await getProducts();
-  const categories = await getCategories();
+  const categories = await getCategories({ limit: state.limit });
 
   // 렌더링 끝나고 다시 데이터 넘겨 줌
-  $root.innerHTML = HomePage({ ...data, categories, loading: false });
+  $root.innerHTML = HomePage({ ...data, categories, loading: false, limit: state.limit });
+
+  itemLimitSelectEventListener();
 }
 
 // 애플리케이션 시작

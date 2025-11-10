@@ -13,22 +13,22 @@ export const SearchBar = () => {
       </div>`;
 };
 
-export const ItemCountSelector = () => {
+export const ItemCountSelector = ({ limit }) => {
   return /*HTML*/ `<!-- 페이지당 상품 수 -->
           <div class="flex items-center gap-2">
           <label class="text-sm text-gray-600">개수:</label>
           <select id="limit-select"
                   class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-            <option value="10">
+            <option value="10" ${limit == 10 ? "selected" : ""}>
               10개
             </option>
-            <option value="20" selected="">
+            <option value="20" ${limit == 20 ? "selected" : ""}>
               20개
             </option>
-            <option value="50">
+            <option value="50" ${limit == 50 ? "selected" : ""}>
               50개
             </option>
-            <option value="100">
+            <option value="100" ${limit == 100 ? "selected" : ""}>
               100개
             </option>
           </select>
@@ -67,14 +67,12 @@ export const FirstDepthCategory = ({ category1 }) => {
   `;
 };
 
-export const Search = ({ loading, categories = {} }) => {
+export const Search = ({ loading, categories = {}, limit }) => {
   const category1 = Object.keys(categories);
 
-  /*HTML*/
-  return `   
+  return /*HTML*/ `   
       <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-      <!-- 검색창 -->
       ${SearchBar()}
       <!-- 필터 옵션 -->
       <div class="space-y-3">
@@ -91,15 +89,17 @@ export const Search = ({ loading, categories = {} }) => {
             <div class="flex flex-wrap gap-2">
               ${CategoryLoading()}
             </div>`
-              : `   <div class="flex flex-wrap gap-2">
-${FirstDepthCategory({ category1 })}</div>`
+              : /*HTML*/ `
+               <div class="flex flex-wrap gap-2">
+                  ${FirstDepthCategory({ category1 })}
+                </div>`
           }
           <!-- 2depth 카테고리 -->
         </div>
        
         <!-- 기존 필터들 -->
         <div class="flex gap-2 items-center justify-between">
-          ${ItemCountSelector()}
+          ${ItemCountSelector({ limit })}
           ${SortSelector()}
         </div>
       </div>
