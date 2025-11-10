@@ -68,6 +68,22 @@ export const cartStore = createStore((set, get) => {
       saveToStorage(get());
     },
 
+    updateItemQuantity: (productId, quantity) => {
+      const { items } = get();
+      const newItems = items.map((item) =>
+        item.id === productId ? { ...item, quantity: Math.max(1, quantity) } : item,
+      );
+      set({ items: newItems });
+      saveToStorage(get());
+    },
+
+    removeItems: (productIds) => {
+      const { items } = get();
+      const newItems = items.filter((item) => !productIds.includes(item.id));
+      set({ items: newItems });
+      saveToStorage(get());
+    },
+
     getItemCount: () => {
       return get().items.length;
     },
