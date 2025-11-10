@@ -48,7 +48,7 @@ export class ProductDTO {
   }
 
   get categoryPath() {
-    return [this.category1, this.category2, this.category3, this.category4].filter(Boolean).join(" > ");
+    return [this.category1, this.category2, this.category3, this.category4].filter(Boolean);
   }
 
   static fromApi(data) {
