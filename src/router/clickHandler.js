@@ -24,7 +24,7 @@ export const setupClickHandler = (routes) => {
       }
 
       const productId = productCard.dataset.productId;
-      navigateTo(routes, `/products/${productId}`);
+      navigateTo(routes, `/product/${productId}`);
       return;
     }
   });

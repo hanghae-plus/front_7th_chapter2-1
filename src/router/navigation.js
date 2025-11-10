@@ -4,7 +4,7 @@ import { renderCurrentPage } from "./renderer";
 /**
  * 프로그래밍 방식으로 페이지 이동
  * @param {Array} routes - 라우트 설정 배열
- * @param {string} path - 이동할 경로 (예: "/", "/products/123")
+ * @param {string} path - 이동할 경로 (예: "/", "/product/123")
  * @param {Object} query - 쿼리 파라미터 객체 (예: { search: "신발" })
  */
 export const navigateTo = (routes, path, query = {}) => {

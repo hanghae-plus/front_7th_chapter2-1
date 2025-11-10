@@ -3,7 +3,7 @@ import { matchPath } from "./pathMatcher";
 /**
  * 라우트 배열에서 현재 경로와 매칭되는 라우트 찾기
  * @param {Array} routes - 라우트 설정 배열
- * @param {string} pathname - 현재 경로 (예: "/products/123")
+ * @param {string} pathname - 현재 경로 (예: "/product/123")
  * @returns {Object} { route, params }
  */
 export const findMatchingRoute = (routes, pathname) => {
