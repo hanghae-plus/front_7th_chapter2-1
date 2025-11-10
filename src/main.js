@@ -1,7 +1,12 @@
+const BASE_URL = "/front_7th_chapter2-1/";
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
       onUnhandledRequest: "bypass",
+      serviceWorker: {
+        url: `${BASE_URL}mockServiceWorker.js`,
+        options: { scope: BASE_URL },
+      },
     }),
   );
 
