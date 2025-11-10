@@ -1,4 +1,6 @@
-export const SearchForm = () => {
+import { Category } from "./Category";
+
+export const SearchForm = ({ categories }) => {
   return /*html*/ `
 <!-- 검색 및 필터 -->
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -16,18 +18,16 @@ export const SearchForm = () => {
   </div>
   <!-- 필터 옵션 -->
   <div class="space-y-3">
-    <!-- 카테고리 필터 -->
-    <div class="space-y-2">
-      <div class="flex items-center gap-2">
-        <label class="text-sm text-gray-600">카테고리:</label>
-        <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
-      </div>
-      <!-- 1depth 카테고리 -->
-      <div class="flex flex-wrap gap-2">
-        <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
-      </div>
-      <!-- 2depth 카테고리 -->
-    </div>
+    <!--  카테고리 -->
+    ${
+      categories
+        ? `
+    ${Category({ categories })}`
+        : `<div class="flex flex-wrap gap-2">
+      <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
+    </div>`
+    }
+
     <!-- 기존 필터들 -->
     <div class="flex gap-2 items-center justify-between">
       <!-- 페이지당 상품 수 -->
