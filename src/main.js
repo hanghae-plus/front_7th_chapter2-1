@@ -1,7 +1,7 @@
 import { getProduct, getProducts } from "./api/productApi.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
-import { NotFoundPage } from "./pages/NotFoundPage.js";
+import { Router } from "./utils/Router.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -11,30 +11,40 @@ const enableMocking = () =>
   );
 
 const render = async () => {
-  const $root = document.querySelector("#root");
-  if (location.pathname === "/") {
-    $root.innerHTML = HomePage({ loading: true });
-    const data = await getProducts();
-    $root.innerHTML = HomePage({ ...data, loading: false });
-  } else if (location.pathname.startsWith("/product/")) {
-    $root.innerHTML = DetailPage({ loading: true });
-    const productId = location.pathname.split("/")[2];
-    const product = await getProduct(productId);
-    $root.innerHTML = DetailPage({ loading: false, product: product.error ? undefined : product, relatedProducts: [] });
-    if (!product.error) {
-      const relatedProducts = (await getProducts({ page: 1, category2: product.category2 })).products.filter(
-        (product) => product.productId !== productId,
-      );
-      $root.innerHTML = DetailPage({ loading: false, product: product, relatedProducts });
-    }
-  } else {
-    $root.innerHTML = NotFoundPage();
+  const productId = (location.pathname ?? "").split("/")[2];
+  const newPathName = productId ? "/product/:productId" : location.pathname;
+  if (newPathName) {
+    router.handleRoute(newPathName);
+    return;
   }
 };
 
 const main = async () => {
   render();
+  router.handleRoute("/");
 };
+
+const router = new Router();
+router.addRoute("/", async () => {
+  const $root = document.querySelector("#root");
+  $root.innerHTML = HomePage({ loading: true });
+  const data = await getProducts();
+  $root.innerHTML = HomePage({ ...data, loading: false });
+});
+
+router.addRoute("/product/:productId", async () => {
+  const $root = document.querySelector("#root");
+  $root.innerHTML = DetailPage({ loading: true });
+  const productId = location.pathname.split("/")[2];
+  const product = await getProduct(productId);
+  $root.innerHTML = DetailPage({ loading: false, product: product.error ? undefined : product, relatedProducts: [] });
+  if (!product.error) {
+    const relatedProducts = (await getProducts({ page: 1, category2: product.category2 })).products.filter(
+      (product) => product.productId !== productId,
+    );
+    $root.innerHTML = DetailPage({ loading: false, product: product, relatedProducts });
+  }
+});
 
 document.body.addEventListener("click", (e) => {
   const productCard = e.target.closest(".product-card") ?? e.target.closest(".related-product-card");
@@ -43,10 +53,10 @@ document.body.addEventListener("click", (e) => {
     history.pushState(null, null, `/product/${productId}`);
     render();
   }
-});
-
-window.addEventListener("popstate", () => {
-  render();
+  if (e.target.tagName === "A") {
+    e.preventDefault();
+    router.navigateTo(e.target.pathname);
+  }
 });
 
 // 애플리케이션 시작
