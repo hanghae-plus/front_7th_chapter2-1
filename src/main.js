@@ -2,6 +2,26 @@ import HomePage from "./pages/HomePage";
 import { getProducts, getProduct } from "./api/productApi";
 import ProductDetailPage from "./pages/ProductDetailPage";
 
+let listLoading = false;
+let listResponse = {
+  products: [],
+  pagination: {
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: true,
+    hasPrev: false,
+  },
+  filters: {
+    search: "",
+    category1: "",
+    category2: "",
+    sort: "price_asc",
+  },
+};
+let ioSentinel = null;
+
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
@@ -18,10 +38,10 @@ async function main() {
     $root.innerHTML = `
       ${HomePage({ loading: true })}
     `;
-    const response = await getProducts();
-    console.log(response);
+    listResponse = await getProducts({ limit: listResponse.pagination.limit });
+    console.log(listResponse);
     $root.innerHTML = `
-      ${HomePage({ loading: false, response })}
+      ${HomePage({ loading: false, response: listResponse })}
     `;
   } else if (pathName.startsWith("/product/")) {
     const id = pathName.split("/")[2];
@@ -34,6 +54,66 @@ async function main() {
       ${ProductDetailPage({ loading: false, response })}
     `;
   }
+
+  /* Event Handlers */
+  $root.addEventListener("click", async (event) => {
+    console.log(event);
+    if (event.target.id === "limit-select") {
+      const value = parseInt(event.target.value);
+      if (value === listResponse.pagination.limit) {
+        return;
+      }
+      listResponse.pagination.limit = value;
+      listResponse.pagination.page = 1;
+      listResponse.pagination.hasNext = true;
+      listResponse.pagination.hasPrev = false;
+      listResponse.products = [];
+
+      $root.innerHTML = `
+        ${HomePage({ loading: true })}
+      `;
+      listResponse = await getProducts({ limit: listResponse.pagination.limit });
+      console.log("event", listResponse);
+      $root.innerHTML = `
+        ${HomePage({ loading: false, response: listResponse })}
+      `;
+    }
+  });
+
+  /* Intersection Observer */
+  // TODO: refactor with component identification structure
+  ioSentinel = document.querySelector("#sentinel");
+  const io = new IntersectionObserver(
+    async ([entry]) => {
+      console.log("entry", entry.isIntersecting, listResponse.pagination.hasNext, listLoading);
+      if (!entry.isIntersecting || !listResponse.pagination.hasNext || listLoading) return;
+      listLoading = true;
+      $root.innerHTML = `
+        ${HomePage({ loading: true, response: listResponse })}
+      `;
+      const response = await getProducts({
+        limit: listResponse.pagination.limit,
+        page: listResponse.pagination.page + 1,
+      });
+      listResponse.products.push(...response.products);
+      listResponse.pagination.page = response.pagination.page;
+      listResponse.pagination.total = response.pagination.total;
+      listResponse.pagination.totalPages = response.pagination.totalPages;
+      listResponse.pagination.hasNext = response.pagination.hasNext;
+      listResponse.pagination.hasPrev = response.pagination.hasPrev;
+      console.log("listResponse- IO", response, listResponse);
+      $root.innerHTML = `
+        ${HomePage({ loading: false, response: listResponse })}
+      `;
+      listLoading = false;
+    },
+    {
+      root: null,
+      rootMargin: "200px",
+      threshold: 0,
+    },
+  );
+  io.observe(ioSentinel);
 }
 
 // 애플리케이션 시작
