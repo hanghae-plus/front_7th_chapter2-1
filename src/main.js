@@ -10,7 +10,7 @@ const enableMocking = () =>
     }),
   );
 
-const router = new Router();
+const router = new Router(document.querySelector("#root"));
 
 const render = async () => {
   router.handleRoute(location.pathname);
@@ -50,6 +50,9 @@ document.body.addEventListener("click", (e) => {
   }
   if (e.target.tagName === "A") {
     e.preventDefault();
+    if (location.pathname === e.target.pathname) {
+      return;
+    }
     router.navigateTo(e.target.pathname);
   }
 });

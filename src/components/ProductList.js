@@ -54,7 +54,7 @@ const ProductCard = (product) => {
 `;
 };
 
-export const ProductList = ({ loading, products, total }) => {
+export const ProductList = ({ loading, products = [], total }) => {
   return `
 <!-- 상품 목록 -->
 <div class="mb-6">

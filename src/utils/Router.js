@@ -46,8 +46,7 @@ export class Router {
     if (handler) {
       handler();
     } else {
-      const $root = document.querySelector("#root");
-      $root.innerHTML = NotFoundPage();
+      this.$container.innerHTML = NotFoundPage();
       console.log("404 Not Found");
     }
   }
