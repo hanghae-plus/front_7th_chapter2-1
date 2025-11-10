@@ -234,5 +234,44 @@ export class HomePage extends BaseComponent {
 
       this.init();
     });
+
+    // 6-1. 카테고리 1Depth 필터 이벤트
+    this.el.addEventListener("click", (e) => {
+      if (e.target.classList.contains("category1-filter-btn")) {
+        const category1 = e.target.dataset.category1;
+        this.setState({
+          params: { ...this.state.params, category1, page: 1 },
+        });
+        this.init();
+      }
+    });
+
+    // 6-2. 카테고리 2Depth 필터 이벤트
+    this.el.addEventListener("click", (e) => {
+      if (e.target.classList.contains("category2-filter-btn")) {
+        const category2 = e.target.dataset.category2;
+        this.setState({
+          params: { ...this.state.params, category2, page: 1 },
+        });
+        this.init();
+      }
+    });
+
+    // 6-3. 브레드크럼 클릭 이벤트
+    this.el.addEventListener("click", (e) => {
+      if (e.target.dataset.breadcrumb === "reset") {
+        this.setState({
+          params: { ...this.state.params, category1: "", category2: "", page: 1 },
+        });
+        this.init();
+      }
+      if (e.target.dataset.breadcrumb === "category1") {
+        const category1 = e.target.dataset.category1;
+        this.setState({
+          params: { ...this.state.params, category1, category2: null, page: 1 },
+        });
+        this.init();
+      }
+    });
   }
 }
