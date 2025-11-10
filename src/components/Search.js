@@ -22,12 +22,16 @@ const SearchContent = () => /*html*/ `
     </button>
   </div>
 `;
-
+// 갯수보여주는 셀렉트
 const renderLimitOption = (value, current) => `
   <option value="${value}" ${current === value ? "selected" : ""}>${value}개</option>
 `;
+// 정렬셀렉트
+const renderSortOption = (value, current, label) => `
+  <option value="${value}" ${current === value ? "selected" : ""}>${label}</option>
+`;
 
-export const Search = ({ loading = false, limit = 20 } = {}) => {
+export const Search = ({ loading = false, limit = 20, sort = "price_asc" } = {}) => {
   return /*html*/ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
       <div class="mb-4">
@@ -80,10 +84,14 @@ export const Search = ({ loading = false, limit = 20 } = {}) => {
               class="text-sm border border-gray-300 rounded px-2 py-1
                 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="price_asc" selected>가격 낮은순</option>
-              <option value="price_desc">가격 높은순</option>
-              <option value="name_asc">이름순</option>
-              <option value="name_desc">이름 역순</option>
+              ${[
+                ["price_asc", "가격 낮은순"],
+                ["price_desc", "가격 높은순"],
+                ["name_asc", "이름순"],
+                ["name_desc", "이름 역순"],
+              ]
+                .map(([value, label]) => renderSortOption(value, sort, label))
+                .join("")}
             </select>
           </div>
         </div>

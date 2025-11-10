@@ -94,10 +94,11 @@ export const ItemList = ({
   hasMore = false,
   loadMoreError = null,
 } = {}) => {
+  // 에러났을때 보여주는 것
   if (error) {
     return renderError(error);
   }
-
+  // 로딩상태
   if (loading) {
     return /*html*/ `
       <section class="mb-6">
@@ -108,7 +109,8 @@ export const ItemList = ({
       </section>
     `;
   }
-
+  // 로딩 완료 후 보여주는 것
+  // 상품을 가져왔는지 확인
   const hasProducts = Array.isArray(products) && products.length > 0;
 
   return /*html*/ `
