@@ -1,6 +1,7 @@
 import HomePage from "./pages/HomePage";
 import DetailPage from "./pages/DetailPage";
 import NotFound from "./pages/NotFound";
+import { eventBus, Events } from "./core/EventBus";
 
 const routes = [
   {
@@ -148,7 +149,7 @@ export const renderPage = (routerId = "router-view") => {
   }
 
   // 라우트 변경 완료 이벤트 발생 (Header 업데이트용)
-  window.dispatchEvent(new CustomEvent("route:changed", { detail: { path } }));
+  eventBus.emit(Events.ROUTE_CHANGED, path);
 };
 
 let initialized = false;

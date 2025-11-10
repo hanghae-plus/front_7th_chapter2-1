@@ -38,6 +38,7 @@ const HomePage = ({ root }) => {
       `;
     });
 
+    // 최초 1번만 - DOM 이벤트 위임
     onMount(({ root, getState, on }) => {
       const onCardClick = (e) => {
         const btn = e.target.closest(".add-to-cart-btn");

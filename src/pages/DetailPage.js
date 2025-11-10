@@ -36,6 +36,7 @@ const DetailPage = ({ root, params }) => {
       `;
     });
 
+    // 최초 1번만 - DOM 이벤트 위임
     onMount(({ root, on }) => {
       const onQuantityIncrease = (e) => {
         const btn = e.target.closest("#quantity-increase");

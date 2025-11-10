@@ -1,5 +1,6 @@
 import { createComponent } from "../core/BasePage";
 import { getCartItemCount } from "../utils/cart";
+import { eventBus, Events } from "../core/EventBus";
 
 const getTitleByPath = (path) => {
   if (path === "/") return "쇼핑몰";
@@ -90,13 +91,13 @@ const Header = ({ root }) => {
       `;
     });
 
-    onMount(({ on }) => {
-      on(window, "cart:updated", () => {
+    // 최초 1번만 실행 - EventBus 구독
+    onMount(({ setState }) => {
+      eventBus.on(Events.CART_UPDATED, () => {
         setState({ cartCount: getCartItemCount() });
       });
 
-      on(window, "route:changed", (e) => {
-        const { path } = e.detail || {};
+      eventBus.on(Events.ROUTE_CHANGED, (path) => {
         if (path) {
           setState({ currentPath: path });
         }
