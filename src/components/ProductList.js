@@ -101,7 +101,6 @@ export default function ProductList({ response }) {
               }),
             )
             .join("\n")}
-          <div id="sentinel"/>
         </div>
         
         <div class="text-center py-4 text-sm text-gray-500">
