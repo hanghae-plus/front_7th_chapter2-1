@@ -1,7 +1,7 @@
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) => {
     const isProduction = import.meta.env.PROD;
-    const basePath = isProduction ? "/front-7th_chapter2-1" : "";
+    const basePath = isProduction ? "/front_7th_chapter2-1" : "";
 
     return worker.start({
       onUnhandledRequest: "bypass",
