@@ -19,10 +19,16 @@ const push = (path) => {
 const render = async () => {
   const $root = document.querySelector("#root");
   const searchParams = new URLSearchParams(location.search);
+  const category1 = searchParams.get("category1");
+  const category2 = searchParams.get("category2");
 
   if (location.pathname === "/") {
     $root.innerHTML = HomePage({ loading: true });
-    const data = await getProducts();
+    const data = await getProducts({
+      category1,
+      category2,
+    });
+    console.log(data);
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, loading: false, categories });
 
