@@ -1,5 +1,5 @@
 export const createComponent = (setup) => {
-  return ({ root, props = {} }) => {
+  return ({ root, props = {}, options }) => {
     let state = {};
     let view = () => "";
     const mountCallbacks = [];
@@ -25,17 +25,17 @@ export const createComponent = (setup) => {
 
     // 최초 1번만 실행 (이벤트 구독 등)
     const onMount = (fn) => {
+      console.log(`${options?.name || "component"} onMount`);
+
       mountCallbacks.push(fn);
     };
 
     // 매 업데이트마다 실행 (DOM 이벤트 바인딩)
     const onUpdated = (fn) => {
-      console.log("onUpdated");
       renderCallbacks.push(fn);
     };
 
     const render = () => {
-      console.log("render");
       // 이전 render 바인딩 제거
       renderCleanups.forEach((fn) => fn && fn());
       renderCleanups = [];
@@ -64,7 +64,7 @@ export const createComponent = (setup) => {
       getState,
       setState,
       unmount() {
-        console.log("unmount");
+        console.log(`${options?.name || "component"} unmount`);
         mountCleanups.forEach((fn) => fn && fn());
         renderCleanups.forEach((fn) => fn && fn());
         mountCleanups = [];
