@@ -11,9 +11,9 @@ export const 상세페이지_로딩 = /* html */ `
     </div>
   </main>
 `;
-export default function ProductDetailPage({ loading, response }) {
+export default function ProductDetailPage({ loading, response, cart = [] }) {
   if (loading) {
     return PageLayout({ children: 상세페이지_로딩, isDetailPage: true });
   }
-  return PageLayout({ children: ProductDetail({ response }), isDetailPage: true });
+  return PageLayout({ children: ProductDetail({ response }), isDetailPage: true, cart });
 }

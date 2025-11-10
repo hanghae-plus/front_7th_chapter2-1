@@ -21,6 +21,7 @@ let listResponse = {
   },
 };
 let ioSentinel = null;
+let cart = [];
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -36,22 +37,25 @@ async function main() {
 
   if (pathName === "/") {
     $root.innerHTML = `
-      ${HomePage({ loading: true })}
+      ${HomePage({ loading: true, cart })}
     `;
-    listResponse = await getProducts({ limit: listResponse.pagination.limit });
+    listResponse = await getProducts({
+      limit: listResponse.pagination.limit,
+      search: listResponse.filters.search,
+    });
     console.log(listResponse);
     $root.innerHTML = `
-      ${HomePage({ loading: false, response: listResponse })}
+      ${HomePage({ loading: false, response: listResponse, cart })}
     `;
   } else if (pathName.startsWith("/product/")) {
     const id = pathName.split("/")[2];
     $root.innerHTML = `
-      ${ProductDetailPage({ loading: true })}
+      ${ProductDetailPage({ loading: true, cart })}
     `;
     const response = await getProduct(id);
     console.log(response);
     $root.innerHTML = `
-      ${ProductDetailPage({ loading: false, response })}
+      ${ProductDetailPage({ loading: false, response, cart })}
     `;
   }
 
@@ -69,13 +73,46 @@ async function main() {
       listResponse.pagination.hasPrev = false;
       listResponse.products = [];
 
+      listResponse.filters.search = "";
+
       $root.innerHTML = `
-        ${HomePage({ loading: true })}
+        ${HomePage({ loading: true, cart })}
       `;
       listResponse = await getProducts({ limit: listResponse.pagination.limit });
       console.log("event", listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, response: listResponse })}
+        ${HomePage({ loading: false, response: listResponse, cart })}
+      `;
+    } else if (event.target.id === "add-to-cart-btn") {
+      const productId = event.target.dataset.productId;
+      console.log("add-to-cart-btn", productId);
+      if (cart.includes(productId)) return;
+      cart.push(productId);
+      console.log("cart", cart);
+    }
+  });
+
+  $root.addEventListener("keydown", async (event) => {
+    if (event.target.id === "search-input" && event.key === "Enter") {
+      const value = event.target.value;
+
+      if (value === listResponse.filters.search) return;
+
+      listResponse.filters.search = value;
+      listResponse.pagination.page = 1;
+      listResponse.pagination.hasNext = true;
+      listResponse.pagination.hasPrev = false;
+      listResponse.products = [];
+
+      $root.innerHTML = `
+        ${HomePage({ loading: true, cart })}
+      `;
+      listResponse = await getProducts({
+        limit: listResponse.pagination.limit,
+        search: listResponse.filters.search,
+      });
+      $root.innerHTML = `
+        ${HomePage({ loading: false, response: listResponse, cart })}
       `;
     }
   });
