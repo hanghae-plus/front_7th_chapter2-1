@@ -1,9 +1,15 @@
 const enableMocking = () =>
-  import("./mocks/browser.js").then(({ worker }) =>
-    worker.start({
+  import("./mocks/browser.js").then(({ worker }) => {
+    const isProduction = import.meta.env.PROD;
+    const basePath = isProduction ? "/front-7th_chapter2-1" : "";
+
+    return worker.start({
       onUnhandledRequest: "bypass",
-    }),
-  );
+      serviceWorker: {
+        url: `${basePath}/mockServiceWorker.js`,
+      },
+    });
+  });
 
 function main() {
   const 상품목록_레이아웃_로딩 = `
