@@ -25,7 +25,7 @@ let headerInstance = null;
 export const initMainLayout = () => {
   const headerContainer = document.getElementById("header-container");
   if (headerContainer && !headerInstance) {
-    headerInstance = Header({ root: headerContainer });
+    headerInstance = Header({ root: headerContainer, options: { name: "Header" } });
   }
 };
 

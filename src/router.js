@@ -7,10 +7,12 @@ const routes = [
   {
     path: "/",
     component: HomePage,
+    name: "home",
   },
   {
     path: "/product/:productId",
     component: DetailPage,
+    name: "detail",
   },
 ];
 
@@ -145,6 +147,7 @@ export const renderPage = (routerId = "router-view") => {
     // 페이지 컴포넌트 실행 및 인스턴스 저장
     const pageInstance = matchedRoute.component({
       root: routerRoot,
+      options: { name: matchedRoute.name },
     });
 
     // 페이지 인스턴스가 unmount 메서드를 가지고 있으면 저장

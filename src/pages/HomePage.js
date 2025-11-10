@@ -1,7 +1,5 @@
 import SearchFilter from "../components/SearchFilter";
-import LoadingSpinner from "../components/LoadingSpinner";
-import LoadingSkeleton from "../components/LoadingSkeleton";
-import ProductCard from "../components/ProductCard";
+import ProductList from "../components/ProductList";
 import { Router } from "../router";
 import { createComponent } from "../core/BaseComponent";
 import { useAsync } from "../core/useAsync";
@@ -15,13 +13,38 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
 
   setState({
     data: null,
-    isLoading: true,
-    error: null,
     searchValue: "",
+    filter: {
+      page: 1,
+    },
+  });
+
+  // useAsync는 로딩/에러만 관리, 데이터는 onSuccess에서 직접 처리
+  const productsAsync = useAsync(() => getProducts(getState().filter), {
+    onSuccess: (newData) => {
+      const { filter, data: prevData } = getState();
+
+      if (filter.page === 1) {
+        // 첫 페이지면 데이터 교체
+        setState({ data: newData });
+      } else {
+        // 무한스크롤: products만 누적, pagination은 최신값으로
+        setState({
+          data: {
+            ...newData,
+            products: [...(prevData?.products || []), ...(newData.products || [])],
+          },
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("상품 목록 로드 실패:", error);
+    },
   });
 
   template((state) => {
-    const { isLoading, error, data, searchValue = "" } = state;
+    const { searchValue = "", data } = state;
+    const { isLoading, error } = productsAsync.getState();
 
     if (error) {
       return `
@@ -35,32 +58,19 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
 
     return `
       ${SearchFilter({ isLoading, searchValue })}
-      <div class="mb-6">
-        <div>
-          ${
-            pagination.total
-              ? `<div class="mb-4 text-sm text-gray-600">총 <span class="font-medium text-gray-900">${pagination.total}</span>개의 상품</div>`
-              : ""
-          }
-          <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-            ${isLoading ? LoadingSkeleton().repeat(4) : products.map((p) => ProductCard(p)).join("")}
-          </div>
-          ${isLoading ? LoadingSpinner() : ""}
-        </div>
-      </div>
+      ${ProductList({ products, pagination, isLoading })}
     `;
+  });
+
+  // useAsync 상태 변화 구독 (로딩/에러 변경 시 리렌더링)
+  productsAsync.subscribe(() => {
+    setState({});
   });
 
   // 최초 1번만 - DOM 이벤트 위임 + 데이터 fetch
   onMount(() => {
-    // 상품 목록 로드 (useAsync 사용)
-    const fetchProducts = useAsync(setState, getProducts, {
-      onError: (error) => {
-        console.error("상품 목록 로드 실패:", error);
-      },
-    });
-
-    fetchProducts();
+    // 상품 목록 로드
+    productsAsync.execute();
 
     // DOM 이벤트 위임
     const onCardClick = (e) => {
@@ -78,8 +88,8 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
       const id = btn.getAttribute("data-product-id");
       if (!id) return;
 
-      const state = getState();
-      const products = state.data?.products || [];
+      const { data } = getState();
+      const products = data?.products || [];
       const product = products.find((p) => p.productId === id);
 
       if (product) {
@@ -100,13 +110,21 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
     const onRetry = (e) => {
       const btn = e.target.closest("#retry-btn");
       if (!btn) return;
-      fetchProducts();
+      productsAsync.execute();
+    };
+
+    const onLoadMore = (e) => {
+      const btn = e.target.closest("#load-more-btn");
+      if (!btn) return;
+      setState({ filter: { ...getState().filter, page: getState().filter.page + 1 } });
+      productsAsync.execute();
     };
 
     on(root, "click", onCardClick);
     on(root, "click", onAddToCart);
     on(root, "click", onRetry);
     on(root, "input", onSearch);
+    on(root, "click", onLoadMore);
   });
 });
 
