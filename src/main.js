@@ -28,7 +28,6 @@ const render = async () => {
       category1,
       category2,
     });
-    console.log(data);
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, loading: false, categories });
 
