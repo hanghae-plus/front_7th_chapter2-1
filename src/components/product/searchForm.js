@@ -1,4 +1,4 @@
-export function searchForm() {
+export default function searchForm() {
   let searchInput = `
         <!-- 검색창 -->
         <div class="mb-4">

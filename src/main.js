@@ -1,8 +1,8 @@
-import { header } from "./components/common/header.js";
-import { footer } from "./components/common/footer.js";
-import { searchForm } from "./components/product/searchForm.js";
+import header from "./components/common/header.js";
+import footer from "./components/common/footer.js";
+import searchForm from "./components/product/searchForm.js";
 import { toastUI } from "./components/common/toastUI.js";
-import { productList } from "./components/product/list.js";
+import productList from "./components/product/list.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
