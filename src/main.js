@@ -23,6 +23,22 @@ function itemLimitSelectEventListener() {
   });
 }
 
+function searchEventListener() {
+  const searchInput = document.querySelector("#search-input");
+
+  searchInput.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter") return;
+
+    const searchValue = event.target.value;
+    const $root = document.querySelector("#root");
+    const data = await getProducts({ search: searchValue });
+    const categories = await getCategories();
+
+    $root.innerHTML = HomePage({ ...data, categories, loading: false, search: searchValue });
+    searchEventListener();
+  });
+}
+
 async function main() {
   const state = {
     limit: 20,
@@ -39,6 +55,7 @@ async function main() {
   $root.innerHTML = HomePage({ ...data, categories, loading: false, limit: state.limit });
 
   itemLimitSelectEventListener();
+  searchEventListener();
 }
 
 // 애플리케이션 시작
