@@ -66,6 +66,8 @@ const matchRoute = (path, routePath) => {
   return { match: false, params: {} };
 };
 
+let currentParams = {};
+
 export const Router = (() => {
   let currentPath = window.location.pathname;
   let currentSearch = window.location.search;
@@ -98,6 +100,11 @@ export const Router = (() => {
     },
   });
 })();
+
+// 라우터 훅: 현재 라우트 params 가져오기
+export const useParams = () => {
+  return currentParams;
+};
 
 let currentPageInstance = null;
 
@@ -132,10 +139,12 @@ export const renderPage = (routerId = "router-view") => {
     const queryParams = Object.fromEntries(searchParams);
     const allParams = { ...routeParams, ...queryParams };
 
+    // 현재 params 저장 (useParams에서 사용)
+    currentParams = allParams;
+
     // 페이지 컴포넌트 실행 및 인스턴스 저장
     const pageInstance = matchedRoute.component({
       root: routerRoot,
-      params: allParams,
     });
 
     // 페이지 인스턴스가 unmount 메서드를 가지고 있으면 저장
@@ -143,6 +152,7 @@ export const renderPage = (routerId = "router-view") => {
       currentPageInstance = pageInstance;
     }
   } else {
+    currentParams = {};
     NotFound({
       root: routerRoot,
     });

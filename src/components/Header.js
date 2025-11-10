@@ -44,20 +44,19 @@ const shouldShowBackButton = (path) => {
   return path.startsWith("/product/");
 };
 
-const Header = ({ root }) => {
-  return createComponent(root, ({ setState, template, onMount }) => {
-    setState({
-      currentPath: window.location.pathname,
-      cartCount: 0,
-    });
+const Header = createComponent(({ setState, template, onMount }) => {
+  setState({
+    currentPath: window.location.pathname,
+    cartCount: 0,
+  });
 
-    template((state) => {
-      const { currentPath, cartCount } = state;
-      const title = getTitleByPath(currentPath);
-      const showBackButton = shouldShowBackButton(currentPath);
-      const titleTemplate = getTitleTemplateByPath(currentPath, title);
+  template((state) => {
+    const { currentPath, cartCount } = state;
+    const title = getTitleByPath(currentPath);
+    const showBackButton = shouldShowBackButton(currentPath);
+    const titleTemplate = getTitleTemplateByPath(currentPath, title);
 
-      return /*html*/ `
+    return /*html*/ `
           <div class="max-w-md mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -87,25 +86,24 @@ const Header = ({ root }) => {
                 </button>
               </div>
             </div>
-          </div>
-      `;
+        </div>
+    `;
+  });
+
+  // 최초 1번만 실행 - Store & EventBus 구독
+  onMount(() => {
+    // 장바구니 Store 구독 (자동 재렌더!)
+    cartStore.subscribe((cartState) => {
+      setState({ cartCount: cartState.items.length });
     });
 
-    // 최초 1번만 실행 - Store & EventBus 구독
-    onMount(({ setState }) => {
-      // 장바구니 Store 구독 (자동 재렌더!)
-      cartStore.subscribe((cartState) => {
-        setState({ cartCount: cartState.items.length });
-      });
-
-      // 라우트 변경 이벤트 구독
-      eventBus.on(Events.ROUTE_CHANGED, (path) => {
-        if (path) {
-          setState({ currentPath: path });
-        }
-      });
+    // 라우트 변경 이벤트 구독
+    eventBus.on(Events.ROUTE_CHANGED, (path) => {
+      if (path) {
+        setState({ currentPath: path });
+      }
     });
   });
-};
+});
 
 export default Header;
