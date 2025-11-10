@@ -5,7 +5,7 @@ import LoadingSpinner from "./LoadingSpinner";
 /**
  * 상품 목록 컴포넌트
  */
-const ProductList = ({ products = [], pagination = {}, isLoading = false }) => {
+const ProductList = ({ products = [], pagination = {}, isLoading = false, hasNext = true }) => {
   return `
     <div class="mb-6">
       <div>
@@ -18,7 +18,8 @@ const ProductList = ({ products = [], pagination = {}, isLoading = false }) => {
           ${products?.map((p) => ProductCard(p)).join("")}
           ${isLoading ? LoadingSkeleton().repeat(4) : ""}
         </div>
-        ${isLoading ? LoadingSpinner() : "<button id='load-more-btn'>더 보기</button>"}
+        ${hasNext ? `<div id="sentinel" class="h-4"></div>` : ""}
+        ${isLoading ? `<div class="text-center py-4">${LoadingSpinner()}</div>` : ""}
       </div>
     </div>
   `;

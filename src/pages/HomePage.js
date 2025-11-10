@@ -2,13 +2,12 @@ import SearchFilter from "../components/SearchFilter";
 import ProductList from "../components/ProductList";
 import { Router } from "../router";
 import { createComponent } from "../core/BaseComponent";
-import { useAsync } from "../core/useAsync";
 import { getProducts } from "../api/productApi";
 import { cartStore } from "../stores/cartStore";
 import { showToast } from "../components/Toast";
 import ErrorView from "../components/ErrorView";
 
-const HomePage = createComponent(({ root, getState, setState, template, onMount, on }) => {
+const HomePage = createComponent(({ root, getState, setState, template, onMount, onUpdated, on }) => {
   const router = Router();
 
   setState({
@@ -17,34 +16,37 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
     filter: {
       page: 1,
     },
+    isLoading: false,
+    error: null,
   });
 
-  // useAsync는 로딩/에러만 관리, 데이터는 onSuccess에서 직접 처리
-  const productsAsync = useAsync(() => getProducts(getState().filter), {
-    onSuccess: (newData) => {
-      const { filter, data: prevData } = getState();
+  const fetchProducts = async () => {
+    const { filter, data: prevData } = getState();
+    setState({ isLoading: true, error: null });
+
+    try {
+      const newData = await getProducts(filter);
+      console.log(filter);
 
       if (filter.page === 1) {
-        // 첫 페이지면 데이터 교체
-        setState({ data: newData });
+        setState({ data: newData, isLoading: false });
       } else {
-        // 무한스크롤: products만 누적, pagination은 최신값으로
         setState({
           data: {
             ...newData,
             products: [...(prevData?.products || []), ...(newData.products || [])],
           },
+          isLoading: false,
         });
       }
-    },
-    onError: (error) => {
+    } catch (error) {
       console.error("상품 목록 로드 실패:", error);
-    },
-  });
+      setState({ error, isLoading: false });
+    }
+  };
 
   template((state) => {
-    const { searchValue = "", data } = state;
-    const { isLoading, error } = productsAsync.getState();
+    const { searchValue = "", data, isLoading, error } = state;
 
     if (error) {
       return `
@@ -58,21 +60,35 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
 
     return `
       ${SearchFilter({ isLoading, searchValue })}
-      ${ProductList({ products, pagination, isLoading })}
+      ${ProductList({ products, pagination, isLoading, hasNext: pagination.hasNext })}
     `;
   });
 
-  // useAsync 상태 변화 구독 (로딩/에러 변경 시 리렌더링)
-  productsAsync.subscribe(() => {
-    setState({});
-  });
+  // 무한 스크롤 옵저버 (컴포넌트 레벨에서 한 번만 생성)
+  let observer = null;
 
-  // 최초 1번만 - DOM 이벤트 위임 + 데이터 fetch
+  // 최초 1번만 - DOM 이벤트 위임
   onMount(() => {
-    // 상품 목록 로드
-    productsAsync.execute();
+    // 무한 스크롤 옵저버 생성
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          console.log("무한 스크롤 옵저버 트리거");
+          const { isLoading, data } = getState();
+          const pagination = data?.pagination || {};
 
-    // DOM 이벤트 위임
+          // 로딩 중이거나 더 이상 데이터가 없으면 요청하지 않음
+          if (isLoading) return;
+          if (!pagination.hasNext) return;
+
+          // 다음 페이지 로드
+          const { filter } = getState();
+          setState({ filter: { ...filter, page: filter.page + 1 } });
+          fetchProducts();
+        }
+      });
+    });
+
     const onCardClick = (e) => {
       const btn = e.target.closest(".add-to-cart-btn");
       if (btn) return;
@@ -110,14 +126,14 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
     const onRetry = (e) => {
       const btn = e.target.closest("#retry-btn");
       if (!btn) return;
-      productsAsync.execute();
+      fetchProducts();
     };
 
     const onLoadMore = (e) => {
       const btn = e.target.closest("#load-more-btn");
       if (!btn) return;
       setState({ filter: { ...getState().filter, page: getState().filter.page + 1 } });
-      productsAsync.execute();
+      fetchProducts();
     };
 
     on(root, "click", onCardClick);
@@ -125,6 +141,19 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
     on(root, "click", onRetry);
     on(root, "input", onSearch);
     on(root, "click", onLoadMore);
+
+    // 최초 데이터 로드
+    fetchProducts();
+  });
+
+  // 매 렌더링마다 - sentinel 다시 관찰
+  onUpdated(() => {
+    if (!observer) return;
+
+    const sentinel = document.querySelector("#sentinel");
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
   });
 });
 

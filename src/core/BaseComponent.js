@@ -3,6 +3,7 @@ export const createComponent = (setup) => {
     let state = {};
     let view = () => "";
     const mountCallbacks = [];
+    const unmountCallbacks = [];
     const renderCallbacks = [];
     let mountCleanups = [];
     let renderCleanups = [];
@@ -30,6 +31,11 @@ export const createComponent = (setup) => {
       mountCallbacks.push(fn);
     };
 
+    // 언마운트 시 실행 (구독 해지 등)
+    const onUnmount = (fn) => {
+      unmountCallbacks.push(fn);
+    };
+
     // 매 업데이트마다 실행 (DOM 이벤트 바인딩)
     const onUpdated = (fn) => {
       renderCallbacks.push(fn);
@@ -51,7 +57,7 @@ export const createComponent = (setup) => {
     };
 
     // setup 함수 실행 (props 전달)
-    setup({ root, props, getState, setState, template, onMount, onUpdated, on });
+    setup({ root, props, getState, setState, template, onMount, onUnmount, onUpdated, on });
     render();
 
     // mount 콜백 실행 (최초 1번만)
@@ -65,6 +71,7 @@ export const createComponent = (setup) => {
       setState,
       unmount() {
         console.log(`${options?.name || "component"} unmount`);
+        unmountCallbacks.forEach((fn) => fn && fn());
         mountCleanups.forEach((fn) => fn && fn());
         renderCleanups.forEach((fn) => fn && fn());
         mountCleanups = [];
