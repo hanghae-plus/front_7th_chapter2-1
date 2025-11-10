@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
-  base: "/front_7th_chapter2-1/", // GitHub Pages 배포를 위한 base 경로
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/front_7th_chapter2-1/" : "/", // 프로덕션 빌드시에만 GitHub Pages base 경로 적용
   test: {
     globals: true,
     environment: "jsdom",
@@ -13,4 +13,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
