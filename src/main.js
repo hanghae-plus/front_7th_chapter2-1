@@ -20,6 +20,7 @@ const render = async () => {
   const category1 = searchParams.get("category1");
   const category2 = searchParams.get("category2");
   const search = searchParams.get("search");
+  const limit = +searchParams.get("limit");
 
   if (location.pathname === "/") {
     $root.innerHTML = HomePage({ loading: true });
@@ -27,6 +28,7 @@ const render = async () => {
       category1,
       category2,
       search,
+      limit,
     });
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, loading: false, categories });
@@ -52,18 +54,25 @@ const render = async () => {
         push(`/?${searchParams}`);
         return;
       }
+    });
 
-      const searchBar = document.querySelector("#search-input");
-      searchBar.addEventListener("change", (e) => {
-        searchBar.value = e.target.value;
-      });
+    const searchBar = document.querySelector("#search-input");
+    searchBar.addEventListener("change", (e) => {
+      searchBar.value = e.target.value;
+    });
 
-      const searchForm = document.querySelector("#search-form");
-      searchForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        searchParams.set("search", searchBar.value);
-        push(`/?${searchParams}`);
-      });
+    const searchForm = document.querySelector("#search-form");
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      searchParams.set("search", searchBar.value);
+      push(`/?${searchParams}`);
+    });
+
+    const limitSelect = document.querySelector("#limit-select");
+    if (searchParams.get("limit")) limitSelect.value = searchParams.get("limit");
+    limitSelect.addEventListener("change", (e) => {
+      searchParams.set("limit", String(e.target.value));
+      push(`/?${searchParams}`);
     });
   } else {
     $root.innerHTML = DetailPage({ loading: true });
