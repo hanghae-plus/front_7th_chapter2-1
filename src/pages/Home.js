@@ -1,10 +1,9 @@
-import Footer from "../components/Footer";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
+import ProductList from "../components/ProductList";
 
 const Home = () => {
   return `
-  ${Header()}
-  ${Footer()}
+  ${Layout(ProductList)}
   `;
 };
 
