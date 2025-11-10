@@ -9,4 +9,14 @@ export default [
   pluginJs.configs.recommended,
   eslintPluginPrettier,
   eslintConfigPrettier,
+  {
+    rules: {
+      "max-len": [
+        "warn",
+        {
+          code: 80,
+        },
+      ],
+    },
+  },
 ];
