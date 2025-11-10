@@ -23,12 +23,14 @@ const HomePage = async (render) => {
   const limit = new State("20");
   const sort = new State("price_asc");
 
+  const search = new State("");
+
   function pageRender() {
     render(
       PageLayout({
         children: () => /*HTML*/ `
          <!-- 검색 및 필터 -->
-        ${SearchForm({ isLoading: isLoading.get(), limit: limit.get(), sort: sort.get() })}
+        ${SearchForm({ isLoading: isLoading.get(), limit: limit.get(), sort: sort.get(), search: search.get() })}
          <!-- 상품 목록 -->
         ${ProductList({ isLoading: isLoading.get(), products: products.get() })}
        `,
@@ -39,6 +41,7 @@ const HomePage = async (render) => {
   pageRender();
 
   const getProductsData = async (params) => {
+    isLoading.set(true, pageRender);
     const productData = await getProducts(params);
     products.set(productData.products, pageRender);
     isLoading.set(false, pageRender);
@@ -47,6 +50,7 @@ const HomePage = async (render) => {
   await getProductsData();
 
   document.addEventListener("change", (e) => {
+    // 상품수
     if (e.target.id === "limit-select") {
       const value = e.target.value;
 
@@ -54,11 +58,21 @@ const HomePage = async (render) => {
       limit.set(value, pageRender);
     }
 
+    // 정렬
     if (e.target.id === "sort-select") {
       const value = e.target.value;
 
       getProductsData({ sort: value });
       sort.set(value, pageRender);
+    }
+  });
+
+  // 검색
+  addEventListener("keydown", (e) => {
+    if (e.target.id === "search-input" && e.key === "Enter") {
+      const value = e.target.value;
+      getProductsData({ search: value });
+      search.set(value, pageRender);
     }
   });
 };

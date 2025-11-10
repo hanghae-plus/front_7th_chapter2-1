@@ -4,11 +4,10 @@ import SearchInput from "./SearchInput";
 const options = ({ isSelect, value, label }) =>
   /*HTML*/ `<option value=${value} ${isSelect ? 'selected=""' : ""}>${label}</option>`;
 
-const SearchForm = ({ isLoading = true, limit = 20, sort = "price_asc" }) => {
-  console.log({ limit, sort });
+const SearchForm = ({ isLoading = true, limit = 20, sort = "price_asc", search = "" }) => {
   return /*html*/ `
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-  ${SearchInput()}
+  ${SearchInput({ search })}
   <!-- 필터 옵션 -->
     <div class="space-y-3">
       <!-- 카테고리 필터 -->
