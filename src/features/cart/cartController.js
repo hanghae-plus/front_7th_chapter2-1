@@ -159,9 +159,8 @@ export function setSelectedIds(nextIds) {
 }
 
 export function getCartCount() {
-  return this.cartItems.reduce((total, item) => {
-    return total + this.getCartItemQuantity(item);
-  }, 0);
+  // 장바구니에 담긴 상품의 종류 수 반환 (전체 개수가 아님)
+  return this.cartItems.length;
 }
 
 export function updateCartIcon() {
@@ -218,6 +217,12 @@ export function openCartModal() {
   document.body.appendChild(overlay);
   document.body.style.overflow = "hidden";
 
+  // 모달이 열릴 때 메인 콘텐츠를 스크린 리더에서 숨김
+  const root = document.getElementById("root");
+  if (root) {
+    root.setAttribute("aria-hidden", "true");
+  }
+
   if (!this.cartState.escListener) {
     this.cartState.escListener = (event) => {
       if (event.key === "Escape") {
@@ -244,6 +249,12 @@ export function closeCartModal(restoreFocus = true) {
   this.cartState.isOpen = false;
   this.saveCartSelectionToStorage();
   document.body.style.overflow = "";
+
+  // 모달이 닫힐 때 메인 콘텐츠를 다시 보이게 함
+  const root = document.getElementById("root");
+  if (root) {
+    root.removeAttribute("aria-hidden");
+  }
 
   if (restoreFocus && this.cartState.lastFocusedElement instanceof HTMLElement) {
     this.cartState.lastFocusedElement.focus();
