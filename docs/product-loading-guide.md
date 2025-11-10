@@ -14,6 +14,7 @@
   - `isLoadingProducts`/`isLoadingMore`: 초기 로딩과 추가 로딩을 구분해서 표시.
   - `productsError`/`loadMoreError`: 초기 로딩 실패와 추가 로딩 실패 메시지를 분리 저장.
   - `sort`: 현재 적용된 정렬 기준.
+  - `totalProducts`: 서버에서 내려준 전체 상품 개수.
 
 ```1:18:src/main.js
 const INITIAL_LOAD_ERROR_MESSAGE = "상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
@@ -29,6 +30,7 @@ const state = {
   currentPage: 0,
   hasMoreProducts: true,
   sort: "price_asc",
+  totalProducts: 0,
 };
 ```
 
@@ -100,6 +102,7 @@ function selectLimit(event) {
 
 - `loadProducts()`는 공통 상태 전이를 `startInitialLoad`/`startAppendLoad`, `finishLoad` 등 헬퍼로 분리해 명확하게 관리합니다.
 - 실패 시 `handleLoadError()`가 상황별 메시지를 설정하고, 성공 시 `applyProductResponse()`가 상품 목록과 페이지 정보를 갱신합니다.
+- 이때 `pagination.total`을 `totalProducts`로 저장해 전체 개수를 유지합니다.
 - `ItemList`는 `error` 프로퍼티가 존재하면 즉시 에러 배너 + `다시 시도` 버튼 UI를 렌더링합니다.
 
 ```129:205:src/main.js
@@ -249,30 +252,34 @@ function setupLoadMoreObserver(rootElement) {
 }
 ```
 
-```118:155:src/main.js
-if (append) {
+```171:229:src/main.js
+function startAppendLoad() {
   if (state.isLoadingProducts || state.isLoadingMore || !state.hasMoreProducts) {
-    return;
+    return null;
   }
 
   state.isLoadingMore = true;
   state.loadMoreError = null;
   render();
-} else {
-  state.isLoadingProducts = true;
-  state.productsError = null;
-  state.loadMoreError = null;
-  state.currentPage = 0;
-  state.hasMoreProducts = true;
-  render();
+
+  return { nextPage: state.currentPage + 1 };
 }
 
-const nextPage = append ? state.currentPage + 1 : 1;
+function applyProductResponse(data, { append, requestedPage }) {
+  const incomingProducts = data?.products ?? [];
+  const resolvedPage = data?.pagination?.page ?? requestedPage;
+  const hasNext = data?.pagination?.hasNext ?? incomingProducts.length >= state.limit;
+  const totalCount = data?.pagination?.total;
 
-// ...
-state.products = append ? [...state.products, ...incomingProducts] : incomingProducts;
-state.currentPage = data?.pagination?.page ?? nextPage;
-state.hasMoreProducts = hasNext;
+  state.products = append ? [...state.products, ...incomingProducts] : incomingProducts;
+  state.currentPage = resolvedPage;
+  state.hasMoreProducts = hasNext;
+  if (typeof totalCount === "number") {
+    state.totalProducts = totalCount;
+  } else if (!append) {
+    state.totalProducts = state.products.length;
+  }
+}
 ```
 
 ```114:138:src/components/ItemList.js

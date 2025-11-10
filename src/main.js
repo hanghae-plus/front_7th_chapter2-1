@@ -26,6 +26,8 @@ const state = {
   hasMoreProducts: true,
   // 정렬 기준
   sort: "price_asc",
+  // 전체 상품 개수 (서버 응답 기반)
+  totalProducts: 0,
 };
 
 let loadMoreObserver = null;
@@ -64,6 +66,7 @@ function render() {
       error: state.productsError,
       hasMore: state.hasMoreProducts,
       loadMoreError: state.loadMoreError,
+      totalCount: state.totalProducts,
     },
   });
 
@@ -191,6 +194,7 @@ function startInitialLoad() {
   state.loadMoreError = null;
   state.currentPage = 0;
   state.hasMoreProducts = true;
+  state.totalProducts = 0;
   render();
 
   return { nextPage: 1 };
@@ -220,11 +224,17 @@ function applyProductResponse(data, { append, requestedPage }) {
   const incomingProducts = data?.products ?? [];
   const resolvedPage = data?.pagination?.page ?? requestedPage;
   const hasNext = data?.pagination?.hasNext ?? incomingProducts.length >= state.limit;
+  const totalCount = data?.pagination?.total;
 
   // 기존 상품에 이어붙일지 여부를 append 플래그로 판단한다.
   state.products = append ? [...state.products, ...incomingProducts] : incomingProducts;
   state.currentPage = resolvedPage;
   state.hasMoreProducts = hasNext;
+  if (typeof totalCount === "number") {
+    state.totalProducts = totalCount;
+  } else if (!append) {
+    state.totalProducts = state.products.length;
+  }
 }
 
 function handleLoadError(append) {
