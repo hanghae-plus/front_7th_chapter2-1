@@ -20,10 +20,12 @@ const render = async () => {
     $root.innerHTML = DetailPage({ loading: true });
     const productId = location.pathname.split("/")[2];
     const product = await getProduct(productId);
-    const relatedProducts = (await getProducts({ page: 1, category2: product.category2 })).products.filter(
-      (product) => product.productId !== productId,
-    );
-    $root.innerHTML = DetailPage({ loading: false, product, relatedProducts });
+    const relatedProducts = !product.error
+      ? (await getProducts({ page: 1, category2: product.category2 })).products.filter(
+          (product) => product.productId !== productId,
+        )
+      : [];
+    $root.innerHTML = DetailPage({ loading: false, product: product.error ? undefined : product, relatedProducts });
   } else {
     $root.innerHTML = NotFoundPage();
   }
