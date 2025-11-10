@@ -1,4 +1,34 @@
-const SearchFilter = ({ isLoading = false, searchValue = "" }) => {
+const CATEGORIES = ["생활/건강", "디지털/가전"];
+
+const LIMIT_OPTIONS = [
+  { value: 10, label: "10개" },
+  { value: 20, label: "20개" },
+  { value: 50, label: "50개" },
+  { value: 100, label: "100개" },
+];
+
+const SORT_OPTIONS = [
+  { value: "price_asc", label: "가격 낮은순" },
+  { value: "price_desc", label: "가격 높은순" },
+  { value: "name_asc", label: "이름순" },
+  { value: "name_desc", label: "이름 역순" },
+];
+
+const createCategoryButton = (category) => /*html*/ `
+  <button 
+    data-category1="${category}" 
+    class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+    ${category}
+  </button>
+`;
+
+const createOption = (option, selectedValue) => /*html*/ `
+  <option value="${option.value}" ${option.value == selectedValue ? "selected" : ""}>
+    ${option.label}
+  </option>
+`;
+
+const SearchFilter = ({ isLoading = false, searchValue = "", limit = 10, sort = "price_asc" }) => {
   return /*html*/ `
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
             <!-- 검색창 -->
@@ -27,15 +57,7 @@ const SearchFilter = ({ isLoading = false, searchValue = "" }) => {
                     ${
                       isLoading
                         ? `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
-                        : /*html*/ `
-                        <button data-category1="생활/건강" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                        bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                       생활/건강
-                     </button>
-                     <button data-category1="디지털/가전" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                        bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                       디지털/가전
-                     </button>`
+                        : CATEGORIES.map(createCategoryButton).join("")
                     }
                 </div>
                
@@ -48,18 +70,7 @@ const SearchFilter = ({ isLoading = false, searchValue = "" }) => {
                   <label class="text-sm text-gray-600">개수:</label>
                   <select id="limit-select"
                           class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="10">
-                      10개
-                    </option>
-                    <option value="20" selected="">
-                      20개
-                    </option>
-                    <option value="50">
-                      50개
-                    </option>
-                    <option value="100">
-                      100개
-                    </option>
+                    ${LIMIT_OPTIONS.map((option) => createOption(option, limit)).join("")}
                   </select>
                 </div>
                 <!-- 정렬 -->
@@ -67,10 +78,7 @@ const SearchFilter = ({ isLoading = false, searchValue = "" }) => {
                   <label class="text-sm text-gray-600">정렬:</label>
                   <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
                                focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="price_asc" selected="">가격 낮은순</option>
-                    <option value="price_desc">가격 높은순</option>
-                    <option value="name_asc">이름순</option>
-                    <option value="name_desc">이름 역순</option>
+                    ${SORT_OPTIONS.map((option) => createOption(option, sort)).join("")}
                   </select>
                 </div>
               </div>

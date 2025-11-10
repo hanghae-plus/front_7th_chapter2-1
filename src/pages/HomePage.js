@@ -46,11 +46,11 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
   };
 
   template((state) => {
-    const { searchValue = "", data, isLoading, error } = state;
+    const { searchValue = "", data, isLoading, error, filter } = state;
 
     if (error) {
       return `
-        ${SearchFilter({ isLoading: false, searchValue })}
+        ${SearchFilter({ isLoading: false, searchValue, limit: filter.limit || 10, sort: filter.sort || "price_asc" })}
         ${ErrorView({ message: error.message })}
       `;
     }
@@ -59,7 +59,7 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
     const pagination = data?.pagination || {};
 
     return `
-      ${SearchFilter({ isLoading, searchValue })}
+      ${SearchFilter({ isLoading, searchValue, limit: filter.limit || 10, sort: filter.sort || "price_asc" })}
       ${ProductList({ products, pagination, isLoading, hasNext: pagination.hasNext })}
     `;
   });
@@ -117,10 +117,18 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
       }
     };
 
-    const onSearch = (e) => {
+    // 엔터키로 즉시 검색
+    const onSearchKeydown = (e) => {
       const input = e.target.closest("#search-input");
       if (!input) return;
-      setState({ searchValue: input.value });
+      if (e.key !== "Enter") return;
+
+      const searchValue = input.value.trim();
+      setState({
+        searchValue,
+        filter: { ...getState().filter, search: searchValue, page: 1 },
+      });
+      fetchProducts();
     };
 
     const onRetry = (e) => {
@@ -139,8 +147,23 @@ const HomePage = createComponent(({ root, getState, setState, template, onMount,
     on(root, "click", onCardClick);
     on(root, "click", onAddToCart);
     on(root, "click", onRetry);
-    on(root, "input", onSearch);
     on(root, "click", onLoadMore);
+    on(root, "keydown", onSearchKeydown);
+    on(root, "change", (e) => {
+      const limitSelect = e.target.closest("#limit-select");
+      if (limitSelect) {
+        setState({ filter: { ...getState().filter, limit: parseInt(limitSelect.value), page: 1 } });
+        fetchProducts();
+        return;
+      }
+
+      const sortSelect = e.target.closest("#sort-select");
+      if (sortSelect) {
+        setState({ filter: { ...getState().filter, sort: sortSelect.value, page: 1 } });
+        fetchProducts();
+        return;
+      }
+    });
 
     // 최초 데이터 로드
     fetchProducts();
