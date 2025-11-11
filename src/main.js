@@ -32,6 +32,8 @@ let cart = [];
 /** @type {CategoryTreeNode[]} */
 let categories = [];
 
+/* Utils */
+
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
@@ -47,7 +49,10 @@ async function main() {
   const pathName = window.location.pathname;
   const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
+  /** @type {HTMLElement | null} */
   const $root = document.querySelector("#root");
+
+  if (!$root) throw new Error("Root element not found");
 
   if (relativePath === "/") {
     $root.innerHTML = `
@@ -79,8 +84,14 @@ async function main() {
   }
 
   /* Event Handlers */
+  /**
+   * @param {MouseEvent} event
+   */
   $root.addEventListener("click", async (event) => {
+    if (!event.target || event.target instanceof HTMLElement === false) return;
+
     console.log(event);
+
     if (event.target.id === "limit-select") {
       const value = parseInt(event.target.value);
       if (value === listResponse.pagination.limit) {
@@ -198,14 +209,15 @@ async function main() {
       `;
     } else if (event.target.id === "add-to-cart-btn") {
       const productId = event.target.dataset.productId;
-      console.log("add-to-cart-btn", productId);
+      if (!productId) return;
       if (cart.includes(productId)) return;
       cart.push(productId);
-      console.log("cart", cart);
     }
   });
 
   $root.addEventListener("keydown", async (event) => {
+    if (!event.target || event.target instanceof HTMLElement === false) return;
+
     if (event.target.id === "search-input" && event.key === "Enter") {
       const value = event.target.value;
 
@@ -236,7 +248,10 @@ async function main() {
   /* Intersection Observer */
   // TODO: refactor with component identification structure
   if (relativePath === "/") {
+    /** @type {HTMLElement | null} */
     ioSentinel = document.querySelector("#sentinel");
+    if (!ioSentinel) throw new Error("Sentinel element not found");
+
     const io = new IntersectionObserver(
       async ([entry]) => {
         if (!entry.isIntersecting || !listResponse.pagination.hasNext || listLoading) return;
