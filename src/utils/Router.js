@@ -17,6 +17,11 @@ function convertToRegex(routePattern) {
   return new RegExp(regexString);
 }
 
+export const convertToRelativePath = (pathName) => {
+  const basePath = import.meta.env.BASE_URL;
+  return pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+};
+
 export class Router {
   constructor($container) {
     this.routes = {};
@@ -40,10 +45,8 @@ export class Router {
     this.handleRoute(location.pathname);
   }
 
-  handleRoute(path) {
-    const basePath = import.meta.env.BASE_URL;
-    const pathName = path;
-    const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+  handleRoute(pathName) {
+    const relativePath = convertToRelativePath(pathName);
     const matchedParam = this._routesArray.find((route) => route.test(relativePath));
     const handler = this.routes[matchedParam];
     if (handler) {

@@ -1,7 +1,7 @@
 import { getProduct, getProducts } from "./api/productApi.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
-import { Router } from "./utils/Router.js";
+import { convertToRelativePath, Router } from "./utils/Router.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -33,7 +33,7 @@ router.addRoute("/", async () => {
 router.addRoute("/product/:productId", async () => {
   const $root = document.querySelector("#root");
   $root.innerHTML = DetailPage({ loading: true });
-  const productId = location.pathname.split("/")[2];
+  const productId = convertToRelativePath(location.pathname).split("/")[2];
   const product = await getProduct(productId);
   $root.innerHTML = DetailPage({ loading: false, product: product.error ? undefined : product, relatedProducts: [] });
   if (!product.error) {
@@ -47,8 +47,9 @@ router.addRoute("/product/:productId", async () => {
 document.body.addEventListener("click", (e) => {
   const productCard = e.target.closest(".product-card") ?? e.target.closest(".related-product-card");
   if (productCard) {
+    const baseURL = import.meta.env.BASE_URL;
     const productId = productCard.dataset.productId;
-    history.pushState(null, null, `/product/${productId}`);
+    history.pushState(null, null, `${baseURL}product/${productId}`);
     render();
   }
   if (e.target.tagName === "A") {
