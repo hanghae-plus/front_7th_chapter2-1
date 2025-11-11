@@ -35,14 +35,20 @@ cartState.js        // 상태
 
 ```
 src/
-├── core/              # 핵심 유틸 (router, storage, eventBus)
+├── core/              # 핵심 유틸
+│   ├── observer.js   # ⭐ Observer 패턴 (가장 중요!)
+│   ├── router.js     # Observer 기반 라우팅
+│   ├── store.js      # Observer 기반 Store
+│   ├── lifecycle.js  # withLifecycle HOC
+│   └── storage.js    # localStorage 래퍼
 ├── utils/             # 헬퍼 함수 (debounce, formatters, dom)
 ├── components/        # UI 컴포넌트
 │   ├── common/       # 공통 (Toast, Modal, Loading)
 │   ├── product/      # 상품 (Card, Grid, Filter)
 │   └── cart/         # 장바구니 (Modal, Item)
 ├── pages/            # 페이지 (HomePage, DetailPage, NotFoundPage)
-├── state/            # 상태 관리 (cartState)
+├── state/            # 상태 관리
+│   └── store.js      # 앱 전역 Store
 ├── api/              # API (productApi)
 └── main.js           # 진입점
 ```
@@ -51,54 +57,95 @@ src/
 
 ## 🔧 자주 쓰는 코드 스니펫
 
-### 라우팅
+### Observer 패턴 ⭐
 
 ```javascript
-// 페이지 이동
-navigate('/product/123');
-
-// 파라미터 가져오기
-const { id } = getParams();  // /product/:id
-
-// 쿼리 가져오기
-const { search, sort } = getQuery();  // ?search=laptop&sort=price
-
-// 쿼리 업데이트
-updateQuery({ search: 'laptop' });
-```
-
-### 상태 관리
-
-```javascript
-// 장바구니 조회
-const cart = getCart();
-
-// 추가
-addToCart(product);
-
-// 제거
-removeFromCart(productId);
-
-// 수량 변경
-updateQuantity(productId, 3);
-
-// 전체 삭제
-clearCart();
-```
-
-### 이벤트
-
-```javascript
-// 발행
-emit('cart:updated', cart);
+// 생성
+const observer = createObserver();
 
 // 구독
-on('cart:updated', (cart) => {
-  console.log('장바구니 업데이트:', cart);
+observer.subscribe((data) => console.log(data));
+observer.subscribe(render);
+
+// 알림
+observer.notify({ message: 'changed' });
+```
+
+### Router (Observer 기반)
+
+```javascript
+// 설정
+router.setup({
+  "/": HomePage,
+  "/products/:id": DetailPage,
+  "*": NotFoundPage,
 });
 
-// 해제
-off('cart:updated', handler);
+// 구독 (자동 렌더링)
+router.subscribe((route) => {
+  render(route);
+});
+
+// 네비게이션
+router.push('/products/123');
+router.updateQuery({ search: 'laptop' });
+
+// 현재 라우트
+const route = router.getCurrentRoute();
+// { name, params, query, component }
+```
+
+### Store (Observer 기반)
+
+```javascript
+// 구독 (자동 렌더링)
+store.subscribe((state) => {
+  render(state);
+});
+
+// 상태 읽기
+const state = store.getState();
+const { products, loading, error } = state.home;
+
+// 액션 디스패치 (pending → success/error)
+store.dispatch({ type: 'pendingProducts' });
+store.dispatch({ type: 'setProducts', payload: products });
+store.dispatch({ type: 'errorProducts', payload: error });
+
+// 장바구니
+store.dispatch({ type: 'addToCart', payload: product });
+store.dispatch({ type: 'removeFromCart', payload: productId });
+```
+
+### Lifecycle
+
+```javascript
+// withLifecycle HOC
+export const HomePage = withLifecycle(
+  {
+    mount() {
+      // 초기화 (1번만 실행)
+      loadProducts();
+    },
+
+    watchs: [
+      {
+        target() { return router.getCurrentRoute().query },
+        callback() { loadProducts() },
+      }
+    ],
+
+    unmount() {
+      // 정리 작업
+    },
+  },
+
+  // 렌더링 함수
+  () => {
+    const { products } = store.getState().home;
+    return `<div>${products.map(...)}</div>`;
+  }
+);
 ```
 
 ### DOM 조작

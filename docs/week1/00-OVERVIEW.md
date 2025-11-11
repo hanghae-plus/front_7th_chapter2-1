@@ -24,9 +24,10 @@
 ```
 src/
 ├── core/                    # 핵심 유틸리티
-│   ├── router.js           # 간단한 라우팅 함수들
-│   ├── storage.js          # localStorage 래퍼
-│   └── eventBus.js         # 이벤트 시스템
+│   ├── observer.js         # ⭐ Observer 패턴 (핵심!)
+│   ├── router.js           # Observer 기반 라우팅
+│   ├── store.js            # Observer 기반 상태 관리
+│   └── storage.js          # localStorage 래퍼
 │
 ├── utils/                   # 헬퍼 함수
 │   ├── dom.js              # DOM 조작 유틸
@@ -51,7 +52,7 @@ src/
 │   └── NotFoundPage.js
 │
 ├── state/                   # 상태 관리
-│   └── cartState.js        # 장바구니 상태
+│   └── store.js            # 앱 전역 Store
 │
 ├── api/                     # API 호출
 │   └── productApi.js
@@ -89,43 +90,58 @@ class RouterManager {
 
 ---
 
-## 📚 학습 단계
+## 📚 학습 단계 (우선순위 기반)
 
-### Step 1: 라우팅 시스템 (4시간)
-- [ ] 간단한 라우팅 유틸 함수 작성
-- [ ] URL 파라미터 추출 (`/product/:id`)
-- [ ] 쿼리 파라미터 관리
-- [ ] 404 페이지
+> **핵심**: Router + Store + Lifecycle 이 3가지만 제대로 구현하면 나머지는 일사천리! 🔥
 
-**목표**: 새로고침 없이 페이지 전환
+### 🔥 Phase 1: 핵심 시스템 (필수, 9시간)
 
-### Step 2: 상태 관리 (2시간)
-- [ ] localStorage 래퍼 작성
-- [ ] 장바구니 상태 관리
-- [ ] URL 쿼리로 검색/필터 상태 관리
+#### Step 1: Observer 패턴 (1시간) ⭐⭐⭐
+- [ ] `createObserver()` 구현
+- [ ] subscribe/notify 패턴 이해
 
-**목표**: 새로고침해도 상태 유지
+**목표**: Router와 Store의 기반이 되는 Observer 패턴 구축
 
-### Step 3: 이벤트 시스템 (2시간)
-- [ ] 이벤트 위임 패턴
-- [ ] 커스텀 이벤트로 컴포넌트 간 통신
-- [ ] 토스트 시스템
+#### Step 2: Router 시스템 (3시간) ⭐⭐⭐
+- [ ] Observer 기반 Router 구현
+- [ ] `router.setup()` - 선언형 라우팅 설정
+- [ ] `router.subscribe()` - 자동 렌더링
+- [ ] `router.push()` - 프로그래밍 방식 네비게이션
+- [ ] URL 파라미터/쿼리 관리
 
-**목표**: 효율적인 이벤트 처리
+**목표**: 새로고침 없이 페이지 전환 + 자동 렌더링
 
-### Step 4: 무한 스크롤 (3시간)
-- [ ] IntersectionObserver 활용
-- [ ] 페이지네이션 로직
-- [ ] 로딩 상태 관리
+#### Step 3: Store 시스템 (2시간) ⭐⭐⭐
+- [ ] Observer 기반 Store 구현
+- [ ] loading/error/data 패턴
+- [ ] `store.dispatch()` - 액션 시스템
+- [ ] `store.subscribe()` - 자동 렌더링
 
-**목표**: 부드러운 UX
+**목표**: 상태 변경 시 자동 UI 업데이트
 
-### Step 5: 최적화 (2시간)
-- [ ] DocumentFragment 사용
-- [ ] 디바운스/스로틀링
-- [ ] 불필요한 렌더링 방지
+#### Step 4: Lifecycle 시스템 (3시간) ⭐⭐⭐
+- [ ] `withLifecycle` HOC 구현
+- [ ] mount 훅 - 컴포넌트 초기화
+- [ ] watch 패턴 - 반응형 데이터
+- [ ] unmount 훅 - 정리 작업
 
-**목표**: 성능 개선
+**목표**: 컴포넌트 생명주기 관리
+
+✅ **여기까지만 해도 실용적인 SPA 완성!**
+
+---
+
+### Phase 2: 추가 기능 (선택, 3-5시간)
+
+#### Step 5: 무한 스크롤 & 최적화
+- [ ] IntersectionObserver
+- [ ] DocumentFragment
+- [ ] Debounce/Throttle
+
+#### Step 6: 나머지 UI
+- [ ] 토스트, 모달
+- [ ] 로딩 스피너
+- [ ] 에러 처리
 
 ---
 
@@ -133,8 +149,10 @@ class RouterManager {
 
 ### 1. 첫 번째 작업
 ```bash
-# 1. 라우팅 유틸 만들기
+# 1. 핵심 유틸리티 만들기
+touch src/core/observer.js   # ⭐ 가장 먼저!
 touch src/core/router.js
+touch src/core/store.js
 
 # 2. NotFoundPage 만들기
 touch src/pages/NotFoundPage.js
@@ -143,9 +161,10 @@ touch src/pages/NotFoundPage.js
 ```
 
 ### 2. 다음 단계
-- [01-ARCHITECTURE.md](./01-ARCHITECTURE.md) - 아키텍처 설계
+- [01-ARCHITECTURE.md](./01-ARCHITECTURE.md) - 아키텍처 설계 (Observer 패턴)
 - [02-CODING-STYLE.md](./02-CODING-STYLE.md) - 코딩 스타일 가이드
-- [03-IMPLEMENTATION-GUIDE.md](./03-IMPLEMENTATION-GUIDE.md) - 구체적인 구현 방법
+- [03-IMPLEMENTATION-GUIDE.md](./03-IMPLEMENTATION-GUIDE.md) - 단계별 구현 방법
+- [04-LIFECYCLE-SYSTEM.md](./04-LIFECYCLE-SYSTEM.md) - 라이프사이클 시스템
 
 ---
 
