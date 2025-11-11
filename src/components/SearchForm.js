@@ -31,16 +31,23 @@ export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600">카테고리:</label>
             <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
-            ${filters.category1 ? `<span class="text-xs text-gray-500">&gt;</span><button data-breadcrumb="category1" data-category1="${filters.category1}" class="text-xs hover:text-blue-800 hover:underline">${filters.category1}</button>` : ""}
-            ${filters.category1 && filters.category2 ? `<span class="text-xs text-gray-500">&gt;</span><span class="text-xs text-gray-600 cursor-default">${filters.category2}</span>` : ""}
-          </div>
-          <!-- 1depth 카테고리 -->
-          <!-- 2depth 카테고리 -->
-          <div class="flex flex-wrap gap-2">
             ${
-              !categories
-                ? `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
-                : `<div class="flex flex-wrap gap-2">
+              filters.category1
+                ? `<span class="text-xs text-gray-500">&gt;</span><button data-breadcrumb="category1" data-category1="${filters.category1}" class="text-xs hover:text-blue-800 hover:underline">${filters.category1}</button>`
+                : ""
+            }
+            ${
+              filters.category1 && filters.category2
+                ? `<span class="text-xs text-gray-500">&gt;</span><span class="text-xs text-gray-600 cursor-default">${filters.category2}</span>`
+                : ""
+            }
+          </div>
+          <div class="space-y-2">
+            <div class="flex flex-wrap gap-2">
+              ${
+                !categories
+                  ? `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
+                  : `<div class="flex flex-wrap gap-2">
                     ${
                       !filters.category1
                         ? Object.keys(categories).map(Category1Item).join("")
@@ -55,7 +62,8 @@ export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
                             .join("")
                     }
               </div>`
-            }
+              }
+            </div>
           </div>
         </div>
         <!-- 기존 필터들 -->

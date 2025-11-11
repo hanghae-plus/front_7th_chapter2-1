@@ -81,14 +81,28 @@ $root.addEventListener("click", (e) => {
     const category2 = $category2Btn.dataset.category2;
     const newQueryString = getQueryStringAdding("category2", category2);
     router.navigateTo(`${BASE_URL}${newQueryString}`);
+  } else if (e.target.dataset.breadcrumb === "category1") {
+    const category1 = e.target.dataset.category1;
+    const $input = $root.querySelector("#search-input");
+    let queryString = `?search=${$input.value}&category1=${category1}`;
+    router.navigateTo(`${BASE_URL}${queryString}`);
+  } else if (e.target.dataset.breadcrumb === "reset") {
+    const $input = $root.querySelector("#search-input");
+    let queryString = `?search=${$input.value}`;
+    router.navigateTo(`${BASE_URL}${queryString}`);
   }
 });
 
 $root.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const $input = e.target.closest("#search-input");
+
+    const params = new URLSearchParams(window.location.search);
+    const category1 = params.get("category1") ?? "";
+    const category2 = params.get("category2") ?? "";
+    let queryString = `?search=${$input.value}${category1 ? `&category1=${category1}` : ""}${category2 ? `&category2=${category2}` : ""}`;
     if ($input.value) {
-      router.navigateTo(`?search=${$input.value}`);
+      router.navigateTo(queryString);
     } else {
       const newQueryString = getQueryStringExcluding("search");
       router.navigateTo(`${BASE_URL}${newQueryString}`);
