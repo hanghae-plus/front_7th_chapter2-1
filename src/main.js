@@ -1,8 +1,14 @@
 import HomePage from "./pages/HomePage";
-import { getProducts, getProduct } from "./api/productApi";
+import { getProducts, getProduct, getCategories } from "./api/productApi";
 import ProductDetailPage from "./pages/ProductDetailPage";
 
+/**
+ * @typedef {import('./types.js').CategoryTreeNode} CategoryTreeNode
+ * @typedef {import('./types.js').ProductListResponse} ProductListResponse
+ */
+
 let listLoading = false;
+/** @type {ProductListResponse} */
 let listResponse = {
   products: [],
   pagination: {
@@ -21,7 +27,10 @@ let listResponse = {
   },
 };
 let ioSentinel = null;
+/** @type {string[]} */
 let cart = [];
+/** @type {CategoryTreeNode[]} */
+let categories = [];
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -42,15 +51,20 @@ async function main() {
 
   if (relativePath === "/") {
     $root.innerHTML = `
-      ${HomePage({ loading: true, cart })}
+      ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
     `;
+    categories = await getCategories();
+    console.log("categories", categories);
     listResponse = await getProducts({
       limit: listResponse.pagination.limit,
       search: listResponse.filters.search,
+      category1: listResponse.filters.category1,
+      category2: listResponse.filters.category2,
+      sort: listResponse.filters.sort,
     });
     console.log(listResponse);
     $root.innerHTML = `
-      ${HomePage({ loading: false, response: listResponse, cart })}
+      ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
     `;
   } else if (relativePath.startsWith("/product/")) {
     const id = relativePath.split("/")[2];
@@ -81,12 +95,18 @@ async function main() {
       listResponse.filters.search = "";
 
       $root.innerHTML = `
-        ${HomePage({ loading: true, cart })}
+        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
       `;
-      listResponse = await getProducts({ limit: listResponse.pagination.limit });
+      listResponse = await getProducts({
+        limit: listResponse.pagination.limit,
+        search: listResponse.filters.search,
+        category1: listResponse.filters.category1,
+        category2: listResponse.filters.category2,
+        sort: listResponse.filters.sort,
+      });
       console.log("event", listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, response: listResponse, cart })}
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
       `;
     } else if (event.target.id === "sort-select") {
       const value = event.target.value;
@@ -97,16 +117,84 @@ async function main() {
       listResponse.pagination.hasPrev = false;
       listResponse.products = [];
       $root.innerHTML = `
-        ${HomePage({ loading: true, response: listResponse, cart })}
+        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
       `;
       listResponse = await getProducts({
         limit: listResponse.pagination.limit,
         search: listResponse.filters.search,
+        category1: listResponse.filters.category1,
+        category2: listResponse.filters.category2,
         sort: listResponse.filters.sort,
       });
       console.log("event", listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, response: listResponse, cart })}
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+      `;
+    } else if (event.target.id === "category-filter-btn") {
+      const value1 = event.target.dataset.category1;
+      const value2 = event.target.dataset.category2;
+      if (value1 === listResponse.filters.category1 && value2 === listResponse.filters.category2) return;
+      listResponse.filters.category1 = value1;
+      listResponse.filters.category2 = value2;
+      listResponse.pagination.page = 1;
+      listResponse.pagination.hasNext = true;
+      listResponse.pagination.hasPrev = false;
+      listResponse.products = [];
+      $root.innerHTML = `
+        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+      `;
+      listResponse = await getProducts({
+        limit: listResponse.pagination.limit,
+        search: listResponse.filters.search,
+        category1: listResponse.filters.category1,
+        category2: listResponse.filters.category2,
+        sort: listResponse.filters.sort,
+      });
+      $root.innerHTML = `
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+      `;
+    } else if (event.target.dataset.breadcrumb === "reset") {
+      if (listResponse.filters.category1 === "" && listResponse.filters.category2 === "") return;
+      listResponse.filters.category1 = "";
+      listResponse.filters.category2 = "";
+      listResponse.pagination.page = 1;
+      listResponse.pagination.hasNext = true;
+      listResponse.pagination.hasPrev = false;
+      listResponse.products = [];
+      $root.innerHTML = `
+        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+      `;
+      listResponse = await getProducts({
+        limit: listResponse.pagination.limit,
+        search: listResponse.filters.search,
+        category1: listResponse.filters.category1,
+        category2: listResponse.filters.category2,
+        sort: listResponse.filters.sort,
+      });
+      $root.innerHTML = `
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+      `;
+    } else if (event.target.dataset.breadcrumb === "category1") {
+      const value = event.target.dataset.category1;
+      if (value === listResponse.filters.category1 && listResponse.filters.category2 === "") return;
+      listResponse.filters.category1 = value;
+      listResponse.filters.category2 = "";
+      listResponse.pagination.page = 1;
+      listResponse.pagination.hasNext = true;
+      listResponse.pagination.hasPrev = false;
+      listResponse.products = [];
+      $root.innerHTML = `
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+      `;
+      listResponse = await getProducts({
+        limit: listResponse.pagination.limit,
+        search: listResponse.filters.search,
+        category1: listResponse.filters.category1,
+        category2: listResponse.filters.category2,
+        sort: listResponse.filters.sort,
+      });
+      $root.innerHTML = `
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
       `;
     } else if (event.target.id === "add-to-cart-btn") {
       const productId = event.target.dataset.productId;
@@ -130,14 +218,17 @@ async function main() {
       listResponse.products = [];
 
       $root.innerHTML = `
-        ${HomePage({ loading: true, cart })}
+        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
       `;
       listResponse = await getProducts({
         limit: listResponse.pagination.limit,
         search: listResponse.filters.search,
+        category1: listResponse.filters.category1,
+        category2: listResponse.filters.category2,
+        sort: listResponse.filters.sort,
       });
       $root.innerHTML = `
-        ${HomePage({ loading: false, response: listResponse, cart })}
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
       `;
     }
   });
@@ -148,11 +239,10 @@ async function main() {
     ioSentinel = document.querySelector("#sentinel");
     const io = new IntersectionObserver(
       async ([entry]) => {
-        console.log("entry", entry.isIntersecting, listResponse.pagination.hasNext, listLoading);
         if (!entry.isIntersecting || !listResponse.pagination.hasNext || listLoading) return;
         listLoading = true;
         $root.innerHTML = `
-        ${HomePage({ loading: true, response: listResponse })}
+        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
       `;
         const response = await getProducts({
           limit: listResponse.pagination.limit,
@@ -164,9 +254,8 @@ async function main() {
         listResponse.pagination.totalPages = response.pagination.totalPages;
         listResponse.pagination.hasNext = response.pagination.hasNext;
         listResponse.pagination.hasPrev = response.pagination.hasPrev;
-        console.log("listResponse- IO", response, listResponse);
         $root.innerHTML = `
-        ${HomePage({ loading: false, response: listResponse })}
+        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
       `;
         listLoading = false;
       },
