@@ -36,7 +36,6 @@ async function main() {
   // 3. 전역 이벤트 리스너 등록 (이벤트 위임 사용)
   document.addEventListener("click", (e) => {
     const target = e.target;
-    console.log(target.id);
 
     // 장바구니 아이콘 클릭 -> 모달 열기
     if (target.closest("#cart-icon-btn")) {
