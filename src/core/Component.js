@@ -19,10 +19,40 @@ export const Component = (component) => {
     let state = component.initialState?.() || {};
     let isMounted = false;
     let children = [];
+    let stateChangeListeners = [];
 
     const setState = (newState) => {
-      state = { ...state, ...newState };
-      render();
+      const prevState = { ...state };
+      state = { ...prevState, ...newState };
+
+      // stateChange 리스너 실행
+      stateChangeListeners.forEach(({ paths, callback }) => {
+        const hasChanged = paths.some((path) => {
+          const keys = path.split(".");
+          let prevValue = prevState;
+          let currentValue = state;
+
+          for (const key of keys) {
+            prevValue = prevValue?.[key];
+            currentValue = currentValue?.[key];
+          }
+
+          return prevValue !== currentValue;
+        });
+
+        if (hasChanged) {
+          callback({ state, prevState, setState });
+        }
+      });
+
+      render(prevState);
+    };
+
+    const onStateChange = (paths, callback) => {
+      stateChangeListeners.push({
+        paths: Array.isArray(paths) ? paths : [paths],
+        callback,
+      });
     };
 
     const mountChildren = (ComponentFn, selector, childrenProps = {}) => {
@@ -41,26 +71,24 @@ export const Component = (component) => {
     };
 
     const render = () => {
-      console.log("render!!");
       destroyChildren();
 
       const target = document.querySelector(selector);
       target.innerHTML = component.template({ state, props });
 
       if (component.children) {
-        console.log("children!!!");
-        component.children({ state, props, mountChildren });
+        component.children({ state, setState, props, mountChildren });
       }
 
       if (!isMounted) {
         isMounted = true;
-        if (component.onMounted) component.onMounted({ state, setState, props, mountChildren });
+        if (component.onMounted)
+          component.onMounted({ selector, state, setState, props, mountChildren, onStateChange });
       }
-
-      if (isMounted && component.onUpdated) component.onUpdated({ state, setState });
     };
 
     const destroy = () => {
+      isMounted = false;
       destroyChildren();
 
       if (component.onDestroy) component.onDestroy();

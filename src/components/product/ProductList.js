@@ -2,7 +2,6 @@ import { Component } from "@/core/Component";
 import ProductCard from "@/components/product/ProductCard";
 
 const Loading = () => {
-  console.log("loading@@@@@@@@");
   return /* HTML */ `
     <div class="text-center py-4">
       <div class="inline-flex items-center">
@@ -21,7 +20,6 @@ const Loading = () => {
 };
 
 const Skelleton = () => {
-  console.log("skeleton@@@@@@@@");
   return /* HTML */ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
       <div class="aspect-square bg-gray-200"></div>
@@ -38,7 +36,6 @@ const Skelleton = () => {
 const ProductList = Component({
   template: ({ props }) => {
     const { products, pagination, loading } = props;
-    console.log(loading);
     return /* HTML */ `
       <div>
         ${products?.length

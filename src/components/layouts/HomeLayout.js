@@ -1,7 +1,7 @@
 import Footer from "@common/Footer";
 import Header from "@common/Header";
 
-export default function HomeLayout({ children }) {
+const HomeLayout = ({ children }) => {
   return `
     <div class="min-h-screen bg-gray-50">
       ${Header()}
@@ -11,4 +11,6 @@ export default function HomeLayout({ children }) {
       ${Footer()}
     </div>
   `;
-}
+};
+
+export default HomeLayout;
