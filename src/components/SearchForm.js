@@ -12,7 +12,7 @@ const renderSortOption = (value, label, currentSort) => {
   return `<option value="${value}" ${isSelected}>${label}</option>`;
 };
 
-export const SearchForm = ({ limit = 20, sort = "price_asc" } = {}) => {
+export const SearchForm = ({ limit = 20, sort = "price_asc", search = "" } = {}) => {
   return /* HTML */ `
     <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -23,7 +23,7 @@ export const SearchForm = ({ limit = 20, sort = "price_asc" } = {}) => {
             type="text"
             id="search-input"
             placeholder="상품명을 검색해보세요..."
-            value=""
+            value="${search}"
             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
@@ -92,11 +92,14 @@ export const SearchForm = ({ limit = 20, sort = "price_asc" } = {}) => {
 export const bindSearchFormEvents = ({
   onLimitChange,
   onSortChange,
+  onSearchSubmit,
   currentLimit = 20,
   currentSort = "price_asc",
+  currentSearch = "",
 } = {}) => {
   const limitSelect = document.getElementById("limit-select");
   const sortSelect = document.getElementById("sort-select");
+  const searchInput = document.getElementById("search-input");
 
   if (limitSelect) {
     limitSelect.value = String(currentLimit);
@@ -120,6 +123,21 @@ export const bindSearchFormEvents = ({
 
       if (typeof onSortChange === "function") {
         onSortChange(nextSort);
+      }
+    };
+  }
+
+  if (searchInput) {
+    searchInput.value = currentSearch;
+    searchInput.onkeydown = (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (typeof onSearchSubmit === "function") {
+        onSearchSubmit(event.target.value.trim());
       }
     };
   }

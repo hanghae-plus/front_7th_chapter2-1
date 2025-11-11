@@ -31,21 +31,26 @@ function getNormalizedPathname() {
 
 let currentLimit = 20;
 let currentSort = "price_asc";
+let currentSearch = "";
 
 async function render() {
   const $root = document.getElementById("root");
   const pathname = getNormalizedPathname();
 
   if (pathname === "/" || pathname === "") {
-    $root.innerHTML = HomePage({ loading: true, filters: { limit: currentLimit, sort: currentSort } });
+    $root.innerHTML = HomePage({
+      loading: true,
+      filters: { limit: currentLimit, sort: currentSort, search: currentSearch },
+    });
     try {
-      const data = await getProducts({ limit: currentLimit, sort: currentSort });
-      const filters = { ...(data?.filters ?? {}), limit: currentLimit, sort: currentSort };
+      const data = await getProducts({ limit: currentLimit, sort: currentSort, search: currentSearch });
+      const filters = { ...(data?.filters ?? {}), limit: currentLimit, sort: currentSort, search: currentSearch };
 
       $root.innerHTML = HomePage({ ...data, filters, loading: false });
       bindSearchFormEvents({
         currentLimit,
         currentSort,
+        currentSearch,
         onLimitChange: (nextLimit) => {
           if (currentLimit === nextLimit) {
             return;
@@ -58,6 +63,13 @@ async function render() {
             return;
           }
           currentSort = nextSort;
+          render();
+        },
+        onSearchSubmit: (nextSearch) => {
+          if (currentSearch === nextSearch) {
+            return;
+          }
+          currentSearch = nextSearch;
           render();
         },
       });
@@ -66,13 +78,14 @@ async function render() {
       $root.innerHTML = HomePage({
         loading: false,
         products: [],
-        filters: { limit: currentLimit, sort: currentSort },
+        filters: { limit: currentLimit, sort: currentSort, search: currentSearch },
         pagination: {},
         error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
       });
       bindSearchFormEvents({
         currentLimit,
         currentSort,
+        currentSearch,
         onLimitChange: (nextLimit) => {
           if (currentLimit === nextLimit) {
             return;
@@ -85,6 +98,13 @@ async function render() {
             return;
           }
           currentSort = nextSort;
+          render();
+        },
+        onSearchSubmit: (nextSearch) => {
+          if (currentSearch === nextSearch) {
+            return;
+          }
+          currentSearch = nextSearch;
           render();
         },
       });
