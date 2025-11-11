@@ -45,7 +45,7 @@ export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
           <div class="space-y-2">
             <div class="flex flex-wrap gap-2">
               ${
-                !categories
+                !Object.keys(categories).length
                   ? `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
                   : `<div class="flex flex-wrap gap-2">
                     ${
