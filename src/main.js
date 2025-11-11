@@ -5,6 +5,9 @@ import { HomePage } from "./pages/HomePage.js";
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
+      serviceWorker: {
+        url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+      },
       onUnhandledRequest: "bypass",
     }),
   );
@@ -15,6 +18,10 @@ const push = (path) => {
 };
 
 const render = async () => {
+  const basePath = import.meta.env.BASE_URL;
+  const pathName = location.pathname;
+  const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+
   const $root = document.querySelector("#root");
   const searchParams = new URLSearchParams(location.search);
   const category1 = searchParams.get("category1");
@@ -22,7 +29,7 @@ const render = async () => {
   const search = searchParams.get("search");
   const limit = +searchParams.get("limit");
 
-  if (location.pathname === "/") {
+  if (relativePath === "/") {
     $root.innerHTML = HomePage({ loading: true });
     const data = await getProducts({
       category1,
