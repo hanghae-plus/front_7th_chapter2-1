@@ -1,12 +1,10 @@
-import { LIMIT_OPTIONS } from '@/constants';
+import { LIMIT_OPTIONS, SORT_OPTIONS } from '@/constants';
 
 export const SearchForm = ({
   pagination = { limit: 20 },
-  filters,
+  filters = { sort: 'price_asc' },
   categories,
 }) => {
-  console.log(pagination, filters);
-
   const categoriesData = categories || {};
   const category1List = Object.keys(categoriesData);
 
@@ -109,10 +107,10 @@ export const SearchForm = ({
               id="sort-select"
               class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="price_asc" selected="">가격 낮은순</option>
-              <option value="price_desc">가격 높은순</option>
-              <option value="name_asc">이름순</option>
-              <option value="name_desc">이름 역순</option>
+              ${SORT_OPTIONS.map(
+                (option) =>
+                  `<option value="${option.value}" ${filters.sort === option.value ? 'selected' : ''}>${option.label}</option>`,
+              ).join('')}
             </select>
           </div>
         </div>

@@ -19,25 +19,35 @@ const push = (path) => {
 
 const render = async () => {
   const $root = document.querySelector('#root');
+  const url = new URL(window.location);
+  const limit = parseInt(url.searchParams.get('limit')) || 20;
+  const page = parseInt(url.searchParams.get('current')) || 1;
+  const search = url.searchParams.get('search') || '';
+  const category1 = url.searchParams.get('category1') || '';
+  const category2 = url.searchParams.get('category2') || '';
+  const sort = url.searchParams.get('sort') || 'price_asc';
 
   if (window.location.pathname === `${import.meta.env.BASE_URL}`) {
-    $root.innerHTML = HomePage({ loading: true });
-    const productsData = await getProducts();
+    $root.innerHTML = HomePage({
+      loading: true,
+      pagination: { limit, page },
+      filters: { sort, search, category1, category2 },
+    });
+
+    const productsData = await getProducts({
+      limit,
+      page,
+      search,
+      category1,
+      category2,
+      sort,
+    });
+
     const categoriesData = await getCategories();
     $root.innerHTML = HomePage({
       loading: false,
       ...productsData,
       categories: categoriesData,
-    });
-
-    document.body.addEventListener('click', (e) => {
-      const $target = e.target;
-
-      if ($target.closest('.product-card')) {
-        const productId = $target.closest('.product-card').dataset.productId;
-        push(`${import.meta.env.BASE_URL}products/${productId}`);
-        render();
-      }
     });
   } else {
     const productId = window.location.pathname.split('/products/')[1];
@@ -47,7 +57,43 @@ const render = async () => {
   }
 };
 
+document.body.addEventListener('click', (e) => {
+  const $target = e.target;
+
+  if ($target.closest('.product-card')) {
+    const productId = $target.closest('.product-card').dataset.productId;
+    push(`${import.meta.env.BASE_URL}products/${productId}`);
+    render();
+  }
+});
+
 window.addEventListener('popstate', render);
+
+document.body.addEventListener('change', (e) => {
+  const $target = e.target;
+
+  if ($target.id === 'limit-select') {
+    const newLimit = parseInt($target.value);
+    const url = new URL(window.location);
+    url.searchParams.set('limit', newLimit);
+    url.searchParams.set('current', '1');
+    history.pushState(null, null, url);
+    render();
+  }
+});
+
+document.body.addEventListener('change', (e) => {
+  const $target = e.target;
+
+  if ($target.id === 'sort-select') {
+    const newSort = $target.value;
+    const url = new URL(window.location);
+    url.searchParams.set('sort', newSort);
+    url.searchParams.set('current', '1');
+    history.pushState(null, null, url);
+    render();
+  }
+});
 
 const main = () => {
   render();

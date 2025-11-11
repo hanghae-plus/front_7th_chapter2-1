@@ -11,7 +11,7 @@ export const HomePage = ({
   return Layout({
     children: /* HTML */ `
       ${SearchForm({ filters, pagination, categories })}
-      ${ProductList({ loading, products })}
+      ${ProductList({ loading, products, total: pagination?.total })}
     `,
   });
 };
