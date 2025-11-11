@@ -5,3 +5,6 @@ export * from "./CategoryFilter.js";
 export * from "./LimitSelect.js";
 export * from "./SortSelect.js";
 export * from "./ProductList.js";
+export * from "./Breadcrumb.js";
+export * from "./ProductDetail.js";
+export * from "./RelatedProductList.js";
