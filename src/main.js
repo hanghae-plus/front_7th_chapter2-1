@@ -60,6 +60,22 @@ async function main() {
 
   /* Event Handlers */
   /**
+   * @param {PopStateEvent} event
+   */
+  window.addEventListener("popstate", async (event) => {
+    console.log("[PopState Event]", event, window.location, event.state);
+    const currentPathName = window.location.pathname;
+    const currentRelativePath = currentPathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+    const targetRoute = Object.values(ROUTES).find((route) => route.pattern.test(currentRelativePath));
+    if (!targetRoute) throw new Error("Route not found");
+    const params = extractParams(targetRoute.path, currentRelativePath);
+    const props = await targetRoute.loader(params);
+    $root.innerHTML = `
+      ${targetRoute.render(props)}
+    `;
+  });
+
+  /**
    * @param {MouseEvent} event
    */
   $root.addEventListener("click", async (event) => {
@@ -158,7 +174,7 @@ async function main() {
         $root.innerHTML = `
           ${route.render(props)}
         `;
-      } else if (linkElement.dataset.linkGoBack) {
+      } else if (linkElement.closest("[data-go-back]")) {
         history.back();
       }
     }
