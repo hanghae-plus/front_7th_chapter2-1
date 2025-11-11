@@ -1,10 +1,4 @@
-const CategoryItem = (category1) => {
-  return `<button data-category1=${category1} class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-    ${category1}
-  </button>`;
-};
-
-export const SearchForm = ({ loading = false, filters = { search: "" }, categories = {} }) => {
+export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
   return `
         <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -42,10 +36,16 @@ export const SearchForm = ({ loading = false, filters = { search: "" }, categori
           <!-- 2depth 카테고리 -->
           <div class="flex flex-wrap gap-2">
             ${
-              loading
+              !categories
                 ? `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
                 : `<div class="flex flex-wrap gap-2">
-                    ${Object.keys(categories).map(CategoryItem).join("")}
+                    ${
+                      !filters.category1
+                        ? Object.keys(categories).map(Category1Item).join("")
+                        : Object.keys(categories[filters.category1] ?? {})
+                            .map((category2) => Category2Item({ category1: filters.category1, category2 }))
+                            .join("")
+                    }
               </div>`
             }
           </div>
@@ -83,4 +83,25 @@ export const SearchForm = ({ loading = false, filters = { search: "" }, categori
       </div>
     </div>
     `;
+};
+
+const Category1Item = (category1) => {
+  return `
+    <button
+      data-category1="${category1}"
+      class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+    >
+      ${category1}
+    </button>`;
+};
+
+const Category2Item = ({ category1, category2 }) => {
+  return `
+    <button
+      data-category1="${category1}"
+      data-category2="${category2}"
+      class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+    >
+      ${category2}
+    </button>`;
 };
