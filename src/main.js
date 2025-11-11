@@ -19,12 +19,42 @@ const render = async () => {
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, categories, isLoading: false });
 
-    // 상품 카드 클릭 이벤트 핸들러
+    // 상품 카드 클릭 이벤트 핸들러 -> 상세 페이지로 이동
     document.addEventListener("click", (event) => {
       if (event.target.closest(".product-card")) {
         const productId = event.target.closest(".product-card").dataset.productId;
         history.pushState("", "", `/product/${productId}`);
         render();
+      }
+    });
+
+    // breadcrumb 전체 버튼 클릭 시 필터 초기화
+    document.addEventListener("click", async (event) => {
+      if (event.target.closest("button[data-breadcrumb='reset']")) {
+        const data = await getProducts();
+        $root.innerHTML = HomePage({ ...data, categories, isLoading: false });
+      }
+    });
+
+    // breadcrumb 카테고리 1 버튼 클릭 시 필터 적용
+    document.addEventListener("click", async (event) => {
+      if (event.target.closest("button[data-breadcrumb='category1']")) {
+        const category1 = event.target.closest("button[data-breadcrumb='category1']").dataset.category1;
+        const data = await getProducts({ category1 });
+        $root.innerHTML = HomePage({ ...data, categories, isLoading: false });
+
+        // 카테고리 1 필터에 적용
+        const categoryBreadcrumb = CategoryBreadcrumb(category1);
+        // data-breadcrumb="reset" 옆에 categoryBreadcrumb를 추가
+        const categoryBreadcrumbContainer = document.querySelector("button[data-breadcrumb='reset']");
+        categoryBreadcrumbContainer.insertAdjacentHTML("afterend", categoryBreadcrumb);
+
+        // 카테고리 2 목록 버튼 보여주기
+        const category2Buttons = Object.keys(categories[category1])
+          .map((category2) => Category2Button(category1, category2))
+          .join("");
+        const categoryFilterButtons = document.getElementById("category-filter-buttons");
+        categoryFilterButtons.innerHTML = category2Buttons;
       }
     });
 
@@ -51,7 +81,7 @@ const render = async () => {
       }
     });
 
-    // 카테고리 2 목록 버튼 클릭 이벤트 핸들러
+    // 카테고리 2 버튼 클릭 이벤트 핸들러
     document.addEventListener("click", async (event) => {
       if (event.target.closest(".category2-filter-btn")) {
         const category1 = event.target.closest(".category2-filter-btn").dataset.category1;
