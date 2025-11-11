@@ -1,7 +1,7 @@
 import PageLayout from "../layouts/PageLayout";
 import ProductDetail from "../components/ProductDetail";
 
-export const 상세페이지_로딩 = /* html */ `
+export const 상세페이지_로딩 = /* HTML */ `
   <main class="max-w-md mx-auto px-4 py-4">
     <div class="py-20 bg-gray-50 flex items-center justify-center">
       <div class="text-center">
