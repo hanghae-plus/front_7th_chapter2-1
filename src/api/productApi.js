@@ -1,5 +1,6 @@
 import { ProductListResponseDTO } from "../dto/ProductListDTO";
 import { ProductDTO } from "../dto/ProductDTO";
+import { CategoryDTO } from "../dto/CategoryDTO";
 
 // 상품 목록 조회
 export async function getProducts(params = {}) {
@@ -31,5 +32,6 @@ export async function getProduct(productId) {
 // 카테고리 목록 조회
 export async function getCategories() {
   const response = await fetch("/api/categories");
-  return await response.json();
+  const data = await response.json();
+  return CategoryDTO.fromApi(data);
 }
