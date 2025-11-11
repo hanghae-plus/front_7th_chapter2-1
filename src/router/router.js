@@ -56,7 +56,9 @@ export const createRouter = () => {
       $root.innerHTML = PageLayout({ children: "<h1>Error occurred</h1>" });
     }
   };
-
+  const rerender = () => {
+    return render(window.location.pathname);
+  };
   // 라우트 등록
   const addRoute = (path, handler) => {
     routes.set(path, handler);
@@ -112,6 +114,7 @@ export const createRouter = () => {
     pushWithQuery,
     init,
     getCurrentRoute,
+    rerender,
   };
 
   return router;

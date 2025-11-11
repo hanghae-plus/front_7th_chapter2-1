@@ -55,7 +55,7 @@ const initEventListeners = () => {
       router.pushWithQuery("/", {
         ...currentParams,
         search,
-        page: 1,
+        current: 1,
       });
     }
   });
