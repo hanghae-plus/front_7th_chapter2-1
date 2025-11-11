@@ -1229,6 +1229,7 @@ function resolveHomeParams(overrides = {}) {
   const resolvedSearch = valueOr("search", state.searchTerm);
   const fallbackPage = Number.isFinite(state.currentPage) && state.currentPage > 0 ? state.currentPage : 1;
   const resolvedCurrent = valueOr("current", fallbackPage);
+  const forceCurrent = hasOverride("current");
 
   return {
     category1: resolvedCategory1,
@@ -1237,10 +1238,11 @@ function resolveHomeParams(overrides = {}) {
     limit: resolvedLimit,
     search: resolvedSearch,
     current: resolvedCurrent,
+    forceCurrent,
   };
 }
 
-function createHomeSearchParams({ category1, category2, sort, limit, search, current } = {}) {
+function createHomeSearchParams({ category1, category2, sort, limit, search, current, forceCurrent } = {}) {
   const params = new URLSearchParams();
 
   if (category1) {
@@ -1268,7 +1270,7 @@ function createHomeSearchParams({ category1, category2, sort, limit, search, cur
 
   const numericCurrent = Number(current);
   const hasSearch = Boolean(search);
-  if (Number.isFinite(numericCurrent) && (numericCurrent > 1 || (numericCurrent === 1 && hasSearch))) {
+  if (Number.isFinite(numericCurrent) && (numericCurrent > 1 || hasSearch || forceCurrent)) {
     params.set("current", String(Math.max(1, Math.trunc(numericCurrent))));
   }
 
