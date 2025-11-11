@@ -13,10 +13,7 @@ export default function Header({ isDetailPage = false, cart = [] }) {
           ${isDetailPage
             ? /* HTML */ `
                 <div class="flex items-center space-x-3">
-                  <button
-                    onclick="window.history.back()"
-                    class="p-2 text-gray-700 hover:text-gray-900 transition-colors"
-                  >
+                  <button data-link data-link-go-back class="p-2 text-gray-700 hover:text-gray-900 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
