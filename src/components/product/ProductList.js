@@ -1,3 +1,5 @@
+import { store } from "../../store/store";
+
 const Skeleton = /* html */ `
     <!-- 로딩 스켈레톤 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
@@ -58,11 +60,13 @@ const ProductItem = ({ productId, title, image, lprice }) => {
   `;
 };
 
-export const ProductList = ({ loading, products = [] }) => {
+export const ProductList = () => {
   const $el = document.createElement("div");
   $el.className = "mb-6";
 
   const render = () => {
+    const { loading, products } = store.state;
+
     if (loading) {
       $el.innerHTML = /* HTML */ `
         <!-- 상품 그리드 -->
@@ -88,7 +92,7 @@ export const ProductList = ({ loading, products = [] }) => {
     }
   };
 
-  render();
+  store.subscribe(render);
 
   return $el;
 };
