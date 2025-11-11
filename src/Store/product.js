@@ -1,5 +1,17 @@
 import { getProducts } from "../api/productApi.js";
 
+/**
+ * 옵저버 패턴 상세 내용
+ *
+ * 관찰 대상 (Subject): Product 클래스의 인스턴스 (최하단에 생성한 productStore)
+ *      --> 싱글톤 패턴 활용 (하나의 product 스토어의 인스턴스를 모든 컴포넌트에서 공유하게 하기 위함)
+ * 상태 (State): #state (Object)
+ * 구독자 목록 (Observers): #observer (Set)
+ * 구독 (Subscribe): subscribe() 메서드.
+ * 알림 (Notify): #setState()가 호출되면 #notify() 메서드 호출.
+ * */
+
+// 초기 state 구조 잡기
 const initialState = {
   product: [],
   loading: false,
@@ -25,6 +37,7 @@ class Product {
   // 캡슐화
   #state;
   #observer;
+
   constructor() {
     this.#state = initialState;
     this.#observer = new Set();
@@ -37,12 +50,12 @@ class Product {
   #setState(val) {
     // TODO : 가능하다면 프록시 패턴 적용시켜보자!
     this.#state = { ...this.#state, ...val };
-    // 구독자에게 변화 감지 시키 고 리렌더링 함수 실행
+    // 구독자에게 변화 감지 + 리렌더링 함수 실행
     this.#notify();
   }
 
   #notify() {
-    console.log("데이터 변화 감지!!");
+    console.log("데이터 변화 감지!");
     this.#observer.forEach((callback) => callback());
   }
   /**

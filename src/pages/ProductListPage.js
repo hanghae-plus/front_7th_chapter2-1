@@ -4,7 +4,7 @@ import productList from "../components/product/list.js";
 
 // let product = productStore.getState();
 
-export function renderProductList() {
+export function ProductListPage() {
   return `
       <main class="max-w-md mx-auto px-4 py-4">
         <!-- 검색 및 필터 -->
