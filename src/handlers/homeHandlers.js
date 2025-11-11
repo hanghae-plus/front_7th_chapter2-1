@@ -1,4 +1,7 @@
 import { updateQueryParams } from "../utils/queryParams.js";
+import { addCartItem } from "../utils/cartStorage.js";
+import { updateCartIconCount } from "../components/common/Header.js";
+import { toast } from "../utils/toast.js";
 
 /**
  * HomePage의 이벤트 핸들러를 등록하는 함수
@@ -73,6 +76,32 @@ export const setupHomePageHandlers = () => {
         page: undefined,
       });
       return;
+    }
+
+    if (target.classList.contains("add-to-cart-btn")) {
+      // 장바구니.. 담아야해요.. 아이템 정보 어디서 얻징.. 아이템에서 추출?
+      const productCard = target.closest(".product-card");
+
+      const productId = productCard.dataset.productId;
+      const title = productCard.dataset.title;
+      const price = Number(productCard.dataset.price);
+      const image = productCard.dataset.image;
+
+      const product = {
+        id: productId,
+        title: title,
+        price: price,
+        image: image,
+      };
+
+      // 4. 장바구니에 추가 (수량 1)
+      addCartItem(product, 1);
+
+      // 5. 토스트 메시지
+      toast.success("장바구니에 추가되었습니다");
+
+      // 6. 아이콘 개수 업데이트
+      updateCartIconCount();
     }
   };
 
