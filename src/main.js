@@ -1,4 +1,5 @@
 import { getProducts } from "./api/productApi";
+import CartModal from "./components/CartModal";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
 import { extractParams } from "./utils/route";
@@ -33,10 +34,12 @@ async function main() {
 
   /** @type {HTMLElement | null} */
   const $root = document.querySelector("#root");
+  const $cartModalRoot = document.querySelector("#cart-modal-root");
 
   const appState = appStore.getState();
 
   if (!$root) throw new Error("Root element not found");
+  if (!$cartModalRoot) throw new Error("Cart modal root element not found");
 
   /* Initial Render */
   if (relativePath === homeRoute.path) {
@@ -59,6 +62,8 @@ async function main() {
   }
 
   /* Event Handlers */
+
+  // PopState Event Handler
   /**
    * @param {PopStateEvent} event
    */
@@ -75,10 +80,25 @@ async function main() {
     `;
   });
 
+  // Cart Modal Event Handlers
+  /**
+   * @param {MouseEvent} event
+   */
+  $cartModalRoot.addEventListener("click", async (event) => {
+    console.log("[Click Event] cart-modal-root", event);
+    if (event.target.closest("#cart-modal-close-btn")) {
+      console.log("[Click Event] cart-modal-close-btn", event);
+      $cartModalRoot.innerHTML = "";
+      appStore.setSelectedCartIds([]);
+    }
+  });
+
+  // Root Event Handlers
   /**
    * @param {MouseEvent} event
    */
   $root.addEventListener("click", async (event) => {
+    console.log("[Click Event]", event.target);
     if (!event.target) return;
 
     if (event.target.id === "category-filter-btn") {
@@ -153,6 +173,11 @@ async function main() {
       const productId = event.target.dataset.productId;
       if (!productId) return;
       appStore.addToCart(productId, appState.cartItemCount);
+    } else if (event.target.closest("#cart-icon-btn")) {
+      console.log("[Click Event] cart-icon-btn", event);
+      $cartModalRoot.innerHTML = `
+        ${CartModal({ cart: appState.cart, selectedCartIds: appState.selectedCartIds })}
+      `;
     } else if (event.target.id === "quantity-decrease") {
       console.log("[Click Event] quantity-decrease", event);
       appStore.subtractCartItemCount();
