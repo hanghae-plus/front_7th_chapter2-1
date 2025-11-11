@@ -1,6 +1,3 @@
-import { NotFound } from "@/404.js";
-import { Filter } from "@/components/filter/index.js";
-import { Layout } from "@/components/layout";
 import { ProductListPage } from "@/page/index.js";
 import Router from "@/router.js";
 
@@ -1114,24 +1111,26 @@ function main() {
   //   <br />
   //   ${_404_}
   // `;
+}
 
-  window.html = String.raw;
+window.html = String.raw;
 
-  // TODO: layout 컴포넌트 어떻게 할껀지 ?
+function createApp() {
+  main(); // TODO: 삭제필요 -> 컴포넌트분리되면 삭제
   const router = new Router({
-    "/": () =>
-      Layout({
-        content: `${Filter()}<div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${ProductListPage("products-grid")}</div>`,
-      }),
-    "/footer": () => Layout({ content: `<div>푸터</div>` }),
-    "/404": () => NotFound(),
+    rootId: "root",
+    routes: {
+      "/": () => ProductListPage(),
+      // "/404": () => NotFound(),
+    },
   });
+
   router.init();
 }
 
 // 애플리케이션 시작
 if (import.meta.env.MODE !== "test") {
-  enableMocking().then(main);
+  enableMocking().then(createApp);
 } else {
-  main();
+  createApp();
 }

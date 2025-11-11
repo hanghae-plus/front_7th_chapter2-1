@@ -2,15 +2,21 @@ import { ProductItem, ProductListSkeleton } from "@/components/product-list/inde
 import { store } from "@/store/store.js";
 
 export function ProductListPage(elementId) {
-  const container = document.getElementById(elementId); // products-grid
+  let container = document.getElementById(elementId); // products-grid
   let unsubscribe = null;
 
+  function create() {
+    // TODO: 여기서 elementId설정해줬을 때 router에서 호출하고 dom찾는데 문제 없는 지 체크해야함
+    // TODO: createProductListPage + 다른 컴포넌트도 조합되어야함 -> 어떻게할껀지 고민필요
+    return html`<div class="grid grid-cols-2 gap-4 mb-6" id="${elementId}"></div>`;
+  }
+
   function render(state) {
-    const { products, isLoading } = state;
     if (!container) {
       return (document.innerHTML = "");
     }
 
+    const { products, isLoading } = state;
     container.innerHTML = `${isLoading ? ProductListSkeleton() : products.map((product) => `${ProductItem(product)}`).join("")} `;
   }
 
@@ -33,18 +39,22 @@ export function ProductListPage(elementId) {
   // }
 
   function mount() {
+    if (!container) return;
+
     unsubscribe = store.subscribe((state) => {
       render(state);
     });
 
-    // container.addEventListener("click", handleClick);
     render(store.state);
+    // container.addEventListener("click", handleClick);
   }
 
   function unmount() {
     if (unsubscribe) unsubscribe();
     // container.removeEventListener("click", handleClick);
+    container = null;
+    unsubscribe = null;
   }
 
-  return { mount, unmount };
+  return { create, mount, unmount };
 }

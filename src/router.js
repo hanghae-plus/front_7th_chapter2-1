@@ -1,29 +1,54 @@
-// router.js - History API 활용
+// src/router.js
 class Router {
-  constructor(routes) {
+  constructor({ routes, rootId = "root" }) {
     this.routes = routes;
-    this.init();
-  }
+    this.root = document.getElementById(rootId);
+    if (!this.root) throw new Error(`#${rootId} 엘리먼트를 찾을 수 없습니다.`);
 
-  render() {
-    const path = location.pathname;
-    const root = document.querySelector("#root");
-    const element = this.routes[path]();
-    if (!element) {
-      root.innerHTML = this.routes["/404"]();
-      return;
-    }
-    root.innerHTML = this.routes[path]();
+    this.currentComponent = null;
+    this.popState = this.popState.bind(this); // 이벤트 대상을 router 객체에 고정
   }
 
   init() {
-    this.render();
-    window.addEventListener("popstate", () => this.render());
+    window.addEventListener("popstate", this.popState);
+    this.push(window.location.pathname, { replace: true });
   }
 
-  push(url) {
-    history.pushState(null, null, url);
-    this.render();
+  popState() {
+    this.push(window.location.pathname, { replace: true });
+  }
+
+  match(path) {
+    return this.routes[path] || this.routes["/404"];
+    // 필요하면 /product/:id 같은 패턴 매칭 로직을 추가
+  }
+
+  push(path, { replace = false } = {}) {
+    const matchedComponent = this.match(path);
+    if (!matchedComponent) return;
+
+    if (!replace) history.pushState(null, "", path);
+
+    this.render(matchedComponent);
+  }
+
+  render(matchedComponent) {
+    if (!this.currentComponent) {
+      this.root.innerHTML = "";
+      return;
+    }
+    if (this.currentComponent.unmount) {
+      this.currentComponent.unmount();
+    }
+
+    this.currentComponent = matchedComponent();
+
+    const element = this.currentComponent.render();
+    this.root.innerHTML = element;
+
+    if (typeof this.currentComponent.mount === "function") {
+      this.currentComponent.mount();
+    }
   }
 }
 
