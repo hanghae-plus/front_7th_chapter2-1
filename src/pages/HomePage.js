@@ -4,11 +4,14 @@ import ProductList from "@/components/ProductList";
 
 class HomePage extends Component {
   template() {
-    return `
-    ${Layout(`<section class="product_list"></section>`)}
-    `;
+    return `<div id="layout-container"></div>`;
   }
-  mounted() {
+  mount() {
+    const $layoutContainer = this.$target.querySelector("#layout-container");
+    new Layout($layoutContainer, {
+      children: `<section class="product_list"></section>`,
+    });
+
     const $productList = document.querySelector(".product_list");
     new ProductList($productList);
   }

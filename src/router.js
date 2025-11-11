@@ -4,6 +4,7 @@ import ProductPage from "@/pages/ProductPage";
 import NotFound from "@/pages/NotFound";
 
 const root = document.querySelector("#root");
+let currentPageComponent = null; // 현재 페이지 컴포넌트 추적
 
 const routes = [
   { path: "/", component: HomePage },
@@ -21,8 +22,18 @@ export const getMatch = (path) => {
 };
 
 export const render = (path, param) => {
+  // 이전 페이지 컴포넌트 unmount
+  if (currentPageComponent && typeof currentPageComponent.unmount === "function") {
+    currentPageComponent.unmount();
+  }
+
   const match = getMatch(path);
-  return match ? new match.route.component(root, param) : new NotFound(root);
+  const newComponent = match ? new match.route.component(root, param) : new NotFound(root);
+
+  // 새로운 페이지 컴포넌트 저장
+  currentPageComponent = newComponent;
+
+  return newComponent;
 };
 
 export const navigateTo = (path, param) => {
@@ -34,5 +45,6 @@ export const navigateTo = (path, param) => {
 
 export const initailizeRouter = () => {
   window.addEventListener("popstate", () => render(window.location.pathname));
-  render("/");
+  const currentPath = window.location.pathname;
+  render(currentPath);
 };

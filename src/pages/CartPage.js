@@ -3,9 +3,13 @@ import Layout from "@/components/Layout";
 
 class CartPage extends Component {
   template() {
-    return `
-  ${Layout()}
-  `;
+    return `<div id="layout-container"></div>`;
+  }
+  mount() {
+    const $layoutContainer = this.$target.querySelector("#layout-container");
+    if ($layoutContainer) {
+      new Layout($layoutContainer, { children: "" });
+    }
   }
 }
 

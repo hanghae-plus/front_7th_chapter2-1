@@ -2,6 +2,7 @@ class Component {
   $target;
   $props;
   $state = {};
+  $eventListeners = []; // 등록된 이벤트 리스너 추적
 
   constructor($target, $props) {
     this.$target = $target;
@@ -12,7 +13,7 @@ class Component {
   }
   setup() {} // 컴포넌트 state 설정
 
-  mounted() {} // 컴포넌트가 마운트 되었을 때
+  mount() {} // 컴포넌트가 마운트 되었을 때
 
   template() {
     return "";
@@ -20,7 +21,7 @@ class Component {
 
   render() {
     this.$target.innerHTML = this.template(); // UI 렌더링
-    this.mounted();
+    this.mount();
   }
 
   setEvent() {}
@@ -32,10 +33,23 @@ class Component {
 
   addEvent(eventType, selector, callback) {
     // 이벤트 등록 추상화
-    this.$target.addEventListener(eventType, (event) => {
+    const handler = (event) => {
       if (!event.target.closest(selector)) return false;
       return callback(event);
+    };
+    this.$target.addEventListener(eventType, handler);
+    // 이벤트 리스너 추적 (unmount 시 해제를 위해)
+    this.$eventListeners.push({ eventType, handler });
+  }
+
+  unmount() {
+    // 등록된 모든 이벤트 리스너 해제
+    this.$eventListeners.forEach(({ eventType, handler }) => {
+      this.$target.removeEventListener(eventType, handler);
     });
+    this.$eventListeners = [];
+    // DOM 정리
+    this.$target.innerHTML = "";
   }
 }
 

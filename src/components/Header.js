@@ -1,5 +1,8 @@
-const Header = () => {
-  return `<header class="bg-white shadow-sm sticky top-0 z-40">
+import Component from "@/core/Component";
+import { navigateTo } from "../router";
+class Header extends Component {
+  template() {
+    return `<header class="bg-white shadow-sm sticky top-0 z-40">
     <div class="max-w-md mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <h1 class="text-xl font-bold text-gray-900">
@@ -21,6 +24,15 @@ const Header = () => {
       </div>
     </div>
   </header>`;
-};
+  }
+  setEvent() {
+    this.addEvent("click", "#cart-icon-btn", () => this.goCartPage());
+  }
+
+  goCartPage() {
+    console.log("goCartPage");
+    navigateTo("/cart");
+  }
+}
 
 export default Header;

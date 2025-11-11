@@ -28,7 +28,7 @@ class ProductList extends Component {
   `;
   }
 
-  mounted() {
+  mount() {
     const $searchFiler = document.querySelector(".search_filter");
     new SearchFilter($searchFiler);
 
