@@ -56,7 +56,13 @@ const ProductItem = ({ productId, title, image, lprice }) => {
   return contentView;
 };
 
-export const ProductList = ({ products = [], loading = false }) => {
+export const renderProductItems = (products = []) => products.map(ProductItem).join("");
+
+export const ProductList = ({ products = [], loading = false, pagination = {} } = {}) => {
+  const hasNext = Boolean(pagination?.hasNext);
+  const currentPage = Number(pagination?.page ?? 1);
+  const nextPage = currentPage + 1;
+
   const loadingView = /*html*/ `
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
             <!-- 로딩 스켈레톤 -->
@@ -69,11 +75,22 @@ export const ProductList = ({ products = [], loading = false }) => {
             총 <span class="font-medium text-gray-900">${products.length}</span>의 상품
         </div>
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-            ${products.map(ProductItem).join("")}
+            ${renderProductItems(products)}
+        </div>
+        <div
+          class="py-6 flex justify-center"
+          data-infinite-trigger
+          data-has-next="${hasNext}"
+          data-loading="false"
+          data-next-page="${nextPage}"
+        >
+          <span class="text-xs text-gray-500">
+            ${hasNext ? "아래로 스크롤하면 더 많은 상품을 불러옵니다" : "모든 상품을 불러왔습니다"}
+          </span>
         </div>
     `;
   return `
-    <div class="mb-6">
+    <div class="mb-6" data-product-list>
         <div>
         <!-- 상품 그리드 -->
         ${loading ? loadingView : contentView}
