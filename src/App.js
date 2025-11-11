@@ -8,6 +8,7 @@ export default function App() {
   /**
    * 라우터 - 루트 정의
    * "/product/:id" 같은 다이나믹 라우팅
+   * TODO : baseUrl 적용 (배포 시 url환경 맞추기)
    * */
   // The router needs to support dynamic paths like
   addRoute(/^\/$/, () => mainLayout(ProductListPage));

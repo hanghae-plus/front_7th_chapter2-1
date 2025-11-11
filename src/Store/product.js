@@ -65,7 +65,7 @@ class Product {
    * */
   subscribe(callback) {
     this.#observer.add(callback);
-    console.log("Product 스토어 구독자 추가!");
+    console.log("Product 스토어 구독자 추가!", callback);
     return () => this.unsubscribe;
   }
 
@@ -86,6 +86,8 @@ class Product {
   async fetchProducts() {
     // 이미 로딩 중이면 중복 요청 방지
     if (this.#state.loading) return;
+
+    console.log("fetchProducts! 상품 목록 가져오기!");
 
     this.#setState({ loading: true, error: null });
 

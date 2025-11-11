@@ -1,4 +1,6 @@
-export default function searchForm() {
+export default function searchForm(params = {}) {
+  const { search = "", limit = 20, sort = "price_asc" } = params;
+
   let searchInput = `
         <!-- 검색창 -->
         <div class="mb-4">
@@ -7,7 +9,7 @@ export default function searchForm() {
               type="text" 
               id="search-input" 
               placeholder="상품명을 검색해보세요..." 
-              value="" 
+              value="${search}" 
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
@@ -69,21 +71,11 @@ export default function searchForm() {
                       class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                 ${pageSizeOption
                   .map((size) => {
-                    return `<option value="${size.value}">${size.label}</option>`;
+                    return `<option value="${size.value}" ${limit === size.value ? "selected" : ""}>${
+                      size.label
+                    }</option>`;
                   })
                   .join("")}
-<!--                <option value="10">-->
-<!--                  10개-->
-<!--                </option>-->
-<!--                <option value="20" selected="">-->
-<!--                  20개-->
-<!--                </option>-->
-<!--                <option value="50">-->
-<!--                  50개-->
-<!--                </option>-->
-<!--                <option value="100">-->
-<!--                  100개-->
-<!--                </option>-->
               </select>
             </div>
             <!-- 정렬 -->
@@ -92,14 +84,10 @@ export default function searchForm() {
               <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
                            focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                 ${sortOption
-                  .map((sort) => {
-                    return `<option value="${sort.value}">${sort.label}</option>`;
+                  .map((s) => {
+                    return `<option value="${s.value}" ${sort === s.value ? "selected" : ""}>${s.label}</option>`;
                   })
                   .join("")}
-<!--                <option value="price_asc" selected="">가격 낮은순</option>-->
-<!--                <option value="price_desc">가격 높은순</option>-->
-<!--                <option value="name_asc">이름순</option>-->
-<!--                <option value="name_desc">이름 역순</option>-->
               </select>
             </div>
           </div>`;
