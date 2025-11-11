@@ -16,12 +16,12 @@ export const getQueryStringAdding = (newKey, value) => {
   const currentParams = new URLSearchParams(window.location.search);
   const newParams = new URLSearchParams();
 
-  newParams.append(newKey, value);
   for (const [key, value] of currentParams.entries()) {
     if (key !== newKey) {
       newParams.append(key, value);
     }
   }
+  newParams.append(newKey, value);
 
   return "?" + newParams.toString();
 };

@@ -32,13 +32,15 @@ router.addRoute("/", async () => {
   const params = new URLSearchParams(window.location.search);
   const search = params.get("search") ?? "";
   const category1 = params.get("category1") ?? "";
+  const category2 = params.get("category2") ?? "";
+  const filters = { search, category1, category2 };
 
-  $root.innerHTML = HomePage({ loading: true, categories, filters: { search, category1 } });
-  const data = await getProducts({ search, category1 });
+  $root.innerHTML = HomePage({ loading: true, categories, filters });
+  const data = await getProducts({ search, category1, category2 });
   if (!categories) {
     categories = await getCategories();
   }
-  $root.innerHTML = HomePage({ ...data, filters: { search, category1 }, categories, loading: false });
+  $root.innerHTML = HomePage({ ...data, filters, categories, loading: false });
 });
 
 router.addRoute("/product/:productId", async () => {
@@ -76,16 +78,9 @@ $root.addEventListener("click", (e) => {
     router.navigateTo(`${BASE_URL}${newQueryString}`);
   } else if (e.target.closest(".category2-filter-btn")) {
     const $category2Btn = e.target.closest(".category2-filter-btn");
-    $category2Btn.classList.add("bg-blue-100", "border-blue-300", "text-blue-800");
-    $category2Btn.classList.remove("bg-white", "border-gray-300", "text-gray-700", "hover:bg-gray-50");
-
-    const $allCategory2Btns = $root.querySelectorAll(".category2-filter-btn");
-    $allCategory2Btns.forEach(($c2Btn) => {
-      if ($category2Btn.dataset.category2 !== $c2Btn.dataset.category2) {
-        $c2Btn.classList.remove("bg-blue-100", "border-blue-300", "text-blue-800");
-        $c2Btn.classList.add("bg-white", "border-gray-300", "text-gray-700", "hover:bg-gray-50");
-      }
-    });
+    const category2 = $category2Btn.dataset.category2;
+    const newQueryString = getQueryStringAdding("category2", category2);
+    router.navigateTo(`${BASE_URL}${newQueryString}`);
   }
 });
 

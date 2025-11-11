@@ -31,6 +31,8 @@ export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600">카테고리:</label>
             <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
+            ${filters.category1 ? `<span class="text-xs text-gray-500">&gt;</span><button data-breadcrumb="category1" data-category1="${filters.category1}" class="text-xs hover:text-blue-800 hover:underline">${filters.category1}</button>` : ""}
+            ${filters.category1 && filters.category2 ? `<span class="text-xs text-gray-500">&gt;</span><span class="text-xs text-gray-600 cursor-default">${filters.category2}</span>` : ""}
           </div>
           <!-- 1depth 카테고리 -->
           <!-- 2depth 카테고리 -->
@@ -43,7 +45,13 @@ export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
                       !filters.category1
                         ? Object.keys(categories).map(Category1Item).join("")
                         : Object.keys(categories[filters.category1] ?? {})
-                            .map((category2) => Category2Item({ category1: filters.category1, category2 }))
+                            .map((category2) =>
+                              Category2Item({
+                                category1: filters.category1,
+                                category2,
+                                isSelected: filters.category2 === category2,
+                              }),
+                            )
                             .join("")
                     }
               </div>`
@@ -95,12 +103,15 @@ const Category1Item = (category1) => {
     </button>`;
 };
 
-const Category2Item = ({ category1, category2 }) => {
+const Category2Item = ({ category1, category2, isSelected }) => {
+  const buttonClass = isSelected
+    ? "bg-blue-100 border-blue-300 text-blue-800"
+    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50";
   return `
     <button
       data-category1="${category1}"
       data-category2="${category2}"
-      class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+      class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors ${buttonClass}"
     >
       ${category2}
     </button>`;
