@@ -16,7 +16,9 @@ export const CartModal = () => {
       <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
         <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
           ${CartHeader()}
-          ${CartItemList()}
+          <div aria-hidden="true">
+            ${CartItemList()}
+          </div>
           ${CartFooter()}
         </div>
       </div>
@@ -36,7 +38,9 @@ export const refreshCartModal = () => {
   if (contentBox) {
     contentBox.innerHTML = `
       ${CartHeader()}
-      ${CartItemList()}
+      <div aria-hidden="true">
+        ${CartItemList()}
+      </div>
       ${CartFooter()}
     `;
   }
