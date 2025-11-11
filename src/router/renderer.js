@@ -40,11 +40,6 @@ export const renderCurrentPage = async (routes) => {
   if (route.component.loading) {
     const loadingHtml = route.component.loading({ params, query });
     $root.innerHTML = loadingHtml;
-
-    // 로딩 상태에서도 핸들러 등록 (사용자 인터랙션 가능)
-    if (route.setupHandlers) {
-      currentCleanup = route.setupHandlers();
-    }
   }
 
   // 8. route.component를 호출하고 await로 HTML 받아오기
@@ -53,12 +48,11 @@ export const renderCurrentPage = async (routes) => {
   // 9. #root에 HTML 삽입
   $root.innerHTML = html;
 
-  // 10. 페이지별 핸들러 재설정 (실제 데이터 렌더링 후)
+  // 10. 페이지별 핸들러 설정
   if (route.setupHandlers) {
-    // 이전 cleanup이 있으면 실행 (로딩 상태의 핸들러 정리)
-    if (currentCleanup) {
-      currentCleanup();
-    }
     currentCleanup = route.setupHandlers();
   }
+
+  // 11. 페이지 상단으로 스크롤
+  window.scrollTo(0, 0);
 };
