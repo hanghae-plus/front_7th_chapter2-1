@@ -14,7 +14,9 @@
  * @property {ProductListResponse} listResponse
  * @property {CategoryTreeNode[]} categories
  * @property {CartItem[]} cart
+ * @property {string[]} selectedCartIds
  * @property {number} cartItemCount
+ * @property {boolean} isCartModalOpen
  * @property {Product | null} productDetail
  * @property {ProductListResponse} productDetailListResponse
  */
@@ -40,7 +42,9 @@ const initialAppState = {
     },
   },
   categories: [],
+  isCartModalOpen: false,
   cart: [],
+  selectedCartIds: [],
   cartItemCount: 1,
   productDetail: null,
   productDetailListResponse: {
@@ -86,6 +90,13 @@ const appStore = {
     console.log("[Store - Mutation] setCartItemCount", { BEFORE: appState.cartItemCount, AFTER: newCartItemCount });
     appState.cartItemCount = newCartItemCount;
   },
+  setSelectedCartIds: (/** @type {string[]} */ newSelectedCartIds) => {
+    console.log("[Store - Mutation] setSelectedCartIds", {
+      BEFORE: appState.selectedCartIds,
+      AFTER: newSelectedCartIds,
+    });
+    appState.selectedCartIds = newSelectedCartIds;
+  },
   setProductDetail: (/** @type {Product} */ newProductDetail) => {
     console.log("[Store - Mutation] setProductDetail", { BEFORE: appState.productDetail, AFTER: newProductDetail });
     appState.productDetail = newProductDetail;
@@ -103,6 +114,13 @@ const appStore = {
   setListLoading: (/** @type {boolean} */ newListLoading) => {
     console.log("[Store - Mutation] setListLoading", { BEFORE: appState.listLoading, AFTER: newListLoading });
     appState.listLoading = newListLoading;
+  },
+  setIsCartModalOpen: (/** @type {boolean} */ newIsCartModalOpen) => {
+    console.log("[Store - Mutation] setIsCartModalOpen", {
+      BEFORE: appState.isCartModalOpen,
+      AFTER: newIsCartModalOpen,
+    });
+    appState.isCartModalOpen = newIsCartModalOpen;
   },
   // Actions
   /**

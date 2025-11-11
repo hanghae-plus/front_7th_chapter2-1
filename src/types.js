@@ -161,6 +161,12 @@
  * @property {CartItem[]} [cart]
  */
 
+/**
+ * @typedef {Object} CartModalProps
+ * @property {CartItem[]} [cart]
+ * @property {string[]} [selectedCartIds]
+ */
+
 // ============================================
 // Utility 타입
 // ============================================
