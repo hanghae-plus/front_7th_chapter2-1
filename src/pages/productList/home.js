@@ -5,6 +5,6 @@ export const Home = () => {
         <!-- 검색 및 필터 -->
         ${SearchBox(false)}
         <!-- 상품 목록 -->
-              ${ProductList(false)}
+        ${ProductList(false)}
       </main>`;
 };
