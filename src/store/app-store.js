@@ -5,6 +5,7 @@
  * @typedef {import('../types.js').Pagination} Pagination
  * @typedef {import('../types.js').SortOption} SortOption
  * @typedef {import('../types.js').Product} Product
+ * @typedef {import('../types.js').CartItem} CartItem
  */
 
 /**
@@ -12,7 +13,8 @@
  * @property {boolean} listLoading
  * @property {ProductListResponse} listResponse
  * @property {CategoryTreeNode[]} categories
- * @property {string[]} cart
+ * @property {CartItem[]} cart
+ * @property {number} cartItemCount
  * @property {Product | null} productDetail
  * @property {ProductListResponse} productDetailListResponse
  */
@@ -39,6 +41,7 @@ const initialAppState = {
   },
   categories: [],
   cart: [],
+  cartItemCount: 1,
   productDetail: null,
   productDetailListResponse: {
     products: [],
@@ -63,27 +66,32 @@ let appState = initialAppState;
 
 const appStore = {
   getState: () => appState,
+  // Mutations
   setListResponse: (/** @type {Partial<ProductListResponse>} */ newListResponse) => {
-    console.log("[Store] setListResponse", { BEFORE: appState.listResponse, AFTER: newListResponse });
+    console.log("[Store - Mutation] setListResponse", { BEFORE: appState.listResponse, AFTER: newListResponse });
     appState.listResponse = {
       ...appState.listResponse,
       ...newListResponse,
     };
   },
   setCategories: (/** @type {CategoryTreeNode[]} */ newCategories) => {
-    console.log("[Store] setCategories", { BEFORE: appState.categories, AFTER: newCategories });
+    console.log("[Store - Mutation] setCategories", { BEFORE: appState.categories, AFTER: newCategories });
     appState.categories = newCategories;
   },
-  setCart: (/** @type {string[]} */ newCart) => {
-    console.log("[Store] setCart", { BEFORE: appState.cart, AFTER: newCart });
+  setCart: (/** @type {CartItem[]} */ newCart) => {
+    console.log("[Store - Mutation] setCart", { BEFORE: appState.cart, AFTER: newCart });
     appState.cart = newCart;
   },
+  setCartItemCount: (/** @type {number} */ newCartItemCount) => {
+    console.log("[Store - Mutation] setCartItemCount", { BEFORE: appState.cartItemCount, AFTER: newCartItemCount });
+    appState.cartItemCount = newCartItemCount;
+  },
   setProductDetail: (/** @type {Product} */ newProductDetail) => {
-    console.log("[Store] setProductDetail", { BEFORE: appState.productDetail, AFTER: newProductDetail });
+    console.log("[Store - Mutation] setProductDetail", { BEFORE: appState.productDetail, AFTER: newProductDetail });
     appState.productDetail = newProductDetail;
   },
   setProductDetailListResponse: (/** @type {Partial<ProductListResponse>} */ newProductDetailListResponse) => {
-    console.log("[Store] setProductDetailListResponse", {
+    console.log("[Store - Mutation] setProductDetailListResponse", {
       BEFORE: appState.productDetailListResponse,
       AFTER: newProductDetailListResponse,
     });
@@ -93,11 +101,39 @@ const appStore = {
     };
   },
   setListLoading: (/** @type {boolean} */ newListLoading) => {
-    console.log("[Store] setListLoading", { BEFORE: appState.listLoading, AFTER: newListLoading });
+    console.log("[Store - Mutation] setListLoading", { BEFORE: appState.listLoading, AFTER: newListLoading });
     appState.listLoading = newListLoading;
   },
+  // Actions
+  /**
+   * @param {string} productId
+   * @param {number} [count=1]
+   */
+  addToCart: (productId, count = 1) => {
+    console.log("[Store - Action] addToCart", { BEFORE: appState.cart });
+    const existingCartItem = appState.cart.find((item) => item.productId === productId);
+    if (existingCartItem) {
+      existingCartItem.count += count;
+    } else {
+      appState.cart = [...appState.cart, { productId, count }];
+    }
+  },
+  addCartItemCount: () => {
+    console.log("[Store - Action] addCartItemCount", {
+      BEFORE: appState.cartItemCount,
+      AFTER: appState.cartItemCount + 1,
+    });
+    appState.cartItemCount += 1;
+  },
+  subtractCartItemCount: () => {
+    console.log("[Store - Action] subtractCartItemCount", {
+      BEFORE: appState.cartItemCount,
+      AFTER: appState.cartItemCount - 1,
+    });
+    appState.cartItemCount -= 1;
+  },
   reset: () => {
-    console.log("[Store] reset", { BEFORE: appState, AFTER: initialAppState });
+    console.log("[Store - Action] reset", { BEFORE: appState, AFTER: initialAppState });
     appState = initialAppState;
   },
 };

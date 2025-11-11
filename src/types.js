@@ -98,6 +98,16 @@
  */
 
 // ============================================
+// Cart 타입
+// ============================================
+
+/**
+ * @typedef {Object} CartItem
+ * @property {string} productId
+ * @property {number} count
+ */
+
+// ============================================
 // Component Props 타입
 // ============================================
 
@@ -105,7 +115,7 @@
  * @typedef {Object} PageLayoutProps
  * @property {string} children
  * @property {boolean} [isDetailPage]
- * @property {string[]} [cart]
+ * @property {CartItem[]} [cart]
  */
 
 /**
@@ -128,7 +138,7 @@
  * @property {boolean} loading
  * @property {ProductListResponse} [productListResponse]
  * @property {CategoryTreeNode[]} [categories]
- * @property {string[]} [cart]
+ * @property {CartItem[]} [cart]
  */
 
 /**
@@ -136,7 +146,7 @@
  * @property {boolean} loading
  * @property {Product} [productDetailResponse]
  * @property {ProductListResponse} [productDetailListResponse]
- * @property {string[]} [cart]
+ * @property {CartItem[]} [cart]
  */
 
 /**
@@ -148,7 +158,7 @@
 /**
  * @typedef {Object} HeaderProps
  * @property {boolean} [isDetailPage]
- * @property {string[]} [cart]
+ * @property {CartItem[]} [cart]
  */
 
 // ============================================

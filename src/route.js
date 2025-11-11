@@ -64,6 +64,7 @@ export const ROUTES = Object.freeze({
         category2: appState.productDetail?.category2,
       });
       appStore.setProductDetailListResponse(listResponse);
+      appStore.setCartItemCount(1);
 
       return {
         loading: false,

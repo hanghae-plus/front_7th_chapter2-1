@@ -8,6 +8,7 @@ import { extractParams } from "./utils/route";
  * @typedef {import('./types.js').ProductListResponse} ProductListResponse
  */
 
+/** @type {HTMLElement | null} */
 let ioSentinel = null;
 
 /* Utils */
@@ -37,6 +38,7 @@ async function main() {
 
   if (!$root) throw new Error("Root element not found");
 
+  /* Initial Render */
   if (relativePath === homeRoute.path) {
     $root.innerHTML = `
       ${homeRoute.render({ loading: true, cart: appState.cart })}
@@ -63,75 +65,7 @@ async function main() {
   $root.addEventListener("click", async (event) => {
     if (!event.target) return;
 
-    if (event.target.id === "limit-select") {
-      console.log("[Click Event] limit-select", event);
-      const value = parseInt(event.target.value);
-      if (value === appState.listResponse.pagination.limit) {
-        return;
-      }
-      appState.listResponse.pagination.limit = value;
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
-      appStore.setListResponse(listResponse);
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-    } else if (event.target.id === "sort-select") {
-      console.log("[Click Event] sort-select", event);
-      const value = event.target.value;
-      if (value === appState.listResponse.filters.sort) return;
-      appState.listResponse.filters.sort = value;
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
-      appStore.setListResponse(listResponse);
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-    } else if (event.target.id === "category-filter-btn") {
+    if (event.target.id === "category-filter-btn") {
       console.log("[Click Event] category-filter-btn", event);
       const value1 = event.target.dataset.category1;
       const value2 = event.target.dataset.category2;
@@ -151,21 +85,9 @@ async function main() {
           cart: appState.cart,
         })}
       `;
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
-      appStore.setListResponse(listResponse);
+      const props = await homeRoute.loader();
       $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
+        ${homeRoute.render(props)}
       `;
     } else if (event.target.dataset.breadcrumb === "reset") {
       console.log("[Click Event] breadcrumb - reset", event);
@@ -184,21 +106,9 @@ async function main() {
           cart: appState.cart,
         })}
       `;
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
-      appStore.setListResponse(listResponse);
+      const props = await homeRoute.loader();
       $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
+        ${homeRoute.render(props)}
       `;
     } else if (event.target.dataset.breadcrumb === "category1") {
       console.log("[Click Event] breadcrumb - category1", event);
@@ -218,28 +128,21 @@ async function main() {
           cart: appState.cart,
         })}
       `;
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
-      appStore.setListResponse(listResponse);
+      const props = await homeRoute.loader();
       $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
+        ${homeRoute.render(props)}
       `;
     } else if (event.target.id === "add-to-cart-btn") {
       console.log("[Click Event] add-to-cart-btn", event);
       const productId = event.target.dataset.productId;
       if (!productId) return;
-      if (appState.cart.includes(productId)) return;
-      appStore.setCart([...appState.cart, productId]);
+      appStore.addToCart(productId, appState.cartItemCount);
+    } else if (event.target.id === "quantity-decrease") {
+      console.log("[Click Event] quantity-decrease", event);
+      appStore.subtractCartItemCount();
+    } else if (event.target.id === "quantity-increase") {
+      console.log("[Click Event] quantity-increase", event);
+      appStore.addCartItemCount();
     } else if (event.target.closest("[data-link]")) {
       console.log("[Click Event] link", event);
 
@@ -261,6 +164,62 @@ async function main() {
     }
   });
 
+  /**
+   * @param {Event} event
+   */
+  $root.addEventListener("change", async (event) => {
+    if (!event.target || event.target instanceof HTMLElement === false) return;
+    if (event.target.id === "limit-select") {
+      console.log("[Change Event] limit-select", event);
+
+      const value = parseInt(event.target.value);
+      if (value === appState.listResponse.pagination.limit) {
+        return;
+      }
+      appState.listResponse.pagination.limit = value;
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
+      $root.innerHTML = `
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
+      `;
+      const props = await homeRoute.loader();
+      $root.innerHTML = `
+        ${homeRoute.render(props)}
+      `;
+    } else if (event.target.id === "sort-select") {
+      console.log("[Change Event] sort-select", event);
+      const value = event.target.value;
+      if (value === appState.listResponse.filters.sort) return;
+      appState.listResponse.filters.sort = value;
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
+      $root.innerHTML = `
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
+      `;
+      const props = await homeRoute.loader();
+      $root.innerHTML = `
+        ${homeRoute.render(props)}
+      `;
+    }
+  });
+
+  /**
+   * @param {KeyboardEvent} event
+   */
   $root.addEventListener("keydown", async (event) => {
     if (!event.target || event.target instanceof HTMLElement === false) return;
 
@@ -283,21 +242,9 @@ async function main() {
           cart: appState.cart,
         })}
       `;
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
-      appStore.setListResponse(listResponse);
+      const props = await homeRoute.loader();
       $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
+        ${homeRoute.render(props)}
       `;
       console.log("[Keydown Event] search-input - Enter", value);
     }
@@ -305,7 +252,6 @@ async function main() {
 
   /* Intersection Observer */
   // TODO: refactor with component identification structure
-  /** @type {HTMLElement | null} */
   ioSentinel = document.querySelector("#sentinel");
   if (!ioSentinel) throw new Error("Sentinel element not found");
 
