@@ -61,19 +61,46 @@ const ProductItem = ({ title, image, productId, lprice, brand }) => {
   `;
 };
 
-export const ProductList = ({ loading = false, products = [] } = {}) => {
+const ErrorState = (message = "잠시 후 다시 시도해주세요.") => /* HTML */ `
+  <div class="bg-white border border-red-200 rounded-lg p-6 text-center">
+    <div class="mx-auto mb-4">
+      <svg class="mx-auto h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+        <path
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 7v6m0 4h.01"
+        ></path>
+      </svg>
+    </div>
+    <p class="text-sm font-medium text-red-600 mb-2">상품을 불러오지 못했습니다.</p>
+    <p class="text-xs text-gray-500 mb-4">${message}</p>
+    <button
+      id="retry-fetch-products"
+      class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+    >
+      다시 시도
+    </button>
+  </div>
+`;
+
+export const ProductList = ({ loading = false, products = [], error = null } = {}) => {
   return /* HTML */ `
     <!-- 상품 목록 -->
     <div class="mb-6">
       <div>
-        ${loading
-          ? ` <!-- 상품 그리드 -->
+        ${error
+          ? ErrorState(error ?? undefined)
+          : loading
+            ? ` <!-- 상품 그리드 -->
     <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
       <!-- 로딩 스켈레톤 -->
       ${Skeleton.repeat(4)}
     </div>
     ${Loading}`
-          : `<div class="mb-4 text-sm text-gray-600">
+            : `<div class="mb-4 text-sm text-gray-600">
               총 <span class="font-medium text-gray-900">${products.length}개</span>의 상품
           </div>
           <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">

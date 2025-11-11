@@ -34,8 +34,19 @@ async function render() {
 
   if (pathname === "/" || pathname === "") {
     $root.innerHTML = HomePage({ loading: true });
-    const data = await getProducts();
-    $root.innerHTML = HomePage({ ...data, loading: false });
+    try {
+      const data = await getProducts();
+      $root.innerHTML = HomePage({ ...data, loading: false });
+    } catch (error) {
+      console.error("상품 목록 로딩 실패:", error);
+      $root.innerHTML = HomePage({
+        loading: false,
+        products: [],
+        filters: {},
+        pagination: {},
+        error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+      });
+    }
   } else if (pathname.startsWith("/product/")) {
     $root.innerHTML = DetailPage({ loading: true });
     const productId = pathname.split("/").pop();
