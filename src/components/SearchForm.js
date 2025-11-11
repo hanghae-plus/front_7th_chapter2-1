@@ -1,5 +1,17 @@
-export const SearchForm = ({ filters = {} }) => {
-  const { limit = 20, search = "", sort = "price_asc" } = filters;
+export const CategoryLoading = `
+  <div class="flex flex-wrap gap-2">
+    <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
+  </div>
+`;
+
+export const SearchForm = ({ categoriesLoading, filters = {}, categories = {} }) => {
+  const { limit = 20, search = "", sort = "price_asc", category1 = "", category2 = "" } = filters;
+  console.log(categories);
+  // 1depth 카테고리 목록
+  const category1List = Object.keys(categories);
+
+  // 선택된 1depth 카테고리의 2depth 목록
+  const category2List = category1 && categories[category1] ? Object.keys(categories[category1]) : [];
 
   return /* html */ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -25,6 +37,85 @@ export const SearchForm = ({ filters = {} }) => {
 
       <!-- 필터 옵션 -->
       <div class="space-y-3">
+        <!-- 카테고리 필터 -->
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">카테고리:</label>
+              <button 
+                id="category-reset-btn" 
+                class="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                전체
+              </button>
+            ${
+              category1 || category2
+                ? `
+              <button 
+                id="category-reset-btn" 
+                class="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                전체
+              </button>
+            `
+                : ""
+            }
+          </div>
+          
+          <!-- 1depth 카테고리 -->
+          ${
+            categoriesLoading
+              ? CategoryLoading
+              : `
+            <div class="flex flex-wrap gap-2">
+              ${category1List
+                .map(
+                  (cat1) => `
+                <button 
+                  data-category1="${cat1}" 
+                  class="category1-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
+                    ${
+                      category1 === cat1
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }"
+                >
+                  ${cat1}
+                </button>
+              `,
+                )
+                .join("")}
+            </div>
+          `
+          }
+
+          <!-- 2depth 카테고리 -->
+          ${
+            category1 && category2List.length > 0
+              ? `
+            <div class="flex flex-wrap gap-2 pl-4">
+              ${category2List
+                .map(
+                  (cat2) => `
+                <button 
+                  data-category2="${cat2}" 
+                  class="category2-btn text-left px-3 py-1.5 text-xs rounded-md border transition-colors
+                    ${
+                      category2 === cat2
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+                    }"
+                >
+                  ${cat2}
+                </button>
+              `,
+                )
+                .join("")}
+            </div>
+          `
+              : ""
+          }
+        </div>
+
         <div class="flex gap-2 items-center justify-between">
           <!-- 페이지당 상품 수 -->
           <div class="flex items-center gap-2">
