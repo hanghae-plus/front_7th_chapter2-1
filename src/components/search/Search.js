@@ -14,7 +14,6 @@ const renderRootButtons = (categories = {}, selectedCategory1 = null) => {
   }
 
   return categoryKeys
-    .sort((a, b) => a.localeCompare(b, "ko"))
     .map((category1) => {
       const isActive = category1 === selectedCategory1;
       const baseClass = "category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors";
@@ -63,9 +62,7 @@ const renderCategoryButtons = ({ categories, selectedCategory1, selectedCategory
   }
 
   const category2Source = categories?.[selectedCategory1];
-  const category2List = Array.isArray(category2Source)
-    ? category2Source
-    : Object.keys(category2Source ?? {}).sort((a, b) => a.localeCompare(b, "ko"));
+  const category2List = Array.isArray(category2Source) ? category2Source : Object.keys(category2Source ?? {});
 
   if (selectedCategory2) {
     return SearchTwoDepth({
