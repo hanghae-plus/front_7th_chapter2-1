@@ -1,6 +1,11 @@
-export default function searchForm(params = {}) {
-  const { search = "", limit = 20, sort = "price_asc" } = params;
+export default function searchForm(props = {}) {
+  const { params = {}, categories = {} } = props;
+  const { search = "", category1 = "", category2 = "" } = params;
 
+  // let categories = productStore.getState().categories;
+  console.log("카테고리 정보", categories);
+
+  // 검색창
   let searchInput = `
         <!-- 검색창 -->
         <div class="mb-4">
@@ -22,32 +27,75 @@ export default function searchForm(params = {}) {
           </div>
         </div>`;
 
+  // 브래드크럼
+  let breadcrumbHTML =
+    '<button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>';
+  if (category1) {
+    breadcrumbHTML += `<span class="text-xs text-gray-500">&gt;</span>
+      <button data-breadcrumb="category1" data-category1="${category1}" class="text-xs hover:text-blue-800 hover:underline">${category1}</button>`;
+  }
+  if (category2) {
+    breadcrumbHTML += `<span class="text-xs text-gray-500">&gt;</span>
+      <span class="text-xs text-gray-600 cursor-default">${category2}</span>`;
+  }
+
+  // 카테고리 버튼 (1-depth 또는 2-depth) 생성
+  let categoryButtonsHTML = "";
+  let currentCategories = {}; // 현재 보여줄 카테고리 목록
+
+  if (!category1) {
+    // 1-depth (category1) 보여주기
+    currentCategories = categories;
+    categoryButtonsHTML = Object.keys(currentCategories)
+      .map((cat1) => {
+        return `<button data-category1="${cat1}" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
+                   bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+                  ${cat1}
+                </button>`;
+      })
+      .join("");
+  } else if (categories[category1] && !category2) {
+    // 2-depth (category2) 보여주기
+    currentCategories = categories[category1];
+    categoryButtonsHTML = Object.keys(currentCategories)
+      .map((cat2) => {
+        return `<button data-category1="${category1}" data-category2="${cat2}" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors 
+                   bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+                  ${cat2}
+                </button>`;
+      })
+      .join("");
+  } else if (categories[category1] && category2) {
+    // 2-depth (category2) 보여주기 (선택된 상태)
+    currentCategories = categories[category1];
+    categoryButtonsHTML = Object.keys(currentCategories)
+      .map((cat2) => {
+        const isSelected = cat2 === category2;
+        const selectedClass = isSelected
+          ? "bg-blue-100 border-blue-300 text-blue-800"
+          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50";
+        return `<button data-category1="${category1}" data-category2="${cat2}" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors ${selectedClass}">
+                  ${cat2}
+                </button>`;
+      })
+      .join("");
+  }
+
+  // 카테고리 로딩 중...
+  if (Object.keys(categories).length === 0 && !category1) {
+    categoryButtonsHTML = '<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>';
+  }
+
   let catergoryFilter = `
-          <!-- 카테고리 필터 -->
-          <div class="space-y-2">
-            <div class="flex items-center gap-2">
-              <label class="text-sm text-gray-600">카테고리:</label>
-              <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
-              <span class="text-xs text-gray-500">&gt;</span>
-              <button data-breadcrumb="category1" data-category1="생활/건강" class="text-xs hover:text-blue-800 hover:underline">생활/건강</button>
-            </div>
-            <div class="space-y-2">
-              <div class="flex flex-wrap gap-2">
-                <button data-category1="생활/건강" data-category2="생활용품" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                  생활용품
-                </button>
-                <button data-category1="생활/건강" data-category2="주방용품" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                  주방용품
-                </button>
-                <button data-category1="생활/건강" data-category2="주방용품" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-blue-100 border-blue-300 text-blue-800">
-                  주방용품
-                </button>
-                <button data-category1="생활/건강" data-category2="문구/사무용품" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
-                  문구/사무용품
-                </button>
-              </div>
-            </div>
-          </div>`;
+    <div class="space-y-2">
+      <div class="flex items-center gap-2" id="product-breadcrumb">
+        <label class="text-sm text-gray-600">카테고리:</label>
+        ${breadcrumbHTML}
+      </div>
+      <div class="flex flex-wrap gap-2" id="product-category">
+        ${categoryButtonsHTML}
+      </div>
+    </div>`;
 
   let pageSizeOption = [
     { label: "10개", value: 10 },
@@ -62,35 +110,32 @@ export default function searchForm(params = {}) {
     { label: "이름 역순", value: "name_desc" },
   ];
   let filterOptions = `
-  <!-- 기존 필터들 -->
-          <div class="flex gap-2 items-center justify-between">
-            <!-- 페이지당 상품 수 -->
-            <div class="flex items-center gap-2">
-              <label class="text-sm text-gray-600">개수:</label>
-              <select id="limit-select"
-                      class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                ${pageSizeOption
-                  .map((size) => {
-                    return `<option value="${size.value}" ${limit === size.value ? "selected" : ""}>${
-                      size.label
-                    }</option>`;
-                  })
-                  .join("")}
-              </select>
-            </div>
-            <!-- 정렬 -->
-            <div class="flex items-center gap-2">
-              <label class="text-sm text-gray-600">정렬:</label>
-              <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
-                           focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                ${sortOption
-                  .map((s) => {
-                    return `<option value="${s.value}" ${sort === s.value ? "selected" : ""}>${s.label}</option>`;
-                  })
-                  .join("")}
-              </select>
-            </div>
-          </div>`;
+    <div class="flex gap-2 items-center justify-between">
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600">개수:</label>
+        <select id="limit-select" class="text-sm border border-gray-300 rounded px-2 py-1 ...">
+          ${pageSizeOption
+            .map((size) => {
+              return `<option value="${size.value}" ${
+                Number(params.limit) === size.value ? "selected" : ""
+              }>${size.label}</option>`;
+            })
+            .join("")}
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600">정렬:</label>
+        <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1 ...">
+          ${sortOption
+            .map((sort) => {
+              return `<option value="${sort.value}" ${
+                params.sort === sort.value ? "selected" : ""
+              }>${sort.label}</option>`;
+            })
+            .join("")}
+        </select>
+      </div>
+    </div>`;
 
   return `
       ${searchInput}

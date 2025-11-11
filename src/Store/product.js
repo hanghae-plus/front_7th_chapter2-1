@@ -1,4 +1,4 @@
-import { getProducts } from "../api/productApi.js";
+import { getProducts, getCategories } from "../api/productApi.js";
 
 /**
  * 옵저버 패턴 상세 내용
@@ -13,7 +13,7 @@ import { getProducts } from "../api/productApi.js";
 
 // 초기 state 구조 잡기
 const initialState = {
-  product: [],
+  products: [],
   loading: false,
   error: null,
   pagination: {
@@ -31,6 +31,7 @@ const initialState = {
     category1: "",
     category2: "",
   },
+  categories: {},
 };
 
 class Product {
@@ -50,6 +51,7 @@ class Product {
   #setState(val) {
     // TODO : 가능하다면 프록시 패턴 적용시켜보자!
     this.#state = { ...this.#state, ...val };
+    console.log("product.js - setState", this.#state);
     // 구독자에게 변화 감지 + 리렌더링 함수 실행
     this.#notify();
   }
@@ -144,6 +146,24 @@ class Product {
     // fetchProducts 호출
     this.#setState({ params: nextParams });
     this.fetchProducts();
+  }
+
+  /**
+   * 카테고리 가져오기
+   * */
+  async getCategories() {
+    // 이미 데이터가 있으면 다시 부르지 않음
+    if (Object.keys(this.#state.categories).length > 0) {
+      return;
+    }
+    console.log("getCategories");
+    try {
+      const data = await getCategories();
+      console.log(data);
+      this.#setState({ categories: data });
+    } catch (err) {
+      this.#setState({ loading: false, error: err.message });
+    }
   }
 }
 

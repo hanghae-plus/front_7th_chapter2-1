@@ -15,10 +15,12 @@ export function ProductListPage(queryParams) {
     }
 
     // 상품정보, 로딩여부, 페이징 데이터 state 가져오기
-    const { products, loading, pagination } = productStore.getState();
+    const { products, loading, pagination, params, categories } = productStore.getState();
+    const productSearchFilter = document.getElementById("product-search-filter");
     const productListContainer = document.getElementById("product-list-container");
 
     if (productListContainer) {
+      productSearchFilter.innerHTML = searchForm({ params, categories });
       // 로딩 중이고, 기존 상품이 없을 때만 스켈레톤 UI 표시
       if (loading && products.length === 0) {
         productListContainer.innerHTML = skeleton();
@@ -42,19 +44,18 @@ export function ProductListPage(queryParams) {
    * setParams의 내부 로직 중 this.#setState에서 notify()를 통해 리렌더링 실시 (handleStoreUpdate)
    * */
   productStore.setParams(queryParams);
+  productStore.getCategories();
 
   /**
    * ProductListPage.js 호출 후 초기 페이지 DOM
    * 처음에는 skeleton 호출
    * 데이터 로딩이 완료시, 구독된 handleStoreUpdate 함수 실행 (상품 목록 채워진 버전으로 리렌더링).
    * */
-  const initialState = productStore.getState();
+  // const initialState = productStore.getState();
   return `
       <main id="product-list-page" class="max-w-md mx-auto px-4 py-4">
         <!-- 검색 및 필터 -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-          ${searchForm(initialState.params)}
-        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4" id="product-search-filter"></div>
         <!-- 상품 목록 -->
         <div id="product-list-container" class="mb-6">
           ${skeleton()}
