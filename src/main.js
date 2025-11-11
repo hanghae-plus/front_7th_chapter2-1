@@ -1,7 +1,9 @@
 import { getProducts, getProduct, getCategories } from "./api/productApi.js";
 import { Home } from "./pages/home.js";
 import { Detail } from "./pages/detail.js";
+import { error404 } from "./pages/404.js";
 import { Search, updateCategoryBreadcrumb, updateCategoryButtons, ItemList, Cart } from "./components/index.js";
+import { addCartAlert, delCartAlert, errorAlert, showToast } from "./components/alert.js";
 
 const INITIAL_LOAD_ERROR_MESSAGE = "상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
 const LOAD_MORE_ERROR_MESSAGE = "상품을 추가로 불러오지 못했습니다. 다시 시도해 주세요.";
@@ -42,6 +44,7 @@ let loadMoreObserver = null;
 let homeShellMounted = false;
 let searchSectionInitialized = false;
 let cartEscapeListenerAttached = false;
+let cartModalEventsAttached = false;
 
 const enableMocking = async () => {
   const { worker } = await import("./mocks/browser.js");
@@ -62,8 +65,10 @@ function render() {
 
   if (state.route?.name === "detail") {
     renderDetailView(root);
-  } else {
+  } else if (state.route?.name === "home") {
     renderHomeView(root);
+  } else {
+    renderNotFound(root);
   }
 
   renderCartModal();
@@ -110,6 +115,14 @@ function renderHomeView(root) {
   updateSearchUI();
   renderProductSection();
   setupLoadMoreObserver(root);
+}
+
+function renderNotFound(root) {
+  disconnectLoadMoreObserver();
+  homeShellMounted = false;
+  searchSectionInitialized = false;
+  root.innerHTML = error404();
+  attachHeaderNavigation(root);
 }
 
 function initializeSearchSection() {
@@ -439,6 +452,7 @@ async function loadProducts({ append = false } = {}) {
   } catch (error) {
     console.error("상품 목록을 불러오지 못했습니다.", error);
     handleLoadError(append);
+    showToast(errorAlert);
   } finally {
     finishLoad(append);
   }
@@ -735,6 +749,7 @@ async function loadProductDetail(productId) {
     }
     console.error("상품 상세 정보를 불러오지 못했습니다.", error);
     state.detail.error = DETAIL_LOAD_ERROR_MESSAGE;
+    showToast(errorAlert);
   } finally {
     if (state.route?.name === "detail" && state.route.params.productId === productId) {
       state.detail.isLoading = false;
@@ -770,7 +785,7 @@ function parseRoute() {
     };
   }
 
-  return { name: "home" };
+  return { name: "not_found" };
 }
 
 function buildUrl(path = "") {
@@ -786,6 +801,16 @@ async function handleRouteChange() {
 
   if (state.route.name === "detail") {
     await loadProductDetail(state.route.params.productId);
+    return;
+  }
+
+  if (state.route.name !== "home") {
+    homeShellMounted = false;
+    searchSectionInitialized = false;
+    state.detail = createInitialDetailState();
+    state.isLoadingProducts = false;
+    state.productsError = null;
+    render();
     return;
   }
 
@@ -831,6 +856,7 @@ async function ensureCategoriesLoaded() {
     console.error("카테고리 정보를 불러오지 못했습니다.", error);
     state.categories = {};
     state.categoriesLoaded = false;
+    showToast(errorAlert);
   } finally {
     state.isLoadingCategories = false;
     if (state.route?.name === "home") {
@@ -896,6 +922,7 @@ function renderCartModal() {
       existing.remove();
     }
     detachCartEscapeListener();
+    cartModalEventsAttached = false;
     updateCartBadge();
     return;
   }
@@ -917,18 +944,13 @@ function renderCartModal() {
 }
 
 function attachCartModalEvents(container) {
-  const closeBtn = container.querySelector("#cart-modal-close-btn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closeCartModal);
-  }
-
-  const overlay = container.querySelector(".cart-modal-overlay");
-  if (overlay) {
-    overlay.addEventListener("click", closeCartModal);
+  if (cartModalEventsAttached) {
+    return;
   }
 
   container.addEventListener("click", handleCartModalClick);
   container.addEventListener("change", handleCartModalChange);
+  cartModalEventsAttached = true;
 }
 
 function handleCartKeydown(event) {
@@ -964,6 +986,9 @@ function handleCartModalClick(event) {
 
   const { cartAction, cartProductId } = actionButton.dataset;
   switch (cartAction) {
+    case "close":
+      closeCartModal();
+      break;
     case "increase":
       if (cartProductId) {
         incrementCartItem(cartProductId);
@@ -1032,6 +1057,7 @@ function removeSelectedCartItems() {
   });
   if (Object.keys(state.cartItems).length !== before) {
     renderCartModal();
+    showToast(delCartAlert);
   }
 }
 
@@ -1041,6 +1067,7 @@ function clearCartItems() {
   }
   state.cartItems = {};
   renderCartModal();
+  showToast(delCartAlert);
 }
 
 function checkoutCart() {
@@ -1069,6 +1096,7 @@ function decrementCartItem(productId) {
 
   if (item.quantity <= 1) {
     delete state.cartItems[productId];
+    showToast(delCartAlert);
   } else {
     item.quantity -= 1;
   }
@@ -1082,6 +1110,7 @@ function removeCartItem(productId) {
   }
   delete state.cartItems[productId];
   renderCartModal();
+  showToast(delCartAlert);
 }
 
 function applyHomeQueryParams() {
@@ -1209,6 +1238,7 @@ function handleAddToCart(productId, quantity) {
   const product = findProductForCart(productId);
   if (!product) {
     console.warn("상품 정보를 찾을 수 없어 장바구니에 담지 못했습니다.", productId);
+    showToast(errorAlert);
     return;
   }
 
@@ -1229,6 +1259,7 @@ function handleAddToCart(productId, quantity) {
 
   state.cartItems[productId].quantity += amount;
   updateCartBadge();
+  showToast(addCartAlert);
 }
 
 function findProductForCart(productId) {
