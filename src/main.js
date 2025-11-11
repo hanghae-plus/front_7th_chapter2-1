@@ -13,7 +13,7 @@ const enableMocking = () =>
   );
 
 const push = (path) => {
-  history.pushState(null, null, path);
+  history.pushState(null, null, location.pathname + path);
   render();
 };
 
@@ -28,6 +28,7 @@ const render = async () => {
   const category2 = searchParams.get("category2");
   const search = searchParams.get("search");
   const limit = +searchParams.get("limit");
+  const sort = searchParams.get("sort");
 
   if (relativePath === "/") {
     $root.innerHTML = HomePage({ loading: true });
@@ -36,6 +37,7 @@ const render = async () => {
       category2,
       search,
       limit,
+      sort,
     });
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, loading: false, categories });
@@ -44,21 +46,21 @@ const render = async () => {
       const productCard = e.target.closest(".product-card");
       if (productCard) {
         const productId = e.target.closest(".product-card").dataset.productId;
-        push(`/products/${productId}`);
+        push(`products/${productId}`);
         return;
       }
 
       const category1Button = e.target.closest(".category1-filter-btn");
       if (category1Button) {
         searchParams.set("category1", e.target.dataset.category1);
-        push(`/?${searchParams}`);
+        push(`?${searchParams}`);
         return;
       }
 
       const category2Button = e.target.closest(".category2-filter-btn");
       if (category2Button) {
         searchParams.set("category2", e.target.dataset.category2);
-        push(`/?${searchParams}`);
+        push(`?${searchParams}`);
         return;
       }
     });
@@ -72,14 +74,21 @@ const render = async () => {
     searchForm.addEventListener("submit", (e) => {
       e.preventDefault();
       searchParams.set("search", searchBar.value);
-      push(`/?${searchParams}`);
+      push(`?${searchParams}`);
     });
 
     const limitSelect = document.querySelector("#limit-select");
     if (searchParams.get("limit")) limitSelect.value = searchParams.get("limit");
     limitSelect.addEventListener("change", (e) => {
       searchParams.set("limit", String(e.target.value));
-      push(`/?${searchParams}`);
+      push(`?${searchParams}`);
+    });
+
+    const sortSelect = document.querySelector("#sort-select");
+    if (searchParams.get("sort")) sortSelect.value = searchParams.get("sort");
+    sortSelect.addEventListener("change", (e) => {
+      searchParams.set("sort", e.target.value);
+      push(`?${searchParams}`);
     });
   } else {
     $root.innerHTML = DetailPage({ loading: true });
