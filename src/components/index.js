@@ -7,3 +7,4 @@ export { SearchTwoDepth } from "./search/SearchTwoDepth.js";
 export { DetailNav } from "./detail/DetailNav.js";
 export { DetailContent } from "./detail/DetailContent.js";
 export { ItemList } from "./ItemList.js";
+export { Cart } from "./cart/Cart.js";

@@ -1,7 +1,7 @@
 import { getProducts, getProduct, getCategories } from "./api/productApi.js";
 import { Home } from "./pages/home.js";
 import { Detail } from "./pages/detail.js";
-import { Search, updateCategoryBreadcrumb, updateCategoryButtons, ItemList } from "./components/index.js";
+import { Search, updateCategoryBreadcrumb, updateCategoryButtons, ItemList, Cart } from "./components/index.js";
 
 const INITIAL_LOAD_ERROR_MESSAGE = "상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
 const LOAD_MORE_ERROR_MESSAGE = "상품을 추가로 불러오지 못했습니다. 다시 시도해 주세요.";
@@ -34,11 +34,14 @@ const state = {
   selectedCategory1: null,
   selectedCategory2: null,
   searchTerm: "",
+  isCartOpen: false,
+  cartItems: {},
 };
 
 let loadMoreObserver = null;
 let homeShellMounted = false;
 let searchSectionInitialized = false;
+let cartEscapeListenerAttached = false;
 
 const enableMocking = async () => {
   const { worker } = await import("./mocks/browser.js");
@@ -59,10 +62,11 @@ function render() {
 
   if (state.route?.name === "detail") {
     renderDetailView(root);
-    return;
+  } else {
+    renderHomeView(root);
   }
 
-  renderHomeView(root);
+  renderCartModal();
 }
 
 function renderDetailView(root) {
@@ -99,7 +103,7 @@ function renderHomeView(root) {
     attachHeaderNavigation(root);
   }
 
-  if (!searchSectionInitialized && state.categoriesLoaded) {
+  if (!searchSectionInitialized) {
     initializeSearchSection();
   }
 
@@ -201,6 +205,19 @@ function renderProductSection() {
     hasMore: state.hasMoreProducts,
     loadMoreError: state.loadMoreError,
     totalCount: state.totalProducts,
+  });
+
+  const addToCartButtons = productContainer.querySelectorAll(".add-to-cart-btn");
+  addToCartButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const productId = button.dataset.productId;
+      if (!productId) {
+        return;
+      }
+      handleAddToCart(productId, 1);
+    });
   });
 
   const retryButton = productContainer.querySelector("#products-retry-button");
@@ -352,6 +369,11 @@ function attachHeaderNavigation(root) {
       navigateToHome({ replace: false });
     });
   });
+
+  const cartButton = root.querySelector("#cart-icon-btn");
+  if (cartButton) {
+    cartButton.addEventListener("click", handleCartIconClick);
+  }
 }
 
 function setupLoadMoreObserver(rootElement) {
@@ -759,6 +781,7 @@ function buildUrl(path = "") {
 }
 
 async function handleRouteChange() {
+  closeCartModal();
   state.route = parseRoute();
 
   if (state.route.name === "detail") {
@@ -796,9 +819,13 @@ async function ensureCategoriesLoaded() {
   }
 
   state.isLoadingCategories = true;
+  if (state.route?.name === "home") {
+    render();
+  }
+
   try {
     const categories = await getCategories();
-    state.categories = normalizeCategories(categories);
+    state.categories = categories ?? {};
     state.categoriesLoaded = true;
   } catch (error) {
     console.error("카테고리 정보를 불러오지 못했습니다.", error);
@@ -806,16 +833,255 @@ async function ensureCategoriesLoaded() {
     state.categoriesLoaded = false;
   } finally {
     state.isLoadingCategories = false;
+    if (state.route?.name === "home") {
+      render();
+    }
   }
 }
 
-function normalizeCategories(categories = {}) {
-  return Object.fromEntries(
-    Object.entries(categories ?? {}).map(([category1, children]) => [
-      category1,
-      Object.keys(children ?? {}).sort((a, b) => a.localeCompare(b, "ko")),
-    ]),
+function handleCartIconClick(event) {
+  event.preventDefault();
+  openCartModal();
+}
+
+function openCartModal() {
+  state.isCartOpen = true;
+  renderCartModal();
+}
+
+function closeCartModal() {
+  if (!state.isCartOpen) {
+    return;
+  }
+  state.isCartOpen = false;
+  renderCartModal();
+}
+
+function getCartItemsArray() {
+  return Object.values(state.cartItems ?? {});
+}
+
+function getCartSummary() {
+  const items = getCartItemsArray();
+  const totalCount = items.reduce((sum, item) => sum + (item?.quantity ?? 0), 0);
+  const totalPrice = items.reduce((sum, item) => sum + (Number(item?.product?.lprice) || 0) * (item?.quantity ?? 0), 0);
+  const selectedItems = items.filter((item) => item?.selected);
+  const selectedCount = selectedItems.reduce((sum, item) => sum + (item?.quantity ?? 0), 0);
+  const selectedPrice = selectedItems.reduce(
+    (sum, item) => sum + (Number(item?.product?.lprice) || 0) * (item?.quantity ?? 0),
+    0,
   );
+  return { items, totalCount, totalPrice, selectedCount, selectedPrice };
+}
+
+function updateCartBadge(providedCount) {
+  const badge = document.getElementById("cart-count-badge");
+  if (!badge) {
+    return;
+  }
+  const count = providedCount ?? getCartSummary().totalCount;
+  if (count > 0) {
+    badge.textContent = String(count);
+    badge.classList.remove("hidden");
+  } else {
+    badge.textContent = "";
+    badge.classList.add("hidden");
+  }
+}
+
+function renderCartModal() {
+  const existing = document.getElementById("cart-modal-root");
+  if (!state.isCartOpen) {
+    if (existing) {
+      existing.remove();
+    }
+    detachCartEscapeListener();
+    updateCartBadge();
+    return;
+  }
+
+  const { items, totalCount, totalPrice, selectedCount, selectedPrice } = getCartSummary();
+
+  let container = existing;
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "cart-modal-root";
+    document.body.appendChild(container);
+  }
+
+  container.innerHTML = Cart({ items, totalCount, totalPrice, selectedCount, selectedPrice });
+
+  attachCartModalEvents(container);
+  attachCartEscapeListener();
+  updateCartBadge(totalCount);
+}
+
+function attachCartModalEvents(container) {
+  const closeBtn = container.querySelector("#cart-modal-close-btn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeCartModal);
+  }
+
+  const overlay = container.querySelector(".cart-modal-overlay");
+  if (overlay) {
+    overlay.addEventListener("click", closeCartModal);
+  }
+
+  container.addEventListener("click", handleCartModalClick);
+  container.addEventListener("change", handleCartModalChange);
+}
+
+function handleCartKeydown(event) {
+  if (event.key === "Escape") {
+    closeCartModal();
+  }
+}
+
+function attachCartEscapeListener() {
+  if (cartEscapeListenerAttached) {
+    return;
+  }
+  document.addEventListener("keydown", handleCartKeydown);
+  cartEscapeListenerAttached = true;
+}
+
+function detachCartEscapeListener() {
+  if (!cartEscapeListenerAttached) {
+    return;
+  }
+  document.removeEventListener("keydown", handleCartKeydown);
+  cartEscapeListenerAttached = false;
+}
+
+function handleCartModalClick(event) {
+  const actionButton = event.target.closest("[data-cart-action]");
+  if (!actionButton) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const { cartAction, cartProductId } = actionButton.dataset;
+  switch (cartAction) {
+    case "increase":
+      if (cartProductId) {
+        incrementCartItem(cartProductId);
+      }
+      break;
+    case "decrease":
+      if (cartProductId) {
+        decrementCartItem(cartProductId);
+      }
+      break;
+    case "remove":
+      if (cartProductId) {
+        removeCartItem(cartProductId);
+      }
+      break;
+    case "remove-selected":
+      removeSelectedCartItems();
+      break;
+    case "clear":
+      clearCartItems();
+      break;
+    case "checkout":
+      checkoutCart();
+      break;
+    default:
+      break;
+  }
+}
+
+function handleCartModalChange(event) {
+  const checkbox = event.target.closest(".cart-item-checkbox");
+  if (checkbox) {
+    handleCartCheckboxToggle(checkbox);
+    return;
+  }
+
+  const selectAll = event.target.closest(".cart-select-all-checkbox");
+  if (selectAll) {
+    handleCartSelectAllChange(selectAll.checked);
+  }
+}
+
+function handleCartCheckboxToggle(checkbox) {
+  const productId = checkbox.dataset.productId;
+  if (!productId || !state.cartItems[productId]) {
+    return;
+  }
+
+  state.cartItems[productId].selected = checkbox.checked;
+  renderCartModal();
+}
+
+function handleCartSelectAllChange(checked) {
+  Object.keys(state.cartItems).forEach((productId) => {
+    state.cartItems[productId].selected = checked;
+  });
+  renderCartModal();
+}
+
+function removeSelectedCartItems() {
+  const before = Object.keys(state.cartItems).length;
+  Object.keys(state.cartItems).forEach((productId) => {
+    if (state.cartItems[productId]?.selected) {
+      delete state.cartItems[productId];
+    }
+  });
+  if (Object.keys(state.cartItems).length !== before) {
+    renderCartModal();
+  }
+}
+
+function clearCartItems() {
+  if (Object.keys(state.cartItems).length === 0) {
+    return;
+  }
+  state.cartItems = {};
+  renderCartModal();
+}
+
+function checkoutCart() {
+  const { selectedCount, selectedPrice } = getCartSummary();
+  if (selectedCount === 0) {
+    console.info("선택된 상품이 없습니다.");
+    return;
+  }
+  console.info(`선택한 ${selectedCount}개의 상품, 총 ${selectedPrice}원 결제 진행 (모의).`);
+}
+
+function incrementCartItem(productId) {
+  const item = state.cartItems[productId];
+  if (!item) {
+    return;
+  }
+  item.quantity += 1;
+  renderCartModal();
+}
+
+function decrementCartItem(productId) {
+  const item = state.cartItems[productId];
+  if (!item) {
+    return;
+  }
+
+  if (item.quantity <= 1) {
+    delete state.cartItems[productId];
+  } else {
+    item.quantity -= 1;
+  }
+
+  renderCartModal();
+}
+
+function removeCartItem(productId) {
+  if (!state.cartItems[productId]) {
+    return;
+  }
+  delete state.cartItems[productId];
+  renderCartModal();
 }
 
 function applyHomeQueryParams() {
@@ -838,8 +1104,9 @@ function updateHomeUrlParams({ current, category1, category2, search } = {}) {
   const params = url.searchParams;
 
   if (current !== undefined) {
-    if (current && Number.isFinite(current)) {
-      params.set("current", String(current));
+    const parsedCurrent = Number(current);
+    if (Number.isFinite(parsedCurrent) && parsedCurrent > 1) {
+      params.set("current", String(parsedCurrent));
     } else {
       params.delete("current");
     }
@@ -878,8 +1145,9 @@ function buildHomeUrlWithParams({ current, category1, category2, search } = {}) 
   const params = url.searchParams;
 
   if (current !== undefined) {
-    if (current && Number.isFinite(current)) {
-      params.set("current", String(current));
+    const parsedCurrent = Number(current);
+    if (Number.isFinite(parsedCurrent) && parsedCurrent > 1) {
+      params.set("current", String(parsedCurrent));
     } else {
       params.delete("current");
     }
@@ -933,5 +1201,45 @@ function normalizeQuantityInput(input) {
 }
 
 function handleAddToCart(productId, quantity) {
-  console.log("장바구니 담기", productId, quantity);
+  if (!productId) {
+    return;
+  }
+
+  const amount = Math.max(1, Number(quantity) || 1);
+  const product = findProductForCart(productId);
+  if (!product) {
+    console.warn("상품 정보를 찾을 수 없어 장바구니에 담지 못했습니다.", productId);
+    return;
+  }
+
+  const price = Number(product.lprice ?? product.price ?? 0);
+  const stored = state.cartItems[productId];
+  if (!stored) {
+    state.cartItems[productId] = {
+      product: {
+        productId,
+        title: product.title ?? "",
+        image: product.image ?? "",
+        lprice: price,
+      },
+      quantity: 0,
+      selected: false,
+    };
+  }
+
+  state.cartItems[productId].quantity += amount;
+  updateCartBadge();
+}
+
+function findProductForCart(productId) {
+  const fromList = state.products.find((item) => item?.productId === productId);
+  if (fromList) {
+    return fromList;
+  }
+
+  if (state.detail?.product?.productId === productId) {
+    return state.detail.product;
+  }
+
+  return state.cartItems[productId]?.product ?? null;
 }
