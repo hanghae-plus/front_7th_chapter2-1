@@ -10,7 +10,7 @@ const Skeleton = /* HTML */ `
   </div>
 `;
 
-const Loading = /* HTML */ `
+export const Loading = /* HTML */ `
   <div class="text-center py-4">
     <div class="inline-flex items-center">
       <svg class="animate-spin h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@ const Loading = /* HTML */ `
   </div>
 `;
 
-const ProductItem = ({ title, productId, image, lprice }) => {
+export const ProductItem = ({ title, productId, image, lprice }) => {
   return /* HTML */ `
     <div
       class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
@@ -79,6 +79,7 @@ export const ProductList = ({ pagination, products, loading }) => {
                 총 <span class="font-medium text-gray-900">${pagination.total}개</span>의 상품
               </div>
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
+              <div id="observer"></div>
             `}
       </div>
     </div>
