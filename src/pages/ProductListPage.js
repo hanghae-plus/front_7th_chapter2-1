@@ -1,5 +1,5 @@
 import productStore from "../Store/product.js";
-import { navigate } from "../router.js";
+import { router } from "../Router/router.js";
 import SearchInput from "../components/product/search/SearchInput.js";
 import Breadcrumb from "../components/product/search/Breadcrumb.js";
 import CategoryButtons from "../components/product/search/CategoryButtons.js";
@@ -24,15 +24,14 @@ function setupEventListeners() {
     const categoryBtn = e.target.closest(".category1-filter-btn, .category2-filter-btn");
     if (categoryBtn) {
       const { category1, category2 } = categoryBtn.dataset;
-      const params = new URLSearchParams(window.location.search);
-      params.set("page", 1); // 필터 변경 시 1페이지로 리셋
-      if (category1) params.set("category1", category1);
+      const newQuery = { page: 1 };
+      if (category1) newQuery.category1 = category1;
       if (category2) {
-        params.set("category2", category2);
+        newQuery.category2 = category2;
       } else {
-        params.delete("category2"); // 1뎁스 카테고리 클릭 시 2뎁스는 초기화
+        newQuery.category2 = ""; // 1뎁스 카테고리 클릭 시 2뎁스는 초기화
       }
-      navigate(`/?${params.toString()}`);
+      router.updateQuery(newQuery);
       return;
     }
 
@@ -40,15 +39,14 @@ function setupEventListeners() {
     const breadcrumbBtn = e.target.closest("[data-breadcrumb]");
     if (breadcrumbBtn) {
       const { breadcrumb } = breadcrumbBtn.dataset;
-      const params = new URLSearchParams(window.location.search);
-      params.set("page", 1);
+      const newQuery = { page: 1 };
       if (breadcrumb === "reset") {
-        params.delete("category1");
-        params.delete("category2");
+        newQuery.category1 = "";
+        newQuery.category2 = "";
       } else if (breadcrumb === "category1") {
-        params.delete("category2");
+        newQuery.category2 = "";
       }
-      navigate(`/?${params.toString()}`);
+      router.updateQuery(newQuery);
       return;
     }
   });
@@ -57,24 +55,16 @@ function setupEventListeners() {
   document.body.addEventListener("keydown", (e) => {
     if (e.target.id === "search-input" && e.key === "Enter") {
       e.preventDefault(); // form 전송 방지
-      const params = new URLSearchParams(window.location.search);
-      params.set("page", 1);
-      params.set("search", e.target.value);
-      navigate(`/?${params.toString()}`);
+      router.updateQuery({ page: 1, search: e.target.value });
     }
   });
 
   // --- 개수/정렬 필터 변경 처리 ---
   document.body.addEventListener("change", (e) => {
-    if (e.target.id === "limit-select" || e.target.id === "sort-select") {
-      const params = new URLSearchParams(window.location.search);
-      params.set("page", 1);
-      if (e.target.id === "limit-select") {
-        params.set("limit", e.target.value);
-      } else {
-        params.set("sort", e.target.value);
-      }
-      navigate(`/?${params.toString()}`);
+    if (e.target.id === "limit-select") {
+      router.updateQuery({ page: 1, limit: e.target.value });
+    } else if (e.target.id === "sort-select") {
+      router.updateQuery({ page: 1, sort: e.target.value });
     }
   });
 
@@ -105,10 +95,10 @@ export function ProductListPage(queryParams) {
    * */
   const handleStoreUpdate = () => {
     // 이 페이지가 DOM에 실제로 존재하는지 확인
-    // const productListPage = document.getElementById("product-list-page");
-    // if (!productListPage) {
-    //   return;
-    // }
+    const productListPage = document.getElementById("product-list-page");
+    if (!productListPage) {
+      return;
+    }
 
     // 상품정보, 로딩여부, 페이징 데이터 state 가져오기
     const { products, loading, pagination, params, categories } = productStore.getState();
