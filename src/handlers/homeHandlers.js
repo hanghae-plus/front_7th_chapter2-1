@@ -35,10 +35,15 @@ const loadMoreProducts = async () => {
   productsGrid.parentElement.appendChild(loadingDiv);
 
   try {
+    // URL에 current 파라미터 업데이트 (히스토리 쌓지 않음)
+    const url = new URL(window.location);
+    url.searchParams.set("current", nextPage);
+    window.history.replaceState({}, "", url);
+
     // 다음 페이지 데이터 로드
     const data = await getProducts({
       ...currentFilters,
-      page: nextPage,
+      current: nextPage,
     });
 
     // 로딩 인디케이터 제거
@@ -107,11 +112,6 @@ export const setupHomePageHandlers = () => {
   const container = document.querySelector("#root");
   if (!container) return;
 
-  // 무한 스크롤 상태 초기화
-  currentPage = 1;
-  isLoading = false;
-  hasMore = true;
-
   // 현재 URL에서 필터 정보 추출
   const urlParams = new URLSearchParams(window.location.search);
   currentFilters = {
@@ -121,6 +121,11 @@ export const setupHomePageHandlers = () => {
     sort: urlParams.get("sort") || "price_asc",
     limit: parseInt(urlParams.get("limit")) || 20,
   };
+
+  // 무한 스크롤 상태 초기화
+  currentPage = parseInt(urlParams.get("current")) || 1;
+  isLoading = false;
+  hasMore = true;
 
   // 무한 스크롤 설정
   setupInfiniteScroll();
