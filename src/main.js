@@ -1,5 +1,6 @@
 import { HomePage } from "./pages/HomePage.js";
 import { getCategories, getProducts } from "./api/productApi.js";
+import { App } from "./App.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -43,19 +44,7 @@ function searchEventListener() {
 }
 
 async function main() {
-  const state = {
-    limit: 20,
-    search: "",
-  };
-
-  const $root = document.querySelector("#root");
-  $root.innerHTML = HomePage({ loading: true, categories: {} });
-  // 처음에 렌더링
-  const data = await getProducts();
-  const categories = await getCategories({ limit: state.limit });
-
-  // 렌더링 끝나고 다시 데이터 넘겨 줌
-  $root.innerHTML = HomePage({ ...data, categories, loading: false, limit: state.limit });
+  App();
 
   itemLimitSelectEventListener();
   searchEventListener();
