@@ -1,13 +1,13 @@
 import { getProduct, getProducts } from "./api/productApi.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
-import { convertToRelativePath, Router } from "./utils/Router.js";
+import { convertToRelativePath, getQueryStringExcluding, Router } from "./utils/Router.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
       serviceWorker: {
-        url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+        url: `${BASE_URL}mockServiceWorker.js`,
       },
       onUnhandledRequest: "bypass",
     }),
@@ -23,15 +23,19 @@ const main = async () => {
   render();
 };
 
+const BASE_URL = import.meta.env.BASE_URL;
+const $root = document.querySelector("#root");
+
 router.addRoute("/", async () => {
-  const $root = document.querySelector("#root");
-  $root.innerHTML = HomePage({ loading: true });
-  const data = await getProducts();
-  $root.innerHTML = HomePage({ ...data, loading: false });
+  const params = new URLSearchParams(window.location.search);
+  const search = params.get("search") ?? "";
+
+  $root.innerHTML = HomePage({ search, loading: true });
+  const data = await getProducts({ search });
+  $root.innerHTML = HomePage({ ...data, search, loading: false });
 });
 
 router.addRoute("/product/:productId", async () => {
-  const $root = document.querySelector("#root");
   $root.innerHTML = DetailPage({ loading: true });
   const productId = convertToRelativePath(location.pathname).split("/")[2];
   const product = await getProduct(productId);
@@ -44,13 +48,11 @@ router.addRoute("/product/:productId", async () => {
   }
 });
 
-document.body.addEventListener("click", (e) => {
+$root.addEventListener("click", (e) => {
   const productCard = e.target.closest(".product-card") ?? e.target.closest(".related-product-card");
   if (productCard) {
-    const baseURL = import.meta.env.BASE_URL;
     const productId = productCard.dataset.productId;
-    history.pushState(null, null, `${baseURL}product/${productId}`);
-    render();
+    router.navigateTo(`${BASE_URL}product/${productId}`);
   }
   if (e.target.tagName === "A") {
     e.preventDefault();
@@ -58,6 +60,18 @@ document.body.addEventListener("click", (e) => {
       return;
     }
     router.navigateTo(e.target.pathname);
+  }
+});
+
+$root.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const $input = e.target.closest("#search-input");
+    if ($input.value) {
+      router.navigateTo(`?search=${$input.value}`);
+    } else {
+      const newQueryString = getQueryStringExcluding("search");
+      router.navigateTo(`${BASE_URL}${newQueryString}`);
+    }
   }
 });
 

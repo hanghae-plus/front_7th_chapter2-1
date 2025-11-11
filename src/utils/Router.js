@@ -19,7 +19,21 @@ function convertToRegex(routePattern) {
 
 export const convertToRelativePath = (pathName) => {
   const basePath = import.meta.env.BASE_URL;
-  return pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+  return pathName.replace(basePath, "/").replace(/^\?.+/, "").replace(/\/$/, "") || "/";
+};
+
+export const getQueryStringExcluding = (keyToExclude) => {
+  const currentParams = new URLSearchParams(window.location.search);
+  const newParams = new URLSearchParams();
+
+  for (const [key, value] of currentParams.entries()) {
+    if (key !== keyToExclude) {
+      newParams.append(key, value);
+    }
+  }
+
+  const newQueryString = "?" + newParams.toString();
+  return newParams.toString() ? newQueryString : "";
 };
 
 export class Router {
