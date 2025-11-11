@@ -40,6 +40,9 @@ const state = {
   selectedCategory1: null,
   selectedCategory2: null,
   searchTerm: "",
+  urlTouched: false,
+  limitTouched: false,
+  sortTouched: false,
   isCartOpen: false,
   cartItems: {},
 };
@@ -415,8 +418,15 @@ function attachHeaderNavigation(root) {
   homeLinks.forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
+      state.urlTouched = false;
+      state.limitTouched = false;
+      state.sortTouched = false;
+      state.limit = DEFAULT_LIMIT;
+      state.sort = DEFAULT_SORT;
       resetFilters({ updateUrl: false });
-      navigateToHome({ replace: false });
+      const url = buildUrl("");
+      window.history.pushState({}, "", url.toString());
+      handleRouteChange();
     });
   });
 
@@ -550,6 +560,7 @@ function handleCategory1Select(event) {
   state.selectedCategory2 = null;
 
   if (changed) {
+    state.urlTouched = true;
     updateHomeUrlParams({ current: 1, category1, category2: null });
     loadProducts();
   } else {
@@ -573,6 +584,7 @@ function handleCategory2Select(event) {
   state.selectedCategory2 = category2;
 
   if (changed) {
+    state.urlTouched = true;
     updateHomeUrlParams({ current: 1, category1, category2 });
     loadProducts();
   } else {
@@ -594,6 +606,7 @@ function handleCategoryReset(event) {
   }
 
   resetFilters({ updateUrl: false });
+  state.urlTouched = true;
   updateHomeUrlParams({ current: 1, category1: null, category2: null, search: null });
   loadProducts();
 }
@@ -614,6 +627,7 @@ function handleCategoryBreadcrumb(event) {
   state.selectedCategory2 = null;
 
   if (changed) {
+    state.urlTouched = true;
     updateHomeUrlParams({ current: 1, category1: targetCategory, category2: null, search: state.searchTerm });
     loadProducts();
   } else {
@@ -629,6 +643,8 @@ function selectLimit(event) {
   }
 
   state.limit = nextLimit;
+  state.limitTouched = true;
+  state.urlTouched = true;
   updateHomeUrlParams({ current: 1, limit: nextLimit });
   loadProducts();
 }
@@ -641,6 +657,8 @@ function selectSort(event) {
   }
 
   state.sort = nextSort;
+  state.sortTouched = true;
+  state.urlTouched = true;
   updateHomeUrlParams({ current: 1, sort: nextSort });
   loadProducts();
 }
@@ -698,6 +716,7 @@ function handleSearchInputKeyDown(event) {
     return;
   }
   state.searchTerm = nextTerm;
+  state.urlTouched = true;
   updateHomeUrlParams({
     current: 1,
     category1: state.selectedCategory1,
@@ -1167,29 +1186,46 @@ function applyHomeQueryParams() {
   const search = params.get("search") ?? "";
   const sort = params.get("sort");
   const limit = params.get("limit");
+  const hasRelevantParams =
+    params.has("category1") ||
+    params.has("category2") ||
+    params.has("search") ||
+    params.has("sort") ||
+    params.has("limit") ||
+    params.has("current");
 
   state.selectedCategory1 = category1 || null;
   state.selectedCategory2 = category2 || null;
   state.searchTerm = search;
 
-  if (sort !== null) {
-    state.sort = HOME_SORT_OPTIONS.has(sort) ? sort : DEFAULT_SORT;
+  if (sort !== null && HOME_SORT_OPTIONS.has(sort)) {
+    state.sort = sort;
+    state.sortTouched = true;
+  } else {
+    state.sort = DEFAULT_SORT;
+    state.sortTouched = false;
   }
 
-  if (limit !== null) {
-    const parsedLimit = Number(limit);
-    state.limit = HOME_LIMIT_OPTIONS.includes(parsedLimit) ? parsedLimit : DEFAULT_LIMIT;
+  if (limit !== null && HOME_LIMIT_OPTIONS.includes(Number(limit))) {
+    state.limit = Number(limit);
+    state.limitTouched = true;
+  } else {
+    state.limit = DEFAULT_LIMIT;
+    state.limitTouched = false;
   }
+
+  state.urlTouched = hasRelevantParams;
 }
 
 function resolveHomeParams(overrides = {}) {
   const hasOwn = Object.prototype.hasOwnProperty;
-  const valueOr = (key, fallback) => (hasOwn.call(overrides, key) ? overrides[key] : fallback);
+  const hasOverride = (key) => hasOwn.call(overrides, key);
+  const valueOr = (key, fallback) => (hasOverride(key) ? overrides[key] : fallback);
 
   const resolvedCategory1 = valueOr("category1", state.selectedCategory1);
   const resolvedCategory2 = valueOr("category2", state.selectedCategory2);
-  const resolvedSort = valueOr("sort", state.sort);
-  const resolvedLimit = valueOr("limit", state.limit);
+  const resolvedSort = hasOverride("sort") ? overrides.sort : state.sortTouched ? state.sort : undefined;
+  const resolvedLimit = hasOverride("limit") ? overrides.limit : state.limitTouched ? state.limit : undefined;
   const resolvedSearch = valueOr("search", state.searchTerm);
   const fallbackPage = Number.isFinite(state.currentPage) && state.currentPage > 0 ? state.currentPage : 1;
   const resolvedCurrent = valueOr("current", fallbackPage);
@@ -1246,6 +1282,10 @@ function buildHomeParams(overrides = {}) {
 
 function updateHomeUrlParams(overrides = {}) {
   if (state.route?.name !== "home") {
+    return;
+  }
+
+  if (!state.urlTouched) {
     return;
   }
 
