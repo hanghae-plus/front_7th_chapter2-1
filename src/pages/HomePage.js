@@ -28,11 +28,20 @@ export const HomePage = async ({ query = {} }) => {
 /**
  * HomePage 로딩 상태 렌더링 함수
  */
-HomePage.loading = () => {
+HomePage.loading = ({ query = {} }) => {
+  // query에서 필터 정보 추출 (로딩 상태에서도 검색어 등을 유지)
+  const filters = {
+    search: query.search || "",
+    category1: query.category1 || "",
+    category2: query.category2 || "",
+    sort: query.sort || "price_asc",
+    limit: parseInt(query.limit) || 20,
+  };
+
   // 로딩 상태로 렌더링 (카테고리는 비어있음)
   return PageLayout({
     children: `
-      ${SearchForm({ categories: {} })}
+      ${SearchForm({ filters, categories: {} })}
       ${ProductList({ loading: true, products: [], total: 0 })}
     `,
   });

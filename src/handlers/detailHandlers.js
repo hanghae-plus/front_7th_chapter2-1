@@ -1,5 +1,8 @@
 import { navigateTo } from "../router/navigation.js";
 import { routes } from "../main.js";
+import { addCartItem } from "../utils/cartStorage.js";
+import { updateCartIconCount } from "../components/common/Header.js";
+import { toast } from "../utils/toast.js";
 
 /**
  * DetailPage의 이벤트 핸들러를 등록하는 함수
@@ -28,6 +31,58 @@ export const setupDetailPageHandlers = () => {
         navigateTo(routes, "/", { category1, category2 });
       }
 
+      return;
+    }
+
+    // 수량 감소 버튼
+    if (target.closest("#quantity-decrease") && e.type === "click") {
+      const input = document.getElementById("quantity-input");
+      if (input) {
+        const currentValue = parseInt(input.value) || 1;
+        const minValue = parseInt(input.min) || 1;
+        if (currentValue > minValue) {
+          input.value = currentValue - 1;
+        }
+      }
+      return;
+    }
+
+    // 수량 증가 버튼
+    if (target.closest("#quantity-increase") && e.type === "click") {
+      const input = document.getElementById("quantity-input");
+      if (input) {
+        const currentValue = parseInt(input.value) || 1;
+        const maxValue = parseInt(input.max) || Infinity;
+        if (currentValue < maxValue) {
+          input.value = currentValue + 1;
+        }
+      }
+      return;
+    }
+
+    // 장바구니 담기 버튼
+    if (target.id === "add-to-cart-btn" && e.type === "click") {
+      const productInfo = document.querySelector("[data-product-id]");
+      const quantityInput = document.getElementById("quantity-input");
+
+      if (productInfo && quantityInput) {
+        const productId = productInfo.dataset.productId;
+        const title = productInfo.dataset.title;
+        const price = Number(productInfo.dataset.price);
+        const image = productInfo.dataset.image;
+        const quantity = parseInt(quantityInput.value) || 1;
+
+        const product = {
+          id: productId,
+          title,
+          price,
+          image,
+        };
+
+        addCartItem(product, quantity);
+        toast.success("장바구니에 추가되었습니다");
+        updateCartIconCount();
+      }
       return;
     }
   };
