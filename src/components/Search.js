@@ -1,37 +1,100 @@
+import { SearchFirstDepth } from "./SearchFirstDepth.js";
+import { SearchTwoDepth } from "./SearchTwoDepth.js";
+
 const SearchLoading = `
   <div class="flex flex-wrap gap-2">
     <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
   </div>
 `;
 
-const SearchContent = () => /*html*/ `
-  <div class="flex flex-wrap gap-2">
-    <button
-      data-category1="생활/건강"
-      class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-        bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-    >
-      생활/건강
-    </button>
-    <button
-      data-category1="디지털/가전"
-      class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-        bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-    >
-      디지털/가전
-    </button>
-  </div>
-`;
-// 갯수보여주는 셀렉트
+const renderRootCategories = (categories = {}, selectedCategory1 = null) => {
+  const categoryKeys = Object.keys(categories);
+
+  if (categoryKeys.length === 0) {
+    return `
+      <div class="space-y-2">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">카테고리:</label>
+          <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
+        </div>
+        <div class="text-sm text-gray-400">표시할 카테고리가 없습니다.</div>
+      </div>
+    `;
+  }
+
+  const buttons = categoryKeys
+    .sort((a, b) => a.localeCompare(b, "ko"))
+    .map((category1) => {
+      const isActive = category1 === selectedCategory1;
+      const baseClass = "category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors";
+      const variantClass = isActive
+        ? "bg-blue-600 border-blue-600 text-white"
+        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50";
+      return `
+        <button data-category1="${category1}" class="${baseClass} ${variantClass}">
+          ${category1}
+        </button>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="space-y-2">
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600">카테고리:</label>
+        <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        ${buttons}
+      </div>
+    </div>
+  `;
+};
+
+const renderCategorySection = ({ loading, categories, selectedCategory1, selectedCategory2 }) => {
+  if (loading) {
+    return SearchLoading;
+  }
+
+  if (!selectedCategory1) {
+    return renderRootCategories(categories, selectedCategory1);
+  }
+
+  const category2Source = categories?.[selectedCategory1];
+  const category2List = Array.isArray(category2Source)
+    ? category2Source
+    : Object.keys(category2Source ?? {}).sort((a, b) => a.localeCompare(b, "ko"));
+
+  if (selectedCategory2) {
+    return SearchTwoDepth({
+      category1: selectedCategory1,
+      activeCategory2: selectedCategory2,
+      category2List,
+    });
+  }
+
+  return SearchFirstDepth({
+    category1: selectedCategory1,
+    category2List,
+  });
+};
+
 const renderLimitOption = (value, current) => `
   <option value="${value}" ${current === value ? "selected" : ""}>${value}개</option>
 `;
-// 정렬셀렉트
+
 const renderSortOption = (value, current, label) => `
   <option value="${value}" ${current === value ? "selected" : ""}>${label}</option>
 `;
 
-export const Search = ({ loading = false, limit = 20, sort = "price_asc" } = {}) => {
+export const Search = ({
+  loading = false,
+  limit = 20,
+  sort = "price_asc",
+  selectedCategory1 = null,
+  selectedCategory2 = null,
+  categories = {},
+} = {}) => {
   return /*html*/ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
       <div class="mb-4">
@@ -58,13 +121,7 @@ export const Search = ({ loading = false, limit = 20, sort = "price_asc" } = {})
       </div>
 
       <div class="space-y-3">
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600">카테고리:</label>
-            <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
-          </div>
-          ${loading ? SearchLoading : SearchContent()}
-        </div>
+        ${renderCategorySection({ loading, categories, selectedCategory1, selectedCategory2 })}
 
         <div class="flex gap-2 items-center justify-between">
           <div class="flex items-center gap-2">

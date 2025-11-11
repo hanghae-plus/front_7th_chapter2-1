@@ -1,4 +1,4 @@
-import { getProducts, getProduct } from "./api/productApi.js";
+import { getProducts, getProduct, getCategories } from "./api/productApi.js";
 import { Home } from "./pages/home.js";
 import { Detail } from "./pages/detail.js";
 
@@ -25,8 +25,13 @@ const state = {
   hasMoreProducts: true,
   sort: "price_asc",
   totalProducts: 0,
+  categories: {},
+  categoriesLoaded: false,
+  isLoadingCategories: false,
   route: null,
   detail: createInitialDetailState(),
+  selectedCategory1: null,
+  selectedCategory2: null,
 };
 
 let loadMoreObserver = null;
@@ -67,9 +72,12 @@ function render() {
 
   root.innerHTML = Home({
     searchProps: {
-      loading: state.isLoadingProducts,
+      loading: state.isLoadingProducts || state.isLoadingCategories,
       limit: state.limit,
       sort: state.sort,
+      selectedCategory1: state.selectedCategory1,
+      selectedCategory2: state.selectedCategory2,
+      categories: state.categories,
     },
     productProps: {
       loading: state.isLoadingProducts,
@@ -127,6 +135,18 @@ function attachHomeEvents(root) {
   productCards.forEach((card) => {
     card.addEventListener("click", handleProductCardClick);
   });
+
+  const categoryRootButtons = root.querySelectorAll(".category1-filter-btn");
+  categoryRootButtons.forEach((button) => button.addEventListener("click", handleCategory1Select));
+
+  const categorySecondButtons = root.querySelectorAll(".category2-filter-btn");
+  categorySecondButtons.forEach((button) => button.addEventListener("click", handleCategory2Select));
+
+  const resetButtons = root.querySelectorAll('[data-breadcrumb="reset"]');
+  resetButtons.forEach((button) => button.addEventListener("click", handleCategoryReset));
+
+  const breadcrumbCategoryButtons = root.querySelectorAll('[data-breadcrumb="category1"]');
+  breadcrumbCategoryButtons.forEach((button) => button.addEventListener("click", handleCategoryBreadcrumb));
 }
 
 function attachDetailEvents(root) {
@@ -249,6 +269,49 @@ function navigateToHome({ replace = false } = {}) {
     window.history.pushState({}, "", homeUrl.toString());
   }
   handleRouteChange();
+}
+
+function handleCategory1Select(event) {
+  event.preventDefault();
+  const { category1 } = event.currentTarget.dataset;
+  if (!category1) {
+    return;
+  }
+
+  state.selectedCategory1 = category1;
+  state.selectedCategory2 = null;
+  render();
+}
+
+function handleCategory2Select(event) {
+  event.preventDefault();
+  const { category1, category2 } = event.currentTarget.dataset;
+  if (!category1 || !category2) {
+    return;
+  }
+
+  state.selectedCategory1 = category1;
+  state.selectedCategory2 = category2;
+  render();
+}
+
+function handleCategoryReset(event) {
+  event.preventDefault();
+  if (!state.selectedCategory1 && !state.selectedCategory2) {
+    return;
+  }
+
+  state.selectedCategory1 = null;
+  state.selectedCategory2 = null;
+  render();
+}
+
+function handleCategoryBreadcrumb(event) {
+  event.preventDefault();
+  const { category1 } = event.currentTarget.dataset;
+  state.selectedCategory1 = category1 || null;
+  state.selectedCategory2 = null;
+  render();
 }
 
 function selectLimit(event) {
@@ -411,6 +474,7 @@ async function handleRouteChange() {
   }
 
   state.detail = createInitialDetailState();
+  await ensureCategoriesLoaded();
 
   if (!state.products.length) {
     await loadProducts();
@@ -431,3 +495,31 @@ async function main() {
 }
 
 enableMocking().then(main);
+
+async function ensureCategoriesLoaded() {
+  if (state.categoriesLoaded || state.isLoadingCategories) {
+    return;
+  }
+
+  state.isLoadingCategories = true;
+  try {
+    const categories = await getCategories();
+    state.categories = normalizeCategories(categories);
+    state.categoriesLoaded = true;
+  } catch (error) {
+    console.error("카테고리 정보를 불러오지 못했습니다.", error);
+    state.categories = {};
+    state.categoriesLoaded = false;
+  } finally {
+    state.isLoadingCategories = false;
+  }
+}
+
+function normalizeCategories(categories = {}) {
+  return Object.fromEntries(
+    Object.entries(categories ?? {}).map(([category1, children]) => [
+      category1,
+      Object.keys(children ?? {}).sort((a, b) => a.localeCompare(b, "ko")),
+    ]),
+  );
+}
