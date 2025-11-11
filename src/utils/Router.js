@@ -41,7 +41,10 @@ export class Router {
   }
 
   handleRoute(path) {
-    const matchedParam = this._routesArray.find((route) => route.test(path));
+    const basePath = import.meta.env.BASE_URL;
+    const pathName = path;
+    const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+    const matchedParam = this._routesArray.find((route) => route.test(relativePath));
     const handler = this.routes[matchedParam];
     if (handler) {
       handler();
