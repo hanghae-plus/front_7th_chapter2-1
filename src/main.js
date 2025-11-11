@@ -1,36 +1,14 @@
-import HomePage from "./pages/HomePage";
 import { getProducts, getProduct, getCategories } from "./api/productApi";
-import ProductDetailPage from "./pages/ProductDetailPage";
+import { ROUTES } from "./route";
+import appStore from "./store/app-store";
+import { extractParams } from "./utils/route";
 
 /**
  * @typedef {import('./types.js').CategoryTreeNode} CategoryTreeNode
  * @typedef {import('./types.js').ProductListResponse} ProductListResponse
  */
 
-let listLoading = false;
-/** @type {ProductListResponse} */
-let listResponse = {
-  products: [],
-  pagination: {
-    page: 1,
-    limit: 20,
-    total: 0,
-    totalPages: 0,
-    hasNext: true,
-    hasPrev: false,
-  },
-  filters: {
-    search: "",
-    category1: "",
-    category2: "",
-    sort: "price_asc",
-  },
-};
 let ioSentinel = null;
-/** @type {string[]} */
-let cart = [];
-/** @type {CategoryTreeNode[]} */
-let categories = [];
 
 /* Utils */
 
@@ -49,37 +27,50 @@ async function main() {
   const pathName = window.location.pathname;
   const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
+  console.log(basePath, relativePath);
+  const homeRoute = ROUTES.home;
+  const productDetailRoute = ROUTES.productDetail;
+
   /** @type {HTMLElement | null} */
   const $root = document.querySelector("#root");
 
+  const appState = appStore.getState();
+
   if (!$root) throw new Error("Root element not found");
 
-  if (relativePath === "/") {
+  if (relativePath === homeRoute.path) {
     $root.innerHTML = `
-      ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+      ${homeRoute.render({ loading: true, cart: appState.cart })}
     `;
-    categories = await getCategories();
-    console.log("categories", categories);
-    listResponse = await getProducts({
-      limit: listResponse.pagination.limit,
-      search: listResponse.filters.search,
-      category1: listResponse.filters.category1,
-      category2: listResponse.filters.category2,
-      sort: listResponse.filters.sort,
+    const categoriesResponse = await getCategories();
+    appStore.setCategories(categoriesResponse);
+    const listResponse = await getProducts({
+      limit: appState.listResponse.pagination.limit,
+      search: appState.listResponse.filters.search,
+      category1: appState.listResponse.filters.category1,
+      category2: appState.listResponse.filters.category2,
+      sort: appState.listResponse.filters.sort,
     });
-    console.log(listResponse);
+    appStore.setListResponse(listResponse);
+
     $root.innerHTML = `
-      ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+      ${homeRoute.render({
+        loading: false,
+        productListResponse: appState.listResponse,
+        categories: appState.categories,
+        cart: appState.cart,
+      })}
     `;
-  } else if (relativePath.startsWith("/product/")) {
+  } else if (productDetailRoute.pattern.test(relativePath)) {
     const id = relativePath.split("/")[2];
     $root.innerHTML = `
-      ${ProductDetailPage({ loading: true, cart })}
+      ${productDetailRoute.render({ loading: true, cart: appState.cart })}
     `;
     const response = await getProduct(id);
-    console.log(response);
+    appStore.setProductDetail(response);
+
     $root.innerHTML = `
-      ${ProductDetailPage({ loading: false, response, cart })}
+      ${productDetailRoute.render({ loading: false, response: appState.productDetail, cart: appState.cart })}
     `;
   }
 
@@ -88,130 +79,195 @@ async function main() {
    * @param {MouseEvent} event
    */
   $root.addEventListener("click", async (event) => {
-    if (!event.target || event.target instanceof HTMLElement === false) return;
-
+    if (!event.target) return;
     console.log(event);
 
     if (event.target.id === "limit-select") {
       const value = parseInt(event.target.value);
-      if (value === listResponse.pagination.limit) {
+      if (value === appState.listResponse.pagination.limit) {
         return;
       }
-      listResponse.pagination.limit = value;
-      listResponse.pagination.page = 1;
-      listResponse.pagination.hasNext = true;
-      listResponse.pagination.hasPrev = false;
-      listResponse.products = [];
-
-      listResponse.filters.search = "";
-
+      appState.listResponse.pagination.limit = value;
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
       $root.innerHTML = `
-        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-      listResponse = await getProducts({
-        limit: listResponse.pagination.limit,
-        search: listResponse.filters.search,
-        category1: listResponse.filters.category1,
-        category2: listResponse.filters.category2,
-        sort: listResponse.filters.sort,
+      const listResponse = await getProducts({
+        limit: appState.listResponse.pagination.limit,
+        search: appState.listResponse.filters.search,
+        category1: appState.listResponse.filters.category1,
+        category2: appState.listResponse.filters.category2,
+        sort: appState.listResponse.filters.sort,
       });
-      console.log("event", listResponse);
+      appStore.setListResponse(listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
     } else if (event.target.id === "sort-select") {
       const value = event.target.value;
-      if (value === listResponse.filters.sort) return;
-      listResponse.filters.sort = value;
-      listResponse.pagination.page = 1;
-      listResponse.pagination.hasNext = true;
-      listResponse.pagination.hasPrev = false;
-      listResponse.products = [];
+      if (value === appState.listResponse.filters.sort) return;
+      appState.listResponse.filters.sort = value;
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
       $root.innerHTML = `
-        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-      listResponse = await getProducts({
-        limit: listResponse.pagination.limit,
-        search: listResponse.filters.search,
-        category1: listResponse.filters.category1,
-        category2: listResponse.filters.category2,
-        sort: listResponse.filters.sort,
+      const listResponse = await getProducts({
+        limit: appState.listResponse.pagination.limit,
+        search: appState.listResponse.filters.search,
+        category1: appState.listResponse.filters.category1,
+        category2: appState.listResponse.filters.category2,
+        sort: appState.listResponse.filters.sort,
       });
-      console.log("event", listResponse);
+      appStore.setListResponse(listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
     } else if (event.target.id === "category-filter-btn") {
       const value1 = event.target.dataset.category1;
       const value2 = event.target.dataset.category2;
-      if (value1 === listResponse.filters.category1 && value2 === listResponse.filters.category2) return;
-      listResponse.filters.category1 = value1;
-      listResponse.filters.category2 = value2;
-      listResponse.pagination.page = 1;
-      listResponse.pagination.hasNext = true;
-      listResponse.pagination.hasPrev = false;
-      listResponse.products = [];
+      if (value1 === appState.listResponse.filters.category1 && value2 === appState.listResponse.filters.category2)
+        return;
+      appState.listResponse.filters.category1 = value1;
+      appState.listResponse.filters.category2 = value2;
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
       $root.innerHTML = `
-        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-      listResponse = await getProducts({
-        limit: listResponse.pagination.limit,
-        search: listResponse.filters.search,
-        category1: listResponse.filters.category1,
-        category2: listResponse.filters.category2,
-        sort: listResponse.filters.sort,
+      const listResponse = await getProducts({
+        limit: appState.listResponse.pagination.limit,
+        search: appState.listResponse.filters.search,
+        category1: appState.listResponse.filters.category1,
+        category2: appState.listResponse.filters.category2,
+        sort: appState.listResponse.filters.sort,
       });
+      appStore.setListResponse(listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
     } else if (event.target.dataset.breadcrumb === "reset") {
-      if (listResponse.filters.category1 === "" && listResponse.filters.category2 === "") return;
-      listResponse.filters.category1 = "";
-      listResponse.filters.category2 = "";
-      listResponse.pagination.page = 1;
-      listResponse.pagination.hasNext = true;
-      listResponse.pagination.hasPrev = false;
-      listResponse.products = [];
+      if (appState.listResponse.filters.category1 === "" && appState.listResponse.filters.category2 === "") return;
+      appState.listResponse.filters.category1 = "";
+      appState.listResponse.filters.category2 = "";
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
       $root.innerHTML = `
-        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-      listResponse = await getProducts({
-        limit: listResponse.pagination.limit,
-        search: listResponse.filters.search,
-        category1: listResponse.filters.category1,
-        category2: listResponse.filters.category2,
-        sort: listResponse.filters.sort,
+      const listResponse = await getProducts({
+        limit: appState.listResponse.pagination.limit,
+        search: appState.listResponse.filters.search,
+        category1: appState.listResponse.filters.category1,
+        category2: appState.listResponse.filters.category2,
+        sort: appState.listResponse.filters.sort,
       });
+      appStore.setListResponse(listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
     } else if (event.target.dataset.breadcrumb === "category1") {
       const value = event.target.dataset.category1;
-      if (value === listResponse.filters.category1 && listResponse.filters.category2 === "") return;
-      listResponse.filters.category1 = value;
-      listResponse.filters.category2 = "";
-      listResponse.pagination.page = 1;
-      listResponse.pagination.hasNext = true;
-      listResponse.pagination.hasPrev = false;
-      listResponse.products = [];
+      if (value === appState.listResponse.filters.category1 && appState.listResponse.filters.category2 === "") return;
+      appState.listResponse.filters.category1 = value;
+      appState.listResponse.filters.category2 = "";
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-      listResponse = await getProducts({
-        limit: listResponse.pagination.limit,
-        search: listResponse.filters.search,
-        category1: listResponse.filters.category1,
-        category2: listResponse.filters.category2,
-        sort: listResponse.filters.sort,
+      const listResponse = await getProducts({
+        limit: appState.listResponse.pagination.limit,
+        search: appState.listResponse.filters.search,
+        category1: appState.listResponse.filters.category1,
+        category2: appState.listResponse.filters.category2,
+        sort: appState.listResponse.filters.sort,
       });
+      appStore.setListResponse(listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
     } else if (event.target.id === "add-to-cart-btn") {
       const productId = event.target.dataset.productId;
       if (!productId) return;
-      if (cart.includes(productId)) return;
-      cart.push(productId);
+      if (appState.cart.includes(productId)) return;
+      appStore.setCart([...appState.cart, productId]);
+    } else if (event.target.closest("[data-link]")) {
+      const linkElement = event.target.closest("[data-link]");
+      const linkHref = linkElement.dataset.linkHref;
+      if (linkHref) {
+        const route = Object.values(ROUTES).find((route) => route.pattern.test(linkHref));
+        if (!route) throw new Error("Route not found");
+        history.pushState(null, "", `${basePath}${linkHref.replace("/", "")}`);
+        const params = extractParams(route.path, linkHref);
+        const props = await route.loader(params);
+        $root.innerHTML = `
+          ${route.render(props)}
+        `;
+      } else if (linkElement.dataset.linkGoBack) {
+        history.back();
+      }
     }
   });
 
@@ -221,58 +277,74 @@ async function main() {
     if (event.target.id === "search-input" && event.key === "Enter") {
       const value = event.target.value;
 
-      if (value === listResponse.filters.search) return;
+      if (value === appState.listResponse.filters.search) return;
 
-      listResponse.filters.search = value;
-      listResponse.pagination.page = 1;
-      listResponse.pagination.hasNext = true;
-      listResponse.pagination.hasPrev = false;
-      listResponse.products = [];
+      appState.listResponse.filters.search = value;
+      appState.listResponse.pagination.page = 1;
+      appState.listResponse.pagination.hasNext = true;
+      appState.listResponse.pagination.hasPrev = false;
+      appState.listResponse.products = [];
 
       $root.innerHTML = `
-        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: true,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-      listResponse = await getProducts({
-        limit: listResponse.pagination.limit,
-        search: listResponse.filters.search,
-        category1: listResponse.filters.category1,
-        category2: listResponse.filters.category2,
-        sort: listResponse.filters.sort,
+      const listResponse = await getProducts({
+        limit: appState.listResponse.pagination.limit,
+        search: appState.listResponse.filters.search,
+        category1: appState.listResponse.filters.category1,
+        category2: appState.listResponse.filters.category2,
+        sort: appState.listResponse.filters.sort,
       });
+      appStore.setListResponse(listResponse);
       $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
     }
   });
 
   /* Intersection Observer */
   // TODO: refactor with component identification structure
-  if (relativePath === "/") {
+  if (relativePath === homeRoute.path) {
     /** @type {HTMLElement | null} */
     ioSentinel = document.querySelector("#sentinel");
     if (!ioSentinel) throw new Error("Sentinel element not found");
 
     const io = new IntersectionObserver(
       async ([entry]) => {
-        if (!entry.isIntersecting || !listResponse.pagination.hasNext || listLoading) return;
-        listLoading = true;
+        if (!entry.isIntersecting || !appState.listResponse.pagination.hasNext || appState.listLoading) return;
+        appStore.setListLoading(true);
         $root.innerHTML = `
-        ${HomePage({ loading: true, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({ loading: true, cart: appState.cart })}
       `;
         const response = await getProducts({
-          limit: listResponse.pagination.limit,
-          page: listResponse.pagination.page + 1,
+          limit: appState.listResponse.pagination.limit,
+          page: appState.listResponse.pagination.page + 1,
         });
-        listResponse.products.push(...response.products);
-        listResponse.pagination.page = response.pagination.page;
-        listResponse.pagination.total = response.pagination.total;
-        listResponse.pagination.totalPages = response.pagination.totalPages;
-        listResponse.pagination.hasNext = response.pagination.hasNext;
-        listResponse.pagination.hasPrev = response.pagination.hasPrev;
+        appStore.setListResponse({ products: [...appState.listResponse.products, ...response.products] });
+        appState.listResponse.pagination.page = response.pagination.page;
+        appState.listResponse.pagination.total = response.pagination.total;
+        appState.listResponse.pagination.totalPages = response.pagination.totalPages;
+        appState.listResponse.pagination.hasNext = response.pagination.hasNext;
+        appState.listResponse.pagination.hasPrev = response.pagination.hasPrev;
         $root.innerHTML = `
-        ${HomePage({ loading: false, productListResponse: listResponse, categories, cart })}
+        ${homeRoute.render({
+          loading: false,
+          productListResponse: appState.listResponse,
+          categories: appState.categories,
+          cart: appState.cart,
+        })}
       `;
-        listLoading = false;
+        appStore.setListLoading(false);
       },
       {
         root: null,

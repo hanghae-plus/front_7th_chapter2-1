@@ -119,14 +119,14 @@
 
 /**
  * @typedef {Object} ProductListProps
- * @property {ProductListResponse} productListResponse
+ * @property {ProductListResponse} [productListResponse]
  * @property {CategoryTreeNode[]} [categories]
  */
 
 /**
  * @typedef {Object} HomePageProps
  * @property {boolean} loading
- * @property {ProductListResponse} productListResponse
+ * @property {ProductListResponse} [productListResponse]
  * @property {CategoryTreeNode[]} [categories]
  * @property {string[]} [cart] - 장바구니 상품 ID 목록 (optional)
  */
