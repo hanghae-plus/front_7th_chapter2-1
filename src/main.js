@@ -1,5 +1,5 @@
 import { HomePage } from "./pages/HomePage.js";
-import { getProducts, getProduct } from "./api/productApi.js";
+import { getProducts, getProduct, getCategories } from "./api/productApi.js";
 import { DetailPage } from "./pages/Detailpage.js";
 import { bindSearchFormEvents } from "./components/SearchForm.js";
 
@@ -32,6 +32,82 @@ function getNormalizedPathname() {
 let currentLimit = 20;
 let currentSort = "price_asc";
 let currentSearch = "";
+let currentCategory1 = "";
+let currentCategory2 = "";
+let categoriesCache = null;
+let categoriesInFlight = null;
+
+async function loadCategories() {
+  if (categoriesCache) {
+    return categoriesCache;
+  }
+
+  if (!categoriesInFlight) {
+    categoriesInFlight = getCategories()
+      .then((data) => {
+        categoriesCache = data ?? {};
+        return categoriesCache;
+      })
+      .finally(() => {
+        categoriesInFlight = null;
+      });
+  }
+
+  return categoriesInFlight;
+}
+
+function bindFilters() {
+  bindSearchFormEvents({
+    currentLimit,
+    currentSort,
+    currentSearch,
+    onLimitChange: (nextLimit) => {
+      if (currentLimit === nextLimit) {
+        return;
+      }
+      currentLimit = nextLimit;
+      render();
+    },
+    onSortChange: (nextSort) => {
+      if (currentSort === nextSort) {
+        return;
+      }
+      currentSort = nextSort;
+      render();
+    },
+    onSearchSubmit: (nextSearch) => {
+      if (currentSearch === nextSearch) {
+        return;
+      }
+      currentSearch = nextSearch;
+      render();
+    },
+    onCategoryReset: () => {
+      if (!currentCategory1 && !currentCategory2) {
+        return;
+      }
+      currentCategory1 = "";
+      currentCategory2 = "";
+      render();
+    },
+    onCategory1Change: (nextCategory1) => {
+      if (currentCategory1 === nextCategory1 && !currentCategory2) {
+        return;
+      }
+      currentCategory1 = nextCategory1;
+      currentCategory2 = "";
+      render();
+    },
+    onCategory2Change: (nextCategory1, nextCategory2) => {
+      if (currentCategory1 === nextCategory1 && currentCategory2 === nextCategory2) {
+        return;
+      }
+      currentCategory1 = nextCategory1;
+      currentCategory2 = nextCategory2;
+      render();
+    },
+  });
+}
 
 async function render() {
   const $root = document.getElementById("root");
@@ -40,74 +116,58 @@ async function render() {
   if (pathname === "/" || pathname === "") {
     $root.innerHTML = HomePage({
       loading: true,
-      filters: { limit: currentLimit, sort: currentSort, search: currentSearch },
+      filters: {
+        limit: currentLimit,
+        sort: currentSort,
+        search: currentSearch,
+        category1: currentCategory1,
+        category2: currentCategory2,
+      },
     });
-    try {
-      const data = await getProducts({ limit: currentLimit, sort: currentSort, search: currentSearch });
-      const filters = { ...(data?.filters ?? {}), limit: currentLimit, sort: currentSort, search: currentSearch };
 
-      $root.innerHTML = HomePage({ ...data, filters, loading: false });
-      bindSearchFormEvents({
-        currentLimit,
-        currentSort,
-        currentSearch,
-        onLimitChange: (nextLimit) => {
-          if (currentLimit === nextLimit) {
-            return;
-          }
-          currentLimit = nextLimit;
-          render();
-        },
-        onSortChange: (nextSort) => {
-          if (currentSort === nextSort) {
-            return;
-          }
-          currentSort = nextSort;
-          render();
-        },
-        onSearchSubmit: (nextSearch) => {
-          if (currentSearch === nextSearch) {
-            return;
-          }
-          currentSearch = nextSearch;
-          render();
-        },
+    const categoriesPromise = loadCategories().catch((error) => {
+      console.error("카테고리 로딩 실패:", error);
+      return {};
+    });
+
+    try {
+      const data = await getProducts({
+        limit: currentLimit,
+        sort: currentSort,
+        search: currentSearch,
+        category1: currentCategory1,
+        category2: currentCategory2,
       });
+      const categories = await categoriesPromise;
+      const filters = {
+        ...(data?.filters ?? {}),
+        limit: currentLimit,
+        sort: currentSort,
+        search: currentSearch,
+        category1: currentCategory1,
+        category2: currentCategory2,
+      };
+
+      $root.innerHTML = HomePage({ ...data, filters, categories, loading: false });
+      bindFilters();
     } catch (error) {
       console.error("상품 목록 로딩 실패:", error);
+      const categories = await categoriesPromise;
       $root.innerHTML = HomePage({
         loading: false,
         products: [],
-        filters: { limit: currentLimit, sort: currentSort, search: currentSearch },
+        filters: {
+          limit: currentLimit,
+          sort: currentSort,
+          search: currentSearch,
+          category1: currentCategory1,
+          category2: currentCategory2,
+        },
         pagination: {},
         error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+        categories,
       });
-      bindSearchFormEvents({
-        currentLimit,
-        currentSort,
-        currentSearch,
-        onLimitChange: (nextLimit) => {
-          if (currentLimit === nextLimit) {
-            return;
-          }
-          currentLimit = nextLimit;
-          render();
-        },
-        onSortChange: (nextSort) => {
-          if (currentSort === nextSort) {
-            return;
-          }
-          currentSort = nextSort;
-          render();
-        },
-        onSearchSubmit: (nextSearch) => {
-          if (currentSearch === nextSearch) {
-            return;
-          }
-          currentSearch = nextSearch;
-          render();
-        },
-      });
+      bindFilters();
     }
   } else if (pathname.startsWith("/product/")) {
     $root.innerHTML = DetailPage({ loading: true });

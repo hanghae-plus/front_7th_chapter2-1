@@ -1,5 +1,8 @@
 const LIMIT_OPTIONS = [10, 20, 50, 100];
 
+const CATEGORY_BUTTON_CLASS =
+  "text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50";
+
 const renderLimitOption = (value, current) => {
   const numericValue = Number(value);
   const isSelected = Number(current) === numericValue ? "selected" : "";
@@ -12,7 +15,69 @@ const renderSortOption = (value, label, currentSort) => {
   return `<option value="${value}" ${isSelected}>${label}</option>`;
 };
 
-export const SearchForm = ({ limit = 20, sort = "price_asc", search = "" } = {}) => {
+const renderCategorySection = (categories = {}, selectedCategory1 = "", selectedCategory2 = "") => {
+  const category1Keys = Object.keys(categories ?? {});
+
+  if (category1Keys.length === 0) {
+    return `
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600">카테고리:</label>
+        <span class="text-sm text-gray-500 italic">카테고리를 불러오는 중입니다...</span>
+      </div>
+    `;
+  }
+
+  const category1Buttons = category1Keys
+    .map((category1) => {
+      return `<button type="button" data-category1-btn="${category1}" class="${CATEGORY_BUTTON_CLASS}">${category1}</button>`;
+    })
+    .join("");
+
+  let category2Markup = "";
+
+  if (selectedCategory1) {
+    const category2Keys = Object.keys(categories[selectedCategory1] ?? {});
+    if (category2Keys.length > 0) {
+      category2Markup = `
+        <div class="flex flex-wrap gap-2">
+          ${category2Keys
+            .map((category2) => {
+              return `<button type="button" data-category2-btn="${category2}" data-category1="${selectedCategory1}" class="${CATEGORY_BUTTON_CLASS}">
+                ${category2}
+              </button>`;
+            })
+            .join("")}
+        </div>`;
+    } else {
+      category2Markup = `<div class="text-sm text-gray-500 italic">하위 카테고리가 없습니다.</div>`;
+    }
+  } else {
+    category2Markup = `<div class="text-sm text-gray-500 italic">상위 카테고리를 먼저 선택해주세요.</div>`;
+  }
+
+  return `
+    <div class="space-y-2">
+      <div class="flex items-center gap-2 flex-wrap text-xs text-gray-600">
+        <label class="text-sm text-gray-600 mr-2">카테고리:</label>
+        <button type="button" data-category-reset class="text-xs hover:text-blue-700 hover:underline">전체</button>
+        ${selectedCategory1 ? `<span class="text-xs text-gray-500">선택: ${selectedCategory1}${selectedCategory2 ? ` &gt; ${selectedCategory2}` : ""}</span>` : ""}
+      </div>
+      <div class="flex flex-wrap gap-2">
+        ${category1Buttons}
+      </div>
+      ${category2Markup}
+    </div>
+  `;
+};
+
+export const SearchForm = ({
+  limit = 20,
+  sort = "price_asc",
+  search = "",
+  category1 = "",
+  category2 = "",
+  categories = {},
+} = {}) => {
   return /* HTML */ `
     <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -42,17 +107,7 @@ export const SearchForm = ({ limit = 20, sort = "price_asc", search = "" } = {})
       <!-- 필터 옵션 -->
       <div class="space-y-3">
         <!-- 카테고리 필터 -->
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600">카테고리:</label>
-            <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
-          </div>
-          <!-- 1depth 카테고리 -->
-          <div class="flex flex-wrap gap-2">
-            <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
-          </div>
-          <!-- 2depth 카테고리 -->
-        </div>
+        ${renderCategorySection(categories, category1, category2)}
         <!-- 기존 필터들 -->
         <div class="flex gap-2 items-center justify-between">
           <!-- 페이지당 상품 수 -->
@@ -93,6 +148,9 @@ export const bindSearchFormEvents = ({
   onLimitChange,
   onSortChange,
   onSearchSubmit,
+  onCategory1Change,
+  onCategory2Change,
+  onCategoryReset,
   currentLimit = 20,
   currentSort = "price_asc",
   currentSearch = "",
@@ -100,6 +158,9 @@ export const bindSearchFormEvents = ({
   const limitSelect = document.getElementById("limit-select");
   const sortSelect = document.getElementById("sort-select");
   const searchInput = document.getElementById("search-input");
+  const category1Buttons = document.querySelectorAll("[data-category1-btn]");
+  const category2Buttons = document.querySelectorAll("[data-category2-btn]");
+  const categoryResetButton = document.querySelector("[data-category-reset]");
 
   if (limitSelect) {
     limitSelect.value = String(currentLimit);
@@ -138,6 +199,37 @@ export const bindSearchFormEvents = ({
 
       if (typeof onSearchSubmit === "function") {
         onSearchSubmit(event.target.value.trim());
+      }
+    };
+  }
+
+  if (category1Buttons.length > 0) {
+    category1Buttons.forEach((button) => {
+      button.onclick = () => {
+        const nextCategory1 = button.getAttribute("data-category1-btn") ?? "";
+        if (typeof onCategory1Change === "function") {
+          onCategory1Change(nextCategory1);
+        }
+      };
+    });
+  }
+
+  if (category2Buttons.length > 0) {
+    category2Buttons.forEach((button) => {
+      button.onclick = () => {
+        const nextCategory2 = button.getAttribute("data-category2-btn") ?? "";
+        const nextCategory1 = button.getAttribute("data-category1") ?? "";
+        if (typeof onCategory2Change === "function") {
+          onCategory2Change(nextCategory1, nextCategory2);
+        }
+      };
+    });
+  }
+
+  if (categoryResetButton) {
+    categoryResetButton.onclick = () => {
+      if (typeof onCategoryReset === "function") {
+        onCategoryReset();
       }
     };
   }
