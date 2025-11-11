@@ -1,6 +1,4 @@
-import { getProduct, getProducts } from "./api/productApi.js";
-import { DetailPage } from "./pages/DetailPAge.js";
-import { HomePage } from "./pages/Homepage.js";
+import { router } from "./router/index.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -9,44 +7,29 @@ const enableMocking = () =>
     }),
   );
 
-const push = (path) => {
-  history.pushState(null, null, path);
-  render();
+// 이벤트 리스너
+const initEventListeners = () => {
+  document.body.addEventListener("click", (e) => {
+    if (e.target.closest(".product-card")) {
+      e.preventDefault();
+      const productId = e.target.closest(".product-card").dataset.productId;
+      router.push(`/products/${productId}`);
+    }
+
+    const link = e.target.closest("[data-link]");
+    if (link) {
+      e.preventDefault();
+      const href = link.getAttribute("href");
+      router.push(href);
+    }
+  });
 };
 
-async function render() {
-  const $root = document.querySelector("#root");
+const main = () => {
+  initEventListeners();
+  router.init();
+};
 
-  if (window.location.pathname === "/") {
-    $root.innerHTML = HomePage({ loading: true });
-    const data = await getProducts();
-    console.log(data);
-
-    $root.innerHTML = HomePage({ ...data, loading: false });
-
-    document.body.addEventListener("click", (e) => {
-      if (e.target.closest(".product-card")) {
-        const productId = e.target.closest(".product-card").dataset.productId;
-        console.log(e.target, productId);
-        push(`/products/${productId}`);
-      }
-    });
-  } else {
-    const productId = location.pathname.split("/").pop();
-    $root.innerHTML = DetailPage({ loading: true });
-    const data = await getProduct(productId);
-    $root.innerHTML = DetailPage({ loading: false, product: data });
-  }
-  window.addEventListener("popstate", () => {
-    render();
-  });
-}
-
-function main() {
-  render();
-}
-
-// 애플리케이션 시작
 if (import.meta.env.MODE !== "test") {
   enableMocking().then(main);
 } else {
