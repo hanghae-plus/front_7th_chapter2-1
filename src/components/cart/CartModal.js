@@ -16,9 +16,7 @@ export const CartModal = () => {
       <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
         <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
           ${CartHeader()}
-          <div aria-hidden="true">
-            ${CartItemList()}
-          </div>
+          ${CartItemList()}
           ${CartFooter()}
         </div>
       </div>
@@ -38,9 +36,7 @@ export const refreshCartModal = () => {
   if (contentBox) {
     contentBox.innerHTML = `
       ${CartHeader()}
-      <div aria-hidden="true">
-        ${CartItemList()}
-      </div>
+      ${CartItemList()}
       ${CartFooter()}
     `;
   }
@@ -66,6 +62,9 @@ export const openCartModal = () => {
     pageContent.setAttribute("aria-hidden", "true");
   }
 
+  // 백그라운드 스크롤 방지
+  document.body.style.overflow = "hidden";
+
   // 모달의 닫기 버튼으로 포커스 이동 (스크롤 방지)
   const closeButton = modal.querySelector("#cart-modal-close-btn");
   if (closeButton) {
@@ -86,6 +85,9 @@ export const closeCartModal = () => {
     if (pageContent) {
       pageContent.removeAttribute("aria-hidden");
     }
+
+    // 백그라운드 스크롤 복원
+    document.body.style.overflow = "";
 
     document.removeEventListener("keydown", handleEscapeKey);
 
