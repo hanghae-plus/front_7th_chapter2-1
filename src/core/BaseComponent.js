@@ -3,6 +3,7 @@ export const createComponent = (setup) => {
     let state = {};
     let view = () => "";
     const mountCallbacks = [];
+    const mountedCallbacks = [];
     const unmountCallbacks = [];
     const renderCallbacks = [];
     let mountCleanups = [];
@@ -41,6 +42,10 @@ export const createComponent = (setup) => {
       renderCallbacks.push(fn);
     };
 
+    const onMounted = (fn) => {
+      mountedCallbacks.push(fn);
+    };
+
     const render = () => {
       // 이전 render 바인딩 제거
       renderCleanups.forEach((fn) => fn && fn());
@@ -48,6 +53,8 @@ export const createComponent = (setup) => {
 
       // 그리기
       root.innerHTML = view(state);
+
+      mountedCallbacks.forEach((fn) => fn && fn());
 
       // render 후 콜백 실행 (DOM 이벤트용)
       renderCallbacks.forEach((fn) => {
@@ -67,8 +74,8 @@ export const createComponent = (setup) => {
     };
 
     // setup 함수 실행 (props 전달)
-    setup({ root, props, getState, setState, template, onMount, onUnmount, onUpdated, on, useStore });
-    render();
+    setup({ root, props, getState, setState, template, onMount, onMounted, onUnmount, onUpdated, on, useStore });
+    // render();
 
     // mount 콜백 실행 (최초 1번만)
     mountCallbacks.forEach((fn) => {
@@ -76,18 +83,21 @@ export const createComponent = (setup) => {
       if (typeof cleanup === "function") mountCleanups.push(cleanup);
     });
 
+    const unmount = () => {
+      console.log(`${options?.name || "component"} unmount`);
+      unmountCallbacks.forEach((fn) => fn && fn());
+      mountCleanups.forEach((fn) => fn && fn());
+      renderCleanups.forEach((fn) => fn && fn());
+      mountCleanups = [];
+      renderCleanups = [];
+      root.replaceChildren();
+    };
+
     return {
       getState,
       setState,
-      unmount: () => {
-        console.log(`${options?.name || "component"} unmount`);
-        unmountCallbacks.forEach((fn) => fn && fn());
-        mountCleanups.forEach((fn) => fn && fn());
-        renderCleanups.forEach((fn) => fn && fn());
-        mountCleanups = [];
-        renderCleanups = [];
-        root.replaceChildren();
-      },
+      unmount,
+      render,
     };
   };
 };
