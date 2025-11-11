@@ -65,11 +65,27 @@ $root.addEventListener("click", (e) => {
     //   return;
     // }
     router.navigateTo(e.target.pathname);
-  } else if (e.target.closest(".category1-filter-btn")) {
+  }
+});
+
+$root.addEventListener("click", (e) => {
+  if (e.target.closest(".category1-filter-btn")) {
     const $category1Btn = e.target.closest(".category1-filter-btn");
     const category1 = $category1Btn.dataset.category1;
     const newQueryString = getQueryStringAdding("category1", category1);
     router.navigateTo(`${BASE_URL}${newQueryString}`);
+  } else if (e.target.closest(".category2-filter-btn")) {
+    const $category2Btn = e.target.closest(".category2-filter-btn");
+    $category2Btn.classList.add("bg-blue-100", "border-blue-300", "text-blue-800");
+    $category2Btn.classList.remove("bg-white", "border-gray-300", "text-gray-700", "hover:bg-gray-50");
+
+    const $allCategory2Btns = $root.querySelectorAll(".category2-filter-btn");
+    $allCategory2Btns.forEach(($c2Btn) => {
+      if ($category2Btn.dataset.category2 !== $c2Btn.dataset.category2) {
+        $c2Btn.classList.remove("bg-blue-100", "border-blue-300", "text-blue-800");
+        $c2Btn.classList.add("bg-white", "border-gray-300", "text-gray-700", "hover:bg-gray-50");
+      }
+    });
   }
 });
 
