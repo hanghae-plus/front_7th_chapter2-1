@@ -5,6 +5,7 @@ import { ItemList } from "../components/ItemList.js";
 export const Home = ({ searchProps = {}, productProps = {} } = {}) => {
   return `
     ${Layout({
+      headerProps: { showBack: false },
       top: Search(searchProps),
       main: ItemList(productProps),
     })}
