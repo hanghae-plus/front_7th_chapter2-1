@@ -1,3 +1,5 @@
+import App from "./App.js";
+
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
@@ -1119,29 +1121,48 @@ function main() {
     </main>
   `;
 
-  document.body.innerHTML = `
+  const root = document.querySelector("#root");
+  // const date = 'data'
+  // console.log(data)
+
+  root.innerHTML = App();
+
+  if (window.location.pathname.includes("pub")) {
+    document.body.innerHTML = `
+    <div>상품목록_레이아웃_로딩</div>  
     ${상품목록_레이아웃_로딩}
-    <br />
-    ${상품목록_레이아웃_로딩완료}
-    <br />
-    ${상품목록_레이아웃_카테고리_1Depth}
-    <br />
-    ${상품목록_레이아웃_카테고리_2Depth}
-    <br />
-    ${토스트}
-    <br />
-    ${장바구니_비어있음}
-    <br />
-    ${장바구니_선택없음}
-    <br />
-    ${장바구니_선택있음}
-    <br />
-    ${상세페이지_로딩}
-    <br />
-    ${상세페이지_로딩완료}
-    <br />
-    ${_404_}
-  `;
+      <br />
+      <div>상품목록_레이아웃_로딩완료</div>
+      ${상품목록_레이아웃_로딩완료}
+      <br />
+      <div>상품목록_레이아웃_카테고리_1Depth</div>
+      ${상품목록_레이아웃_카테고리_1Depth}
+      <br />
+      <div>상품목록_레이아웃_카테고리_2Depth</div>
+      ${상품목록_레이아웃_카테고리_2Depth}
+      <br />
+      <div>토스트</div>
+      ${토스트}
+      <br />
+      <div>장바구니_비어있음</div>
+      ${장바구니_비어있음}
+      <br />
+      <div>장바구니_선택없음</div>
+      ${장바구니_선택없음}
+      <br />
+      <div>장바구니_선택있음</div>
+      ${장바구니_선택있음}
+      <br />
+      <div>상세페이지_로딩</div>
+      ${상세페이지_로딩}
+      <br />
+      <div>상세페이지_로딩완료</div>
+      ${상세페이지_로딩완료}
+      <br />
+      <div>_404_</div>
+      ${_404_}
+    `;
+  }
 }
 
 // 애플리케이션 시작
