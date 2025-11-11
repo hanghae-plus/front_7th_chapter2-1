@@ -74,6 +74,33 @@ const renderThumbnails = (images = []) => {
   `;
 };
 
+const renderRelatedProducts = (related = []) => {
+  if (!Array.isArray(related) || related.length === 0) {
+    return `
+      <p class="text-sm text-gray-500">관련 상품 정보를 준비 중입니다.</p>
+    `;
+  }
+
+  return `
+    <div class="grid grid-cols-2 gap-3 responsive-grid">
+      ${related
+        .slice(0, 4)
+        .map(
+          (item) => `
+        <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="${item.productId}">
+          <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
+            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover" loading="lazy">
+          </div>
+          <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${item.title}</h3>
+          <p class="text-sm font-bold text-blue-600">${formatCurrency(item.lprice)}</p>
+        </div>
+      `,
+        )
+        .join("")}
+    </div>
+  `;
+};
+
 export const DetailContent = ({ product, loading = false, error = null } = {}) => {
   if (loading) {
     return LoadingTemplate;
@@ -99,6 +126,7 @@ export const DetailContent = ({ product, loading = false, error = null } = {}) =
     reviewCount,
     brand,
     maker,
+    relatedProducts = [],
   } = product;
 
   const price = formatCurrency(lprice);
@@ -167,6 +195,16 @@ export const DetailContent = ({ product, loading = false, error = null } = {}) =
           >
             장바구니 담기
           </button>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-lg shadow-sm">
+        <div class="p-4 border-b border-gray-200">
+          <h2 class="text-lg font-bold text-gray-900">관련 상품</h2>
+          <p class="text-sm text-gray-600">같은 카테고리의 다른 상품들</p>
+        </div>
+        <div class="p-4">
+          ${renderRelatedProducts(relatedProducts)}
         </div>
       </section>
 

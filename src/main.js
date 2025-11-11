@@ -271,6 +271,16 @@ function attachDetailEvents(root) {
     detailBreadcrumb.addEventListener("click", handleDetailBreadcrumbClick);
   }
 
+  const relatedCards = root.querySelectorAll(".related-product-card");
+  relatedCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      const productId = card.dataset.productId;
+      if (productId) {
+        navigateToDetail(productId);
+      }
+    });
+  });
+
   const decreaseButton = root.querySelector("[data-quantity-decrease]");
   const increaseButton = root.querySelector("[data-quantity-increase]");
   const quantityInput = root.querySelector("#quantity-input");
@@ -303,33 +313,34 @@ function handleDetailBreadcrumbClick(event) {
 
   if (button.dataset.navigate === "home") {
     event.preventDefault();
-    resetFilters();
+    resetFilters({ updateUrl: false });
     navigateToHome({ replace: false });
     return;
   }
 
   if (button.dataset.navigate === "home-category") {
     event.preventDefault();
-    resetFilters();
     const { category1, category2 } = button.dataset;
+    resetFilters({ updateUrl: false });
     state.selectedCategory1 = category1 || null;
     state.selectedCategory2 = category2 || null;
-    updateHomeUrlParams({
-      current: 1,
+    navigateToHome({
       category1: state.selectedCategory1,
       category2: state.selectedCategory2,
-      search: state.searchTerm,
+      current: 1,
+      search: null,
     });
-    loadProducts();
   }
 }
 
-function resetFilters() {
+function resetFilters({ updateUrl = true } = {}) {
   state.selectedCategory1 = null;
   state.selectedCategory2 = null;
   state.searchTerm = "";
   state.currentPage = 0;
-  updateHomeUrlParams({ current: 1, category1: null, category2: null, search: null });
+  if (updateUrl && state.route?.name === "home") {
+    updateHomeUrlParams({ current: 1, category1: null, category2: null, search: null });
+  }
 }
 
 function attachHeaderNavigation(root) {
@@ -337,7 +348,7 @@ function attachHeaderNavigation(root) {
   homeLinks.forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      resetFilters();
+      resetFilters({ updateUrl: false });
       navigateToHome({ replace: false });
     });
   });
@@ -509,9 +520,7 @@ function handleCategoryReset(event) {
     return;
   }
 
-  state.selectedCategory1 = null;
-  state.selectedCategory2 = null;
-  state.searchTerm = "";
+  resetFilters({ updateUrl: false });
   updateHomeUrlParams({ current: 1, category1: null, category2: null, search: null });
   loadProducts();
 }
@@ -676,7 +685,28 @@ async function loadProductDetail(productId) {
     if (state.route?.name !== "detail" || state.route.params.productId !== productId) {
       return;
     }
-    state.detail.product = product;
+
+    let relatedProducts = [];
+    try {
+      if (product.category1) {
+        const relatedResponse = await getProducts({
+          limit: 12,
+          category1: product.category1,
+          ...(product.category2 ? { category2: product.category2 } : {}),
+        });
+        relatedProducts = (relatedResponse?.products ?? [])
+          .filter((item) => item.productId !== product.productId)
+          .slice(0, 4);
+      }
+    } catch (relatedError) {
+      console.error("관련 상품을 불러오지 못했습니다.", relatedError);
+      relatedProducts = [];
+    }
+
+    state.detail.product = {
+      ...product,
+      relatedProducts,
+    };
   } catch (error) {
     if (state.route?.name !== "detail" || state.route.params.productId !== productId) {
       return;
