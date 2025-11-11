@@ -45,5 +45,5 @@ jobs:
       - name: Install dependencies
         run: |
           pnpm install
-          npx playwright install --with-deps
+          pnpm exec playwright install
           pnpm run test:e2e:advanced
