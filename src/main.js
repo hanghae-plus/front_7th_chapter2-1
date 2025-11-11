@@ -1,4 +1,4 @@
-import { getProducts, getProduct, getCategories } from "./api/productApi";
+import { getProducts } from "./api/productApi";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
 import { extractParams } from "./utils/route";
@@ -27,7 +27,6 @@ async function main() {
   const pathName = window.location.pathname;
   const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
-  console.log(basePath, relativePath);
   const homeRoute = ROUTES.home;
   const productDetailRoute = ROUTES.productDetail;
 
@@ -42,35 +41,18 @@ async function main() {
     $root.innerHTML = `
       ${homeRoute.render({ loading: true, cart: appState.cart })}
     `;
-    const categoriesResponse = await getCategories();
-    appStore.setCategories(categoriesResponse);
-    const listResponse = await getProducts({
-      limit: appState.listResponse.pagination.limit,
-      search: appState.listResponse.filters.search,
-      category1: appState.listResponse.filters.category1,
-      category2: appState.listResponse.filters.category2,
-      sort: appState.listResponse.filters.sort,
-    });
-    appStore.setListResponse(listResponse);
-
+    const props = await homeRoute.loader();
     $root.innerHTML = `
-      ${homeRoute.render({
-        loading: false,
-        productListResponse: appState.listResponse,
-        categories: appState.categories,
-        cart: appState.cart,
-      })}
+      ${homeRoute.render(props)}
     `;
   } else if (productDetailRoute.pattern.test(relativePath)) {
     const id = relativePath.split("/")[2];
     $root.innerHTML = `
       ${productDetailRoute.render({ loading: true, cart: appState.cart })}
     `;
-    const response = await getProduct(id);
-    appStore.setProductDetail(response);
-
+    const props = await productDetailRoute.loader({ id });
     $root.innerHTML = `
-      ${productDetailRoute.render({ loading: false, response: appState.productDetail, cart: appState.cart })}
+      ${productDetailRoute.render(props)}
     `;
   }
 
@@ -80,9 +62,9 @@ async function main() {
    */
   $root.addEventListener("click", async (event) => {
     if (!event.target) return;
-    console.log(event);
 
     if (event.target.id === "limit-select") {
+      console.log("[Click Event] limit-select", event);
       const value = parseInt(event.target.value);
       if (value === appState.listResponse.pagination.limit) {
         return;
@@ -117,6 +99,7 @@ async function main() {
         })}
       `;
     } else if (event.target.id === "sort-select") {
+      console.log("[Click Event] sort-select", event);
       const value = event.target.value;
       if (value === appState.listResponse.filters.sort) return;
       appState.listResponse.filters.sort = value;
@@ -149,6 +132,7 @@ async function main() {
         })}
       `;
     } else if (event.target.id === "category-filter-btn") {
+      console.log("[Click Event] category-filter-btn", event);
       const value1 = event.target.dataset.category1;
       const value2 = event.target.dataset.category2;
       if (value1 === appState.listResponse.filters.category1 && value2 === appState.listResponse.filters.category2)
@@ -184,6 +168,7 @@ async function main() {
         })}
       `;
     } else if (event.target.dataset.breadcrumb === "reset") {
+      console.log("[Click Event] breadcrumb - reset", event);
       if (appState.listResponse.filters.category1 === "" && appState.listResponse.filters.category2 === "") return;
       appState.listResponse.filters.category1 = "";
       appState.listResponse.filters.category2 = "";
@@ -216,6 +201,7 @@ async function main() {
         })}
       `;
     } else if (event.target.dataset.breadcrumb === "category1") {
+      console.log("[Click Event] breadcrumb - category1", event);
       const value = event.target.dataset.category1;
       if (value === appState.listResponse.filters.category1 && appState.listResponse.filters.category2 === "") return;
       appState.listResponse.filters.category1 = value;
@@ -249,13 +235,17 @@ async function main() {
         })}
       `;
     } else if (event.target.id === "add-to-cart-btn") {
+      console.log("[Click Event] add-to-cart-btn", event);
       const productId = event.target.dataset.productId;
       if (!productId) return;
       if (appState.cart.includes(productId)) return;
       appStore.setCart([...appState.cart, productId]);
     } else if (event.target.closest("[data-link]")) {
+      console.log("[Click Event] link", event);
+
       const linkElement = event.target.closest("[data-link]");
       const linkHref = linkElement.dataset.linkHref;
+
       if (linkHref) {
         const route = Object.values(ROUTES).find((route) => route.pattern.test(linkHref));
         if (!route) throw new Error("Route not found");
@@ -309,23 +299,24 @@ async function main() {
           cart: appState.cart,
         })}
       `;
+      console.log("[Keydown Event] search-input - Enter", value);
     }
   });
 
   /* Intersection Observer */
   // TODO: refactor with component identification structure
-  if (relativePath === homeRoute.path) {
-    /** @type {HTMLElement | null} */
-    ioSentinel = document.querySelector("#sentinel");
-    if (!ioSentinel) throw new Error("Sentinel element not found");
+  /** @type {HTMLElement | null} */
+  ioSentinel = document.querySelector("#sentinel");
+  if (!ioSentinel) throw new Error("Sentinel element not found");
 
-    const io = new IntersectionObserver(
-      async ([entry]) => {
+  const io = new IntersectionObserver(
+    async ([entry]) => {
+      if (relativePath === homeRoute.path) {
         if (!entry.isIntersecting || !appState.listResponse.pagination.hasNext || appState.listLoading) return;
         appStore.setListLoading(true);
         $root.innerHTML = `
-        ${homeRoute.render({ loading: true, cart: appState.cart })}
-      `;
+          ${homeRoute.render({ loading: true, cart: appState.cart })}
+        `;
         const response = await getProducts({
           limit: appState.listResponse.pagination.limit,
           page: appState.listResponse.pagination.page + 1,
@@ -337,23 +328,24 @@ async function main() {
         appState.listResponse.pagination.hasNext = response.pagination.hasNext;
         appState.listResponse.pagination.hasPrev = response.pagination.hasPrev;
         $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
+          ${homeRoute.render({
+            loading: false,
+            productListResponse: appState.listResponse,
+            categories: appState.categories,
+            cart: appState.cart,
+          })}
+        `;
         appStore.setListLoading(false);
-      },
-      {
-        root: null,
-        rootMargin: "200px",
-        threshold: 0,
-      },
-    );
-    io.observe(ioSentinel);
-  }
+        console.log("[Intersection Observer] home - next page loaded", appState.listResponse.pagination.page);
+      }
+    },
+    {
+      root: null,
+      rootMargin: "200px",
+      threshold: 0,
+    },
+  );
+  io.observe(ioSentinel);
 }
 
 // 애플리케이션 시작

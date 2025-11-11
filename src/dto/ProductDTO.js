@@ -28,10 +28,6 @@ export class ProductDTO {
     this.title = data.title;
   }
 
-  get categoryPath() {
-    return [this.category1, this.category2, this.category3, this.category4].filter(Boolean);
-  }
-
   /**
    * @param {Product} data
    */

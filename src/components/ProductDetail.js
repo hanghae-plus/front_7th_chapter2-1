@@ -1,12 +1,22 @@
 /**
- * @param {Object} props
- * @param {Object} props.response
+ * @typedef {import('../types.js').ProductDetailProps} ProductDetailProps
  */
 
-export default function ProductDetail({ response }) {
-  const { image, title, description, lprice } = response;
+/**
+ * @param {ProductDetailProps} props
+ */
+export default function ProductDetail({ productDetailResponse, productDetailListResponse }) {
+  const categoryPath = [
+    productDetailResponse.category1,
+    productDetailResponse.category2,
+    productDetailResponse.category3,
+    productDetailResponse.category4,
+  ].filter(Boolean);
+  const { image, title, description, lprice } = productDetailResponse;
 
-  const categoryPath = response.categoryPath;
+  const relatedProducts = productDetailListResponse.products.filter(
+    (product) => product.productId !== productDetailResponse.productId,
+  );
 
   return /* HTML */ `
     <main class="max-w-md mx-auto px-4 py-4">
@@ -17,17 +27,20 @@ export default function ProductDetail({ response }) {
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
           </svg>
-          ${categoryPath.map(
-            (category, index) => /* HTML */ `
-              <button class="breadcrumb-link" data-category1="${category}">${category}</button>
-              ${index < categoryPath.length - 1 &&
-              /* HTML */ `
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              `}
-            `,
-          )}
+          ${categoryPath
+            .map(
+              (category, index) => /* HTML */ `
+                <button class="breadcrumb-link" data-category1="${category}">${category}</button>
+                ${index < categoryPath.length - 1
+                  ? /* HTML */ `
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+                    `
+                  : ""}
+              `,
+            )
+            .join("")}
         </div>
       </nav>
       <!-- 상품 상세 정보 -->
@@ -119,7 +132,7 @@ export default function ProductDetail({ response }) {
           <!-- 액션 버튼 -->
           <button
             id="add-to-cart-btn"
-            data-product-id="85067212996"
+            data-product-id="${productDetailResponse.productId}"
             class="w-full bg-blue-600 text-white py-3 px-4 rounded-md 
              hover:bg-blue-700 transition-colors font-medium"
           >
@@ -132,6 +145,8 @@ export default function ProductDetail({ response }) {
         <button
           class="block w-full text-center bg-gray-100 text-gray-700 py-3 px-4 rounded-md 
         hover:bg-gray-200 transition-colors go-to-product-list"
+          data-link
+          data-link-href="/"
         >
           상품 목록으로 돌아가기
         </button>
@@ -144,34 +159,29 @@ export default function ProductDetail({ response }) {
         </div>
         <div class="p-4">
           <div class="grid grid-cols-2 gap-3 responsive-grid">
-            <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="86940857379">
-              <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-                <img
-                  src="https://shopping-phinf.pstatic.net/main_8694085/86940857379.1.jpg"
-                  alt="샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-                샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이
-              </h3>
-              <p class="text-sm font-bold text-blue-600">230원</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="82094468339">
-              <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-                <img
-                  src="https://shopping-phinf.pstatic.net/main_8209446/82094468339.4.jpg"
-                  alt="실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-                실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제
-              </h3>
-              <p class="text-sm font-bold text-blue-600">280원</p>
-            </div>
+            ${relatedProducts
+              .map(
+                (product) => /* HTML */ `
+                  <div
+                    class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer"
+                    data-product-id="${product.productId}"
+                    data-link
+                    data-link-href="/product/${product.productId}"
+                  >
+                    <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
+                      <img
+                        src="${product.image}"
+                        alt="${product.title}"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${product.title}</h3>
+                    <p class="text-sm font-bold text-blue-600">${product.lprice}원</p>
+                  </div>
+                `,
+              )
+              .join("")}
           </div>
         </div>
       </div>
