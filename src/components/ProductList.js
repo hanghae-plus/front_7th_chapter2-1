@@ -1,3 +1,5 @@
+import { store } from "../../store";
+
 const skeleton = `
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
     <div class="aspect-square bg-gray-200"></div>
@@ -43,7 +45,7 @@ const loading = `
       <svg class="animate-spin h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" 
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
       <span class="text-sm text-gray-600">상품을 불러오는 중...</span>
     </div>
@@ -67,14 +69,14 @@ const productItem = (list) => {
           <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
           ${list.title}
           </h3>
-          <p class="text-xs text-gray-500 mb-2">이지웨이건축자재</p>
+          ${list.brand ? `<p class="text-xs text-gray-500 mb-2">${list.brand}</p>` : ""}
           <p class="text-lg font-bold text-gray-900">
           ${Number(list.lprice).toLocaleString()}원
           </p>
         </div>
         <!-- 장바구니 버튼 -->
         <button class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
-              hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="86940857379">
+          hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${list.productId}">
           장바구니 담기
         </button>
       </div>
@@ -82,7 +84,9 @@ const productItem = (list) => {
   `;
 };
 
-export const ProductList = ({ isLoaded, products }) => {
+export const ProductList = () => {
+  const { isLoaded, products } = store.state;
+
   return `
   <div class="mb-6">
     <div>
@@ -114,7 +118,6 @@ export const ProductList = ({ isLoaded, products }) => {
           </div>
           `
       }
-
     </div>
   </div>
   `;
