@@ -1,7 +1,9 @@
+import { observable, observe } from "./observer";
+
 class Component {
   $target;
   $props;
-  $state = {};
+  state = {};
   $eventListeners = []; // 등록된 이벤트 리스너 추적
 
   constructor($target, $props) {
@@ -11,9 +13,20 @@ class Component {
     this.setEvent();
     this.render();
   }
-  setup() {} // 컴포넌트 state 설정
+  initState() {
+    return {};
+  }
 
-  mount() {} // 컴포넌트가 마운트 되었을 때
+  setup() {
+    this.state = observable(this.initState());
+    observe(() => {
+      this.render();
+      this.setEvent();
+      this.mounted();
+    });
+  }
+
+  mounted() {} // 컴포넌트가 마운트 되었을 때
 
   template() {
     return "";
@@ -21,13 +34,13 @@ class Component {
 
   render() {
     this.$target.innerHTML = this.template(); // UI 렌더링
-    this.mount();
+    this.mounted();
   }
 
   setEvent() {}
 
   setState(newState) {
-    this.$state = { ...this.$state, ...newState };
+    this.state = { ...this.state, ...newState };
     this.render();
   }
 

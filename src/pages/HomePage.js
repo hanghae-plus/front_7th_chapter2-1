@@ -6,7 +6,7 @@ class HomePage extends Component {
   template() {
     return `<div id="layout-container"></div>`;
   }
-  mount() {
+  mounted() {
     const $layoutContainer = this.$target.querySelector("#layout-container");
     new Layout($layoutContainer, {
       children: `<section class="product_list"></section>`,
