@@ -56,9 +56,9 @@ $root.addEventListener("click", (e) => {
   }
   if (e.target.tagName === "A") {
     e.preventDefault();
-    if (location.pathname === e.target.pathname) {
-      return;
-    }
+    // if (location.pathname === e.target.pathname) {
+    //   return;
+    // }
     router.navigateTo(e.target.pathname);
   }
 });
