@@ -16,6 +16,7 @@ import {
   상품목록_레이아웃_로딩완료,
   상품목록_레이아웃_카테고리_1Depth,
   상품목록_레이아웃_카테고리_2Depth,
+  mountSearchBar,
 } from './constants/templates/product-list-template.js';
 
 function main() {
@@ -62,6 +63,9 @@ function main() {
     const toast = new Toast('info', '알림 메시지입니다.');
     toast.show();
   });
+
+  // SearchBar 컴포넌트 마운트 (즉시 실행)
+  mountSearchBar();
 }
 
 if (import.meta.env.MODE !== 'test') {

@@ -4,6 +4,25 @@
 // HTML 템플릿 상수로 인해 80줄 초과
 
 import { CommonFooter } from '@/components/commons/Footer';
+import { SearchBar } from '@/components/commons/SearchBar';
+
+// SearchBar 컴포넌트를 DOM에 마운트하는 함수
+export function mountSearchBar() {
+  const searchBarContainer = document.getElementById('search-bar-container');
+
+  if (searchBarContainer) {
+    const searchBar = new SearchBar();
+    searchBarContainer.appendChild(searchBar.render());
+
+    // 검색 이벤트 리스너 등록
+    searchBar.searchElement.addEventListener('search', (e) => {
+      console.log('Search query:', e.detail.query);
+      // 검색 로직은 상위 컴포넌트에서 처리
+    });
+  }
+}
+
+// SearchBar 마운트 함수는 main.js에서 호출됩니다
 
 export const 상품목록_레이아웃_로딩 = `
     <div class="min-h-screen bg-gray-50">
@@ -29,18 +48,7 @@ export const 상품목록_레이아웃_로딩 = `
         <!-- 검색 및 필터 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
           <!-- 검색창 -->
-          <div class="mb-4">
-            <div class="relative">
-              <input type="text" id="search-input" placeholder="상품명을 검색해보세요..." value="" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
-                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
+          <div id="search-bar-container"></div>
           <!-- 필터 옵션 -->
           <div class="space-y-3">
             <!-- 카테고리 필터 -->
@@ -177,18 +185,7 @@ export const 상품목록_레이아웃_로딩완료 = `
         <!-- 검색 및 필터 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
           <!-- 검색창 -->
-          <div class="mb-4">
-            <div class="relative">
-              <input type="text" id="search-input" placeholder="상품명을 검색해보세요..." value="" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
-                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
+          <div id="search-bar-container"></div>
           <!-- 필터 옵션 -->
           <div class="space-y-3">
             <!-- 카테고리 필터 -->
