@@ -1,30 +1,35 @@
-import Home from "@/pages/Home";
-import Cart from "@/pages/Cart";
-import Product from "@/pages/Product";
+import HomePage from "@/pages/HomePage";
+import CartPage from "@/pages/CartPage";
+import ProductPage from "@/pages/ProductPage";
 import NotFound from "@/pages/NotFound";
 
 const root = document.querySelector("#root");
 
 const routes = [
-  { path: "/", component: Home },
-  { path: "/products", component: Product },
-  { path: "/cart", component: Cart },
+  { path: "/", component: HomePage },
+  { path: "/cart", component: CartPage },
+  { path: "/products/:id", component: ProductPage },
 ];
 
-const getRoute = (path) => {
-  const route = routes.find((r) => r.path === path);
-  return route;
+const pathToRegex = (path) => new RegExp(`^${path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)")}$`);
+
+export const getMatch = (path) => {
+  const matchedRoutes = routes.map((route) => {
+    return { route, isMatch: path.match(pathToRegex(route.path)) };
+  });
+  return matchedRoutes.find((matchedRoute) => matchedRoute.isMatch !== null);
 };
 
-const render = (path, param) => {
-  const route = getRoute(path);
-  return route ? new route.component(root, param) : new NotFound(root);
+export const render = (path, param) => {
+  const match = getMatch(path);
+  return match ? new match.route.component(root, param) : new NotFound(root);
 };
 
-export const navigate = (path, param) => {
-  if (window.location.pathname === path) return;
-  window.history.pushState({}, "", window.location.origin + path);
-  return render(path, param);
+export const navigateTo = (path, param) => {
+  if (window.location.pathname !== path) {
+    window.history.pushState({}, "", window.location.origin + path);
+    return render(path, param);
+  }
 };
 
 export const initailizeRouter = () => {

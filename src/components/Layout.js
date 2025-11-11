@@ -1,5 +1,5 @@
-import Footer from "./Footer";
 import Header from "./Header";
+import Footer from "./Footer";
 
 const Layout = (children) => {
   const body = typeof children === "function" ? children() : children;
@@ -8,7 +8,7 @@ const Layout = (children) => {
   return `
   <div class="bg-gray-50">
     ${Header()}
-      ${bodyHtml}
+    ${bodyHtml}
     ${Footer()}
   </div>
   `;

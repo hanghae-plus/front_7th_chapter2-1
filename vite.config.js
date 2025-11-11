@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
-  base: "/front_7th_chapter2-1/",
+  base: import.meta.env.PROD ? "/front_7th_chapter2-1/" : "/",
   test: {
     globals: true,
     environment: "jsdom",

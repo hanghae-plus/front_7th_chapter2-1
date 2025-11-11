@@ -1,7 +1,7 @@
 import Component from "@/core/Component";
 import Layout from "@/components/Layout";
 
-class Product extends Component {
+class CartPage extends Component {
   template() {
     return `
   ${Layout()}
@@ -9,4 +9,4 @@ class Product extends Component {
   }
 }
 
-export default Product;
+export default CartPage;
