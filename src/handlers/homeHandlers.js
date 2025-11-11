@@ -209,6 +209,12 @@ export const setupHomePageHandlers = () => {
       return;
     }
 
+    // 재시도 버튼
+    if (target.id === "retry-load-products") {
+      window.location.reload();
+      return;
+    }
+
     if (target.classList.contains("add-to-cart-btn")) {
       // 장바구니.. 담아야해요.. 아이템 정보 어디서 얻징.. 아이템에서 추출?
       const productCard = target.closest(".product-card");

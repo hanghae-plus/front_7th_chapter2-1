@@ -1,6 +1,6 @@
 import { PageLayout } from "./PageLayout";
 import { SearchForm } from "../components/search/index.js";
-import { ProductList } from "../components/product/index.js";
+import { ProductList, ErrorState } from "../components/product/index.js";
 import { getProducts, getCategories } from "../api/productApi.js";
 
 export const HomePage = async ({ query = {} }) => {
@@ -13,16 +13,28 @@ export const HomePage = async ({ query = {} }) => {
     limit: parseInt(query.limit) || 20,
   };
 
-  // 2. API 호출해서 상품 데이터 및 카테고리 데이터 가져오기
-  const [data, categories] = await Promise.all([getProducts(filters), getCategories()]);
+  try {
+    // 2. API 호출해서 상품 데이터 및 카테고리 데이터 가져오기
+    const [data, categories] = await Promise.all([getProducts(filters), getCategories()]);
 
-  // 3. 페이지 렌더링
-  return PageLayout({
-    children: `
-      ${SearchForm({ filters, categories })}
-      ${ProductList({ loading: false, products: data.products, total: data.pagination.total })}
-    `,
-  });
+    // 3. 페이지 렌더링
+    return PageLayout({
+      children: `
+        ${SearchForm({ filters, categories })}
+        ${ProductList({ loading: false, products: data.products, total: data.pagination.total })}
+      `,
+    });
+  } catch (error) {
+    console.error("Failed to load products:", error);
+
+    // 에러 발생 시 에러 상태 렌더링
+    return PageLayout({
+      children: `
+        ${SearchForm({ filters, categories: {} })}
+        ${ErrorState({ message: "상품을 불러오는데 실패했습니다" })}
+      `,
+    });
+  }
 };
 
 /**
