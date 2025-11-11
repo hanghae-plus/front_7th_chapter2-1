@@ -1,3 +1,6 @@
+import { _404 } from "../pages/404";
+import { PageLayout } from "../pages/PageLayout";
+
 export const createRouter = () => {
   const routes = new Map();
   let currentRoute = null;
@@ -37,17 +40,17 @@ export const createRouter = () => {
     const match = matchRoute(pathname);
 
     if (!match) {
-      $root.innerHTML = "<h1>404 Not Found</h1>";
+      $root.innerHTML = PageLayout({ children: _404 }); // 404도 레이아웃 적용
       return;
     }
 
     try {
       const content = await match.handler(match.params);
-      $root.innerHTML = content;
+      $root.innerHTML = PageLayout({ children: content });
       currentRoute = pathname;
     } catch (error) {
       console.error("Render error:", error);
-      $root.innerHTML = "<h1>Error occurred</h1>";
+      $root.innerHTML = PageLayout({ children: "<h1>Error occurred</h1>" });
     }
   };
 
