@@ -1,4 +1,4 @@
-import { getProduct, getProducts } from "./api/productApi.js";
+import { getCategories, getProduct, getProducts } from "./api/productApi.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { convertToRelativePath, getQueryStringExcluding, Router } from "./utils/Router.js";
@@ -32,7 +32,8 @@ router.addRoute("/", async () => {
 
   $root.innerHTML = HomePage({ search, loading: true });
   const data = await getProducts({ search });
-  $root.innerHTML = HomePage({ ...data, search, loading: false });
+  const categories = await getCategories();
+  $root.innerHTML = HomePage({ ...data, search, categories, loading: false });
 });
 
 router.addRoute("/product/:productId", async () => {
