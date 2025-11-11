@@ -3,7 +3,7 @@ import { Home } from "./pages/home.js";
 import { Detail } from "./pages/detail.js";
 import { error404 } from "./pages/404.js";
 import { Search, updateCategoryBreadcrumb, updateCategoryButtons, ItemList, Cart } from "./components/index.js";
-import { addCartAlert, delCartAlert, errorAlert, showToast } from "./components/alert.js";
+import { addCartAlert, delCartAlert, errorAlert, infoAlert, showToast } from "./components/alert.js";
 
 const INITIAL_LOAD_ERROR_MESSAGE = "상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
 const LOAD_MORE_ERROR_MESSAGE = "상품을 추가로 불러오지 못했습니다. 다시 시도해 주세요.";
@@ -58,6 +58,39 @@ const enableMocking = async () => {
 };
 
 state.route = parseRoute();
+state.cartItems = loadCartFromStorage();
+function loadCartFromStorage() {
+  try {
+    const stored = window.localStorage.getItem("shopping_cart");
+    if (!stored) {
+      return {};
+    }
+    const parsed = JSON.parse(stored);
+    if (parsed && typeof parsed === "object") {
+      return Object.fromEntries(
+        Object.entries(parsed).map(([productId, item]) => [
+          productId,
+          {
+            product: item.product ?? {},
+            quantity: Number(item.quantity) || 1,
+            selected: Boolean(item.selected),
+          },
+        ]),
+      );
+    }
+  } catch (error) {
+    console.error("장바구니 정보를 복원하지 못했습니다.", error);
+  }
+  return {};
+}
+
+function saveCartToStorage() {
+  try {
+    window.localStorage.setItem("shopping_cart", JSON.stringify(state.cartItems));
+  } catch (error) {
+    console.error("장바구니 정보를 저장하지 못했습니다.", error);
+  }
+}
 
 function render() {
   const root = document.getElementById("root");
@@ -889,10 +922,10 @@ function getCartItemsArray() {
 
 function getCartSummary() {
   const items = getCartItemsArray();
-  const totalCount = items.reduce((sum, item) => sum + (item?.quantity ?? 0), 0);
+  const totalCount = items.length;
   const totalPrice = items.reduce((sum, item) => sum + (Number(item?.product?.lprice) || 0) * (item?.quantity ?? 0), 0);
   const selectedItems = items.filter((item) => item?.selected);
-  const selectedCount = selectedItems.reduce((sum, item) => sum + (item?.quantity ?? 0), 0);
+  const selectedCount = selectedItems.length;
   const selectedPrice = selectedItems.reduce(
     (sum, item) => sum + (Number(item?.product?.lprice) || 0) * (item?.quantity ?? 0),
     0,
@@ -1039,6 +1072,7 @@ function handleCartCheckboxToggle(checkbox) {
 
   state.cartItems[productId].selected = checkbox.checked;
   renderCartModal();
+  saveCartToStorage();
 }
 
 function handleCartSelectAllChange(checked) {
@@ -1046,6 +1080,7 @@ function handleCartSelectAllChange(checked) {
     state.cartItems[productId].selected = checked;
   });
   renderCartModal();
+  saveCartToStorage();
 }
 
 function removeSelectedCartItems() {
@@ -1058,6 +1093,7 @@ function removeSelectedCartItems() {
   if (Object.keys(state.cartItems).length !== before) {
     renderCartModal();
     showToast(delCartAlert);
+    saveCartToStorage();
   }
 }
 
@@ -1068,10 +1104,12 @@ function clearCartItems() {
   state.cartItems = {};
   renderCartModal();
   showToast(delCartAlert);
+  saveCartToStorage();
 }
 
 function checkoutCart() {
   const { selectedCount, selectedPrice } = getCartSummary();
+  showToast(infoAlert);
   if (selectedCount === 0) {
     console.info("선택된 상품이 없습니다.");
     return;
@@ -1086,6 +1124,7 @@ function incrementCartItem(productId) {
   }
   item.quantity += 1;
   renderCartModal();
+  saveCartToStorage();
 }
 
 function decrementCartItem(productId) {
@@ -1102,6 +1141,7 @@ function decrementCartItem(productId) {
   }
 
   renderCartModal();
+  saveCartToStorage();
 }
 
 function removeCartItem(productId) {
@@ -1111,6 +1151,7 @@ function removeCartItem(productId) {
   delete state.cartItems[productId];
   renderCartModal();
   showToast(delCartAlert);
+  saveCartToStorage();
 }
 
 function applyHomeQueryParams() {
@@ -1131,11 +1172,15 @@ function updateHomeUrlParams({ current, category1, category2, search } = {}) {
 
   const url = new URL(window.location.href);
   const params = url.searchParams;
+  const willHaveSearch = search !== undefined ? Boolean(search) : Boolean(params.get("search"));
 
   if (current !== undefined) {
     const parsedCurrent = Number(current);
-    if (Number.isFinite(parsedCurrent) && parsedCurrent > 1) {
-      params.set("current", String(parsedCurrent));
+    const isValidPage = Number.isFinite(parsedCurrent);
+    const isFirstPageWithSearch = parsedCurrent === 1 && willHaveSearch;
+    const shouldKeepCurrent = isValidPage && (parsedCurrent > 1 || isFirstPageWithSearch);
+    if (shouldKeepCurrent) {
+      params.set("current", String(Math.max(parsedCurrent, 1)));
     } else {
       params.delete("current");
     }
@@ -1172,11 +1217,15 @@ function updateHomeUrlParams({ current, category1, category2, search } = {}) {
 function buildHomeUrlWithParams({ current, category1, category2, search } = {}) {
   const url = buildUrl("");
   const params = url.searchParams;
+  const willHaveSearch = search !== undefined ? Boolean(search) : Boolean(params.get("search"));
 
   if (current !== undefined) {
     const parsedCurrent = Number(current);
-    if (Number.isFinite(parsedCurrent) && parsedCurrent > 1) {
-      params.set("current", String(parsedCurrent));
+    const isValidPage = Number.isFinite(parsedCurrent);
+    const isFirstPageWithSearch = parsedCurrent === 1 && willHaveSearch;
+    const shouldKeepCurrent = isValidPage && (parsedCurrent > 1 || isFirstPageWithSearch);
+    if (shouldKeepCurrent) {
+      params.set("current", String(Math.max(parsedCurrent, 1)));
     } else {
       params.delete("current");
     }
@@ -1260,6 +1309,7 @@ function handleAddToCart(productId, quantity) {
   state.cartItems[productId].quantity += amount;
   updateCartBadge();
   showToast(addCartAlert);
+  saveCartToStorage();
 }
 
 function findProductForCart(productId) {

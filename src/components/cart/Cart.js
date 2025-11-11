@@ -146,12 +146,9 @@ export const Cart = ({ items = [], totalCount = 0, totalPrice = 0, selectedCount
                       `
                       : `
                         <div class="border-t border-gray-200 p-4 bg-gray-50 space-y-3">
-                          <div class="flex items-center justify-between text-sm text-gray-600">
-                            <span>총 수량</span>
-                            <span class="font-medium text-gray-900">${totalCount}개</span>
-                          </div>
+
                           <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">총 금액</span>
+                            <span class="text-lg font-bold text-gray-900">총 금액</span>
                             <span class="text-lg font-bold text-blue-600">${formatPrice(totalPrice)}</span>
                           </div>
                           <div class="flex gap-2 pt-1">
