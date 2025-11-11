@@ -1,110 +1,70 @@
 /**
- * @param {Object} ProductListResponseDTO
- * @param {ProductDTO[]} data.products
- * @param {PaginationDTO} data.pagination
- * @param {FiltersDTO} data.filters
- */
-
-/**
- * @param {Object} ProductDTO
- * @param {string} product.brand
- * @param {string} product.category1
- * @param {string} product.category2
- * @param {string} product.category3
- * @param {string} product.category4
- * @param {string} product.hprice
- * @param {string} product.image
- * @param {string} product.link
- * @param {string} product.lprice
- * @param {string} product.maker
- * @param {string} product.mallName
- * @param {string} product.productId
- * @param {string} product.productType
- * @param {string} product.title
- */
-
-/**
- * @param {Object} FiltersDTO
- * @param {string} filters.search
- * @param {string} filters.category1
- * @param {string} filters.category2
- * @param {string} filters.sort
- */
-
-/**
- * @param {Object} PaginationDTO
- * @param {number} pagination.page
- * @param {number} pagination.limit
- * @param {number} pagination.total
- * @param {number} pagination.totalPages
- * @param {boolean} pagination.hasNext
- * @param {boolean} pagination.hasPrev
+ * @typedef {import('../types.js').ProductListResponse} ProductListResponse
+ * @typedef {import('../types.js').ProductForList} ProductForList
+ * @typedef {import('../types.js').Pagination} Pagination
+ * @typedef {import('../types.js').Filters} Filters
  */
 
 export class ProductListResponseDTO {
   /**
-   * @param {ProductListResponseDTO} data
+   * @param {ProductListResponse} data
    */
   constructor(data) {
-    this.products = data.products.map(ProductDTO.fromApi);
-    this.filters = FiltersDTO.fromApi(data.filters);
-    this.pagination = PaginationDTO.fromApi(data.pagination);
+    this.products = (data.products || []).map(ProductForListDTO.fromApi);
+    this.filters = FiltersDTO.fromApi(data.filters || {});
+    this.pagination = PaginationDTO.fromApi(data.pagination || {});
   }
 
+  /**
+   * @param {ProductListResponse} data
+   */
   static fromApi(data) {
     return new ProductListResponseDTO(data);
   }
-
-  get limitOptions() {
-    return [10, 20, 50, 100];
-  }
-
-  get sortOptions() {
-    return [
-      { value: "price_asc", label: "가격 낮은순" },
-      { value: "price_desc", label: "가격 높은순" },
-      { value: "name_asc", label: "이름순" },
-      { value: "name_desc", label: "이름 역순" },
-    ];
-  }
 }
 
-class ProductDTO {
+class ProductForListDTO {
   /**
-   * @param {ProductDTO} data
+   * @param {ProductForList} data
    */
   constructor(data) {
     this.productId = data.productId;
     this.image = data.image;
     this.title = data.title;
     this.brand = data.brand;
-    this.lprice = data.lprice;
-    this.category1 = data.category1;
-    this.category2 = data.category2;
-    this.category3 = data.category3;
-    this.category4 = data.category4;
-    this.hprice = data.hprice;
-    this.maker = data.maker;
-    this.mallName = data.mallName;
-    this.productType = data.productType;
+    this.lprice = parseInt(data.lprice.toString()) || 0;
+    this.category1 = data.category1 || "";
+    this.category2 = data.category2 || "";
+    this.category3 = data.category3 || "";
+    this.category4 = data.category4 || "";
+    this.hprice = parseInt(data.hprice?.toString() || "0");
+    this.maker = data.maker || "";
+    this.mallName = data.mallName || "";
+    this.productType = data.productType || "";
   }
 
+  /**
+   * @param {ProductForList} data
+   */
   static fromApi(data) {
-    return new ProductDTO(data);
+    return new ProductForListDTO(data);
   }
 }
 
 class FiltersDTO {
   /**
-   * @param {FiltersDTO} data
+   * @param {Filters} data
    */
   constructor(data) {
-    this.search = data.search;
-    this.category1 = data.category1;
-    this.category2 = data.category2;
-    this.sort = data.sort;
+    this.search = data.search || "";
+    this.category1 = data.category1 || "";
+    this.category2 = data.category2 || "";
+    this.sort = data.sort || "price_asc";
   }
 
+  /**
+   * @param {Filters} data
+   */
   static fromApi(data) {
     return new FiltersDTO(data);
   }
@@ -112,17 +72,20 @@ class FiltersDTO {
 
 class PaginationDTO {
   /**
-   * @param {PaginationDTO} data
+   * @param {Pagination} data
    */
   constructor(data) {
-    this.page = data.page;
-    this.limit = data.limit;
-    this.total = data.total;
-    this.totalPages = data.totalPages;
-    this.hasNext = data.hasNext;
-    this.hasPrev = data.hasPrev;
+    this.page = parseInt(data.page.toString()) || 1;
+    this.limit = parseInt(data.limit.toString()) || 20;
+    this.total = parseInt(data.total.toString()) || 0;
+    this.totalPages = parseInt(data.totalPages.toString()) || 0;
+    this.hasNext = data.hasNext || true;
+    this.hasPrev = data.hasPrev || false;
   }
 
+  /**
+   * @param {Pagination} data
+   */
   static fromApi(data) {
     return new PaginationDTO(data);
   }

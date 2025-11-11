@@ -1,29 +1,10 @@
 /**
- * @param {Object} ProductDTO
- * @param {string} data.brand
- * @param {string} data.category1
- * @param {string} data.category2
- * @param {string} data.category3
- * @param {string} data.category4
- * @param {string} data.description
- * @param {string} data.hprice
- * @param {string} data.image
- * @param {string} data.images
- * @param {string} data.link
- * @param {string} data.lprice
- * @param {string} data.maker
- * @param {string} data.mallName
- * @param {string} data.productId
- * @param {string} data.productType
- * @param {number} data.rating
- * @param {number} data.reviewCount
- * @param {number} data.stock
- * @param {string} data.title
+ * @typedef {import('../types.js').Product} Product
  */
 
 export class ProductDTO {
   /**
-   * @param {ProductDTO} data
+   * @param {Product} data
    */
   constructor(data) {
     this.brand = data.brand;
@@ -51,6 +32,9 @@ export class ProductDTO {
     return [this.category1, this.category2, this.category3, this.category4].filter(Boolean);
   }
 
+  /**
+   * @param {Product} data
+   */
   static fromApi(data) {
     return new ProductDTO(data);
   }
