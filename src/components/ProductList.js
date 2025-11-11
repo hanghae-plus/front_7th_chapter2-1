@@ -62,7 +62,7 @@ export const ProductList = ({ loading, products }) => {
     </div>
     ${Loading}`
         : `<!-- 상품 목록 -->
-    <div class="mb-6">
+    <div class="mb-6" id="product-container">
       <div>
         <!-- 상품 개수 정보 -->
         <div class="mb-4 text-sm text-gray-600">
@@ -83,6 +83,6 @@ export const ProductList = ({ loading, products }) => {
     }
 
   </div>
-</div>;
+</div>
 `;
 };

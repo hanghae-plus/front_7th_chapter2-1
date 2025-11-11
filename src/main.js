@@ -1,4 +1,5 @@
 import { getCategories, getProduct, getProducts } from "./api/productApi.js";
+import { ProductList } from "./components/ProductList.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
 import { updateCategoryUI } from "./utils/categoryUI.js";
 import { findRoute, initRouter, push } from "./utils/router.js";
@@ -26,8 +27,6 @@ const render = async () => {
     const query = new URLSearchParams(location.search);
     const search = query.get("search") || "";
     const limit = Number(query.get("limit")) || 20;
-    console.log("viewCount:", limit);
-    console.log("selectedCat1:", selectedCat1, "selectedCat2:", selectedCat2);
     const sort = query.get("sort") || "price_asc";
     //TODO : Q. 병렬 구성은 어려울까?? (렌더링을 html태그 단위로 하게 될것같아서, 내부에서 처리해야하나???)
     const [categories, products] = await Promise.all([
@@ -53,22 +52,24 @@ const render = async () => {
     $root.innerHTML = route.component({ product: data });
   }
 };
-// const refreshProducts = async () => {
-//   const query = new URLSearchParams(location.search);
-//   const search = query.get("search") || "";
-//   const limit = Number(query.get("limit")) || 20;
-//   const sort = query.get("sort") || "price_asc";
+const refreshProducts = async () => {
+  const query = new URLSearchParams(location.search);
+  const search = query.get("search") || "";
+  const limit = Number(query.get("limit")) || 20;
+  const sort = query.get("sort") || "price_asc";
+  const [products] = await Promise.all([
+    getProducts({ search, category1: selectedCat1, category2: selectedCat2, limit, sort }),
+  ]);
+  const $productListContainer = document.querySelector("#product-container");
 
-//   const [categories, products] = await Promise.all([
-//     getCategories(),
-//     getProducts({ search, category1: selectedCat1, category2: selectedCat2, limit, sort }),
-//   ]);
-//   const productList = document.querySelector(".product-grid");
-//   console.log(productList);
-//   if (productList) {
-//     productList.innerHTML = ProductList({ products });
-//   }
-// };
+  if ($productListContainer) {
+    $productListContainer.outerHTML = ProductList({
+      loading: false,
+      products: products.products,
+    });
+  }
+  query.set("search", "");
+};
 
 //TODO: Q. 이렇게 모든 액션에 대해 이벤트 등록을 해야한다고??
 /* 이벤트 등록 영역 */
@@ -101,7 +102,7 @@ document.body.addEventListener("click", (e) => {
     history.pushState(null, null, query.toString() ? `/?${query}` : "/");
 
     updateCategoryUI(selectedCat1, selectedCat2);
-    // refreshProducts();
+    refreshProducts();
   } else if (cat1Btn) {
     selectedCat1 = cat1Btn.dataset.category1;
     selectedCat2 = null;
@@ -112,7 +113,7 @@ document.body.addEventListener("click", (e) => {
 
     history.pushState(null, null, `/?${query}`);
     updateCategoryUI(selectedCat1, selectedCat2);
-    // refreshProducts();
+    refreshProducts();
   } else if (cat2Btn) {
     selectedCat1 = cat2Btn.dataset.category1;
     selectedCat2 = cat2Btn.dataset.category2;
@@ -123,7 +124,36 @@ document.body.addEventListener("click", (e) => {
 
     history.pushState(null, null, `/?${query}`);
     updateCategoryUI(selectedCat1, selectedCat2);
-    // refreshProducts();
+    refreshProducts();
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const target = e.target;
+
+  const selectedLimit = target.closest("#limit-select")?.value;
+  const selectedSort = target.closest("#sort-select")?.value;
+  const query = new URLSearchParams(location.search);
+  if (selectedLimit) query.set("limit", selectedLimit);
+  if (selectedSort) query.set("sort", selectedSort);
+  history.pushState(null, null, `/?${query}`);
+  refreshProducts();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.closest("#search-input")) {
+    e.preventDefault();
+    const keyword = e.target.value.trim();
+    const query = new URLSearchParams(location.search);
+    if (keyword) {
+      query.set("search", keyword);
+      history.pushState(null, null, `/?${query}`);
+    } else {
+      query.delete("search");
+      history.pushState(null, null, `/`);
+    }
+
+    refreshProducts();
   }
 });
 
