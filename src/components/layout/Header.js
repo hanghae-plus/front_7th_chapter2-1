@@ -9,6 +9,9 @@ const backBtn = /*html*/ `
 
 export const Header = ({ showBack = false } = {}) => {
   const title = showBack ? "상품 상세" : "쇼핑몰";
+  const titleMarkup = showBack
+    ? `<span class="text-xl font-bold text-gray-900">${title}</span>`
+    : `<a href="/" data-link="" class="text-xl font-bold text-gray-900">${title}</a>`;
 
   return `
 		<header class="bg-white shadow-sm sticky top-0 z-40">
@@ -16,9 +19,7 @@ export const Header = ({ showBack = false } = {}) => {
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						${showBack ? backBtn : ""}
-						<h1 class="text-xl font-bold text-gray-900">
-							<a href="/" data-link="">${title}</a>
-						</h1>
+						<h1>${titleMarkup}</h1>
 					</div>
 					<div class="flex items-center space-x-2">
 						<!-- 장바구니 아이콘 -->
