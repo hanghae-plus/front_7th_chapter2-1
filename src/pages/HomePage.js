@@ -5,7 +5,7 @@ export const HomePage = ({ products, loading, pagination, filters }) => {
   return /* html */ `
     <div>
       ${SearchForm({ filters, pagination })}
-      ${ProductList({ loading, products })}
+      ${ProductList({ loading, products, pagination })}
     </div>
   `;
 };

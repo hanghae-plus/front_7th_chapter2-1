@@ -17,7 +17,7 @@ export const setupRoutes = (router) => {
       };
 
       const data = await getProducts(params);
-
+      console.log(data);
       return HomePage({
         ...data,
         loading: false,
