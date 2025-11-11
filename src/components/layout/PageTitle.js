@@ -1,15 +1,14 @@
-import { BASE_PATH } from '@/constants';
+import Component from '@/core/component';
+import { navigate } from '@/core/router';
 
-const PageTitle = () => {
-  const isDetailPage = location.pathname.startsWith(`${BASE_PATH}/products/`);
+export default class PageTitle extends Component {
+  template() {
+    const { isDetailPage } = this.props;
 
-  return isDetailPage
-    ? /* HTML */ `
+    if (isDetailPage) {
+      return /* HTML */ `
         <div class="flex items-center space-x-3">
-          <button
-            onclick="window.history.back()"
-            class="p-2 text-gray-700 hover:text-gray-900 transition-colors"
-          >
+          <button id="back-btn" class="p-2 text-gray-700 hover:text-gray-900 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -21,12 +20,23 @@ const PageTitle = () => {
           </button>
           <h1 class="text-lg font-bold text-gray-900">상품 상세</h1>
         </div>
-      `
-    : /* HTML */ `
-        <h1 class="text-xl font-bold text-gray-900">
-          <a href="${BASE_PATH}/" data-link="">쇼핑몰</a>
-        </h1>
       `;
-};
+    }
 
-export default PageTitle;
+    return /* HTML */ `
+      <h1 class="text-xl font-bold text-gray-900">
+        <a id="home-link"" href="/" data-link="">쇼핑몰</a>
+      </h1>
+    `;
+  }
+
+  setEvent() {
+    this.addEvent('click', '#back-btn', () => {
+      history.back();
+    });
+    this.addEvent('click', '#home-link', (e) => {
+      e.preventDefault();
+      navigate('/');
+    });
+  }
+}
