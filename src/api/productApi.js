@@ -1,3 +1,5 @@
+const cache = {};
+
 // 상품 목록 조회
 export async function getProducts(params = {}) {
   const { limit = 20, search = "", category1 = "", category2 = "", sort = "price_asc" } = params;
@@ -19,8 +21,12 @@ export async function getProducts(params = {}) {
 
 // 상품 상세 조회
 export async function getProduct(productId) {
+  if (cache[productId]) {
+    return cache[productId];
+  }
   const response = await fetch(`/api/products/${productId}`);
-  return await response.json();
+  cache[productId] = await response.json();
+  return cache[productId];
 }
 
 // 카테고리 목록 조회
