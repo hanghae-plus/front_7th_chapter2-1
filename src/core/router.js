@@ -42,7 +42,7 @@ export function createRouter(routes, state) {
     $root.innerHTML = `<div>로딩 중...</div>`;
 
     // 해당 컴포넌트 렌더링 (async!)
-    const html = await matchedRoute.element({ ...state, params: {} });
+    const html = await matchedRoute.element({ ...state.getState(), params: {} });
     $root.innerHTML = html;
   };
 
