@@ -261,13 +261,37 @@ function attachDetailEvents(root) {
   backButtons.forEach((button) => {
     button.addEventListener("click", (event) => {
       event.preventDefault();
-      navigateToHome();
+      resetFilters();
+      navigateToHome({ replace: false });
     });
   });
 
   const detailBreadcrumb = root.querySelector(".detail-breadcrumb");
   if (detailBreadcrumb) {
     detailBreadcrumb.addEventListener("click", handleDetailBreadcrumbClick);
+  }
+
+  const decreaseButton = root.querySelector("[data-quantity-decrease]");
+  const increaseButton = root.querySelector("[data-quantity-increase]");
+  const quantityInput = root.querySelector("#quantity-input");
+  const addToCartButton = root.querySelector(".add-to-cart");
+
+  if (decreaseButton && quantityInput) {
+    decreaseButton.addEventListener("click", () => adjustQuantity(quantityInput, -1));
+  }
+
+  if (increaseButton && quantityInput) {
+    increaseButton.addEventListener("click", () => adjustQuantity(quantityInput, 1));
+  }
+
+  if (quantityInput) {
+    quantityInput.addEventListener("input", () => normalizeQuantityInput(quantityInput));
+  }
+
+  if (addToCartButton && quantityInput) {
+    addToCartButton.addEventListener("click", () =>
+      handleAddToCart(addToCartButton.dataset.productId, quantityInput.value),
+    );
   }
 }
 
@@ -857,4 +881,27 @@ function buildHomeUrlWithParams({ current, category1, category2, search } = {}) 
 
   url.search = params.toString();
   return url;
+}
+
+function adjustQuantity(input, delta) {
+  const current = Number(input.value) || 1;
+  const min = Number(input.min) || 1;
+  const max = Number(input.max) || Infinity;
+  const next = Math.min(Math.max(current + delta, min), max);
+  input.value = String(next);
+}
+
+function normalizeQuantityInput(input) {
+  const min = Number(input.min) || 1;
+  const max = Number(input.max) || Infinity;
+  let value = Number(input.value);
+  if (!Number.isFinite(value)) {
+    value = min;
+  }
+  value = Math.min(Math.max(value, min), max);
+  input.value = String(value);
+}
+
+function handleAddToCart(productId, quantity) {
+  console.log("장바구니 담기", productId, quantity);
 }
