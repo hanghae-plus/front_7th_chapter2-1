@@ -13,7 +13,6 @@ export async function getProducts(params = {}) {
   });
 
   const response = await fetch(`/api/products?${searchParams}`);
-
   return await response.json();
 }
 
@@ -25,6 +24,6 @@ export async function getProduct(productId) {
 
 // 카테고리 목록 조회
 export async function getCategories() {
-  const response = await fetch("/api/categories");
+  const response = await fetch(`/api/categories`);
   return await response.json();
 }
