@@ -11,9 +11,21 @@ export const 상세페이지_로딩 = /* HTML */ `
     </div>
   </main>
 `;
-export default function ProductDetailPage({ loading, response, cart = [] }) {
+
+/**
+ * @typedef {import('../types.js').ProductDetailPageProps} ProductDetailPageProps
+ */
+
+/**
+ * @param {ProductDetailPageProps} props
+ */
+export default function ProductDetailPage({ loading, productDetailResponse, productDetailListResponse, cart = [] }) {
   if (loading) {
     return PageLayout({ children: 상세페이지_로딩, isDetailPage: true });
   }
-  return PageLayout({ children: ProductDetail({ response }), isDetailPage: true, cart });
+  return PageLayout({
+    children: ProductDetail({ productDetailResponse, productDetailListResponse }),
+    isDetailPage: true,
+    cart,
+  });
 }

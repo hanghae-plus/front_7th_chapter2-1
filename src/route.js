@@ -58,9 +58,17 @@ export const ROUTES = Object.freeze({
       const { id } = params;
       const response = await getProduct(id);
       appStore.setProductDetail(response);
+
+      const listResponse = await getProducts({
+        category1: appState.productDetail?.category1,
+        category2: appState.productDetail?.category2,
+      });
+      appStore.setProductDetailListResponse(listResponse);
+
       return {
         loading: false,
-        response: response,
+        productDetailResponse: appState.productDetail,
+        productDetailListResponse: appState.productDetailListResponse,
         cart: appState.cart,
       };
     },

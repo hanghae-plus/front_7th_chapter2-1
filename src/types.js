@@ -128,14 +128,21 @@
  * @property {boolean} loading
  * @property {ProductListResponse} [productListResponse]
  * @property {CategoryTreeNode[]} [categories]
- * @property {string[]} [cart] - 장바구니 상품 ID 목록 (optional)
+ * @property {string[]} [cart]
  */
 
 /**
  * @typedef {Object} ProductDetailPageProps
  * @property {boolean} loading
- * @property {Product} [response] - loading이 false일 때 필수
- * @property {string[]} [cart] - 장바구니 상품 ID 목록 (optional)
+ * @property {Product} [productDetailResponse]
+ * @property {ProductListResponse} [productDetailListResponse]
+ * @property {string[]} [cart]
+ */
+
+/**
+ * @typedef {Object} ProductDetailProps
+ * @property {Product} productDetailResponse
+ * @property {ProductListResponse} productDetailListResponse
  */
 
 /**
