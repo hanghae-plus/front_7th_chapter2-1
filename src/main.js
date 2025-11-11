@@ -127,6 +127,22 @@ function setupEventListeners() {
       render();
     });
   });
+
+  const breadcrumbAll = document.querySelector('[data-breadcrumb="all"]');
+  if (breadcrumbAll) {
+    breadcrumbAll.addEventListener("click", () => {
+      updateQueryParams({ category1: "", category2: "" });
+      render();
+    });
+  }
+  const breadcrumbCat1 = document.querySelector('[data-breadcrumb="category1"]');
+  if (breadcrumbCat1) {
+    breadcrumbCat1.addEventListener("click", () => {
+      const value = breadcrumbCat1.dataset.value;
+      updateQueryParams({ category1: value, category2: "" });
+      render();
+    });
+  }
 }
 // 재시도 버튼 제공
 function setupRetryButton() {
