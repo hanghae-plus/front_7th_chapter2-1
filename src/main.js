@@ -39,6 +39,22 @@ document.body.addEventListener("click", (e) => {
   }
 });
 
+document.body.addEventListener("keydown", (e) => {
+  const input = e.target.closest("#search-input");
+  if (!input) return;
+
+  // ✅ Enter 입력 시만 동작
+  if (e.key === "Enter") {
+    const keyword = input.value.trim();
+
+    // 상태 업데이트 (필요하면 페이지 리렌더 유도)
+    store.setState({ search: keyword, pagination: { page: 1, limit: 20 } });
+
+    // URL 쿼리 반영
+    router.push(`?search=${encodeURIComponent(keyword)}`);
+  }
+});
+
 function syncStateFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const category1 = params.get("category1") || "";
@@ -50,12 +66,13 @@ function syncStateFromUrl() {
 }
 
 const loadProducts = async () => {
-  const { category1, category2, pagination } = store.state;
+  const { category1, category2, search, pagination } = store.state;
   const filters = {
     page: pagination.page,
     limit: pagination.limit,
     ...(category1 && { category1 }),
     ...(category2 && { category2 }),
+    ...(search && { search }),
   };
 
   store.setState({ loading: true });

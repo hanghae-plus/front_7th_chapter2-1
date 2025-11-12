@@ -6,6 +6,7 @@ const category2 = params.get("category2");
 console.log(location.search);
 
 export const initialState = {
+  search: "",
   pagination: { page: 1, limit: 20 },
   products: [],
   categories: {},

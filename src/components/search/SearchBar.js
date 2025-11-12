@@ -1,8 +1,10 @@
+import { store } from "../../store/store";
 export const SearchBar = () => {
   const $el = document.createElement("div");
   $el.className = "mb-4";
 
   function render() {
+    const { search } = store.state;
     $el.innerHTML = /* HTML */ `
       <div class="mb-4">
         <div class="relative">
@@ -10,7 +12,7 @@ export const SearchBar = () => {
             type="text"
             id="search-input"
             placeholder="상품명을 검색해보세요..."
-            value=""
+            value="${search}"
             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
   
             focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -29,6 +31,7 @@ export const SearchBar = () => {
       </div>
     `;
   }
+  store.subscribe(render);
   render();
 
   return $el;
