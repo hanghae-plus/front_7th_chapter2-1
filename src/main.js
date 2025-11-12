@@ -15,12 +15,18 @@ const enableMocking = () =>
     }),
   );
 
+function pushWithParams(params) {
+  params.set("current", 1); // ✅ 항상 current=1 설정
+  router.push(`?${params.toString()}`);
+}
+
 document.body.addEventListener("click", (e) => {
   const params = new URLSearchParams(window.location.search);
 
   if (e.target.closest(".product-card")) {
     const productId = e.target.closest(".product-card").dataset.productId;
-    router.push(`/products/${productId}`);
+    router.push(`/product/${productId}`);
+    return;
   }
 
   // category1 버튼 클릭
@@ -28,7 +34,7 @@ document.body.addEventListener("click", (e) => {
     const category1 = e.target.closest(".category1-filter-btn").dataset.category1;
     store.setState({ category1, category2: "" });
     params.set("category1", category1);
-    router.push(`?${params.toString()}`);
+    pushWithParams(params); // ✅ 공통 처리
   }
 
   // category2 버튼 클릭
@@ -38,7 +44,7 @@ document.body.addEventListener("click", (e) => {
     store.setState({ category1, category2 });
     params.set("category1", category1);
     params.set("category2", category2);
-    router.push(`?${params.toString()}`);
+    pushWithParams(params);
   }
 
   // breadcrumb category1 버튼 클릭
@@ -47,7 +53,7 @@ document.body.addEventListener("click", (e) => {
     store.setState({ category1, category2: "" });
     params.set("category1", category1);
     params.delete("category2");
-    router.push(`?${params.toString()}`);
+    pushWithParams(params);
   }
 
   // 전체 버튼 클릭
@@ -55,7 +61,7 @@ document.body.addEventListener("click", (e) => {
     store.setState({ category1: "", category2: "" });
     params.delete("category1");
     params.delete("category2");
-    router.push(`?${params.toString()}`);
+    pushWithParams(params);
   }
 });
 

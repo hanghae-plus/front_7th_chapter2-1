@@ -29,6 +29,18 @@ const Loading = () => {
   `;
 };
 
+const NoProducts = () => {
+  return /* html */ `
+    <div class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">상품을 찾을 수 없습니다</h3>
+      <p class="text-sm text-gray-500 mb-4">검색 조건을 다시 확인해주세요</p>
+    </div>
+  `;
+};
+
 export const ProductList = () => {
   const $el = document.createElement("div");
   $el.className = "mb-6";
@@ -48,6 +60,11 @@ export const ProductList = () => {
 
         ${Loading()}
       `;
+    } else if (products.length === 0) {
+      $el.innerHTML = /* HTML */ `
+        <!-- 상품 없음 -->
+        <div class="mb-6" id="product-list-container">${NoProducts()}</div>
+      `;
     } else {
       $el.innerHTML = /* HTML */ `
         <!-- 상품 개수 정보 -->
@@ -56,6 +73,7 @@ export const ProductList = () => {
             총 <span class="font-medium text-gray-900">${total}개</span>의 상품
           </div>
           <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
+          <div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>
         </div>
       `;
     }
