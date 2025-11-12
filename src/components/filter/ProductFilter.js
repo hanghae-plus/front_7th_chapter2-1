@@ -1,20 +1,28 @@
 import { getCategories } from "../../api/productApi";
 import { renderProducts } from "../../utils/productRenderer";
+import { updateFilters } from "../../utils/filterState";
+import { initSearchInput } from "../../utils/searchHandler";
 
 export const ProductFilter = () => {
   const handleClickCategory1 = (category) => {
-    renderProducts({ params: { category1: category } });
+    const updatedFilters = updateFilters({ category1: category });
+    renderProducts({ params: updatedFilters });
   };
 
   const handleClickLimit = (limit) => {
-    renderProducts({ params: { limit: parseInt(limit) } });
+    const updatedFilters = updateFilters({ limit: parseInt(limit) });
+    renderProducts({ params: updatedFilters });
   };
 
   const handleClickSort = (sort) => {
-    renderProducts({ params: { sort } });
+    const updatedFilters = updateFilters({ sort });
+    renderProducts({ params: updatedFilters });
   };
 
   setTimeout(() => {
+    // 검색 입력 필드 초기화
+    initSearchInput();
+
     getCategories().then((categories) => {
       const categoryContainer = document.getElementById("category1-filter");
       const limitSelect = document.getElementById("limit-select");

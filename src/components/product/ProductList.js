@@ -1,9 +1,11 @@
 import { renderProducts } from "../../utils/productRenderer";
+import { getCurrentFilters } from "../../utils/filterState";
 
 export const ProductList = () => {
   // DOM 렌더링 후 상품 목록 로드
   setTimeout(() => {
-    renderProducts({ params: {} });
+    const currentFilters = getCurrentFilters();
+    renderProducts({ params: currentFilters });
   }, 0);
 
   return `
