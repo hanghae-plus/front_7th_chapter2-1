@@ -118,7 +118,8 @@ class Product {
    */
   setParams(newParams) {
     // page: 1로 리셋하고, products도 비워줌
-    const updatedParams = { ...this.#state.params, ...newParams, page: 1 };
+    // 새로운 url 쿼리(params)와 initialState의 params를 비교하여 주입 (API 바디 갱신 안됨 이슈 해결)
+    const updatedParams = { ...initialState.params, ...newParams, page: 1 };
 
     this.#setState({
       params: updatedParams,

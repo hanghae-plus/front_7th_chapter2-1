@@ -4,14 +4,15 @@ import SearchInput from "../components/product/search/SearchInput.js";
 import Breadcrumb from "../components/product/search/Breadcrumb.js";
 import CategoryButtons from "../components/product/search/CategoryButtons.js";
 import FilterOptions from "../components/product/search/FilterOptions.js";
-import productList from "../components/product/list.js";
+import productCard from "../components/product/card.js";
 import skeleton from "../components/product/skeleton.js";
+import spiningLoading from "../components/product/spiningLoading.js";
 
 let eventsInitialized = false;
 
 /**
- * 검색, 필터, 카테고리 등 모든 이벤트 리스너를 설정합니다.
- * 이벤트 위임을 사용하여 body에 한 번만 리스너를 등록합니다.
+ * 이벤트 리스너 설정 (검색, 필터, 카테고리 등)
+ * 이벤트 위임을 사용하여 body에 한 번만 리스너 등록
  */
 function setupEventListeners() {
   if (eventsInitialized) return;
@@ -20,22 +21,21 @@ function setupEventListeners() {
     const productSearchFilter = e.target.closest("#product-search-filter");
     if (!productSearchFilter) return;
 
-    // --- 카테고리 버튼 클릭 처리 ---
+    /**
+     * 카테고리 버튼 클릭 이벤트
+     * */
     const categoryBtn = e.target.closest(".category1-filter-btn, .category2-filter-btn");
     if (categoryBtn) {
       const { category1, category2 } = categoryBtn.dataset;
-      const newQuery = { page: 1 };
-      if (category1) newQuery.category1 = category1;
-      if (category2) {
-        newQuery.category2 = category2;
-      } else {
-        newQuery.category2 = ""; // 1뎁스 카테고리 클릭 시 2뎁스는 초기화
-      }
+      const newQuery = { page: 1, category1: category1 || "", category2: category2 || "" };
+      if (!category2) newQuery.category2 = "";
       router.updateQuery(newQuery);
       return;
     }
 
-    // --- 브레드크럼 클릭 처리 ---
+    /**
+     * 브레드 크럼 클릭 이벤트
+     * */
     const breadcrumbBtn = e.target.closest("[data-breadcrumb]");
     if (breadcrumbBtn) {
       const { breadcrumb } = breadcrumbBtn.dataset;
@@ -51,15 +51,19 @@ function setupEventListeners() {
     }
   });
 
-  // --- 검색 입력 처리 ---
+  /**
+   * 검색어 입력 이벤트
+   * */
   document.body.addEventListener("keydown", (e) => {
     if (e.target.id === "search-input" && e.key === "Enter") {
-      e.preventDefault(); // form 전송 방지
+      e.preventDefault();
       router.updateQuery({ page: 1, search: e.target.value });
     }
   });
 
-  // --- 개수/정렬 필터 변경 처리 ---
+  /**
+   * 개수/정렬 필터 이벤트
+   * */
   document.body.addEventListener("change", (e) => {
     if (e.target.id === "limit-select") {
       router.updateQuery({ page: 1, limit: e.target.value });
@@ -71,7 +75,11 @@ function setupEventListeners() {
   eventsInitialized = true;
 }
 
-// 검색/필터 영역을 렌더링하는 헬퍼 함수
+/**
+ * 검색 & 필터 영역 렌더링 함수
+ * @param {Object} params productStore의 state.params
+ * @param {Object} categories productStore의 categories
+ * */
 function renderSearchFilter(params, categories) {
   const { search, category1, category2, limit, sort } = params;
   return `
@@ -94,30 +102,45 @@ export function ProductListPage(queryParams) {
    * 랜더링 함수 (스토어 업데이트 시 실행)
    * */
   const handleStoreUpdate = () => {
-    // 이 페이지가 DOM에 실제로 존재하는지 확인
     const productListPage = document.getElementById("product-list-page");
-    if (!productListPage) {
-      return;
-    }
+    if (!productListPage) return;
 
     // 상품정보, 로딩여부, 페이징 데이터 state 가져오기
     const { products, loading, pagination, params, categories } = productStore.getState();
-    const productSearchFilter = document.getElementById("product-search-filter");
-    const productListContainer = document.getElementById("product-list-container");
 
+    const productSearchFilter = document.getElementById("product-search-filter");
     if (productSearchFilter) {
       productSearchFilter.innerHTML = renderSearchFilter(params, categories);
     }
 
-    if (productListContainer) {
-      // 로딩 중이고, 기존 상품이 없을 때만 스켈레톤 UI 표시
-      if (loading && products.length === 0) {
-        productListContainer.innerHTML = skeleton();
+    // 상품 총 갯수
+    const countSpan = document.getElementById("product-total-count");
+    if (countSpan) {
+      countSpan.textContent = pagination.total.toLocaleString();
+    }
+
+    const grid = document.getElementById("products-grid");
+    if (grid) {
+      if (params.page === 1) {
+        grid.innerHTML = loading && products.length === 0 ? skeleton() : products.map((p) => productCard(p)).join("");
       } else {
-        productListContainer.innerHTML = productList({
-          list: products,
-          hasNext: pagination.hasNext,
-        });
+        const existingCardCount = grid.querySelectorAll(".product-card").length;
+        const newProducts = products.slice(existingCardCount);
+        if (newProducts.length > 0) {
+          const newCardsHTML = newProducts.map((p) => productCard(p)).join("");
+          grid.insertAdjacentHTML("beforeend", newCardsHTML);
+        }
+      }
+    }
+
+    const footerIndicator = document.getElementById("list-footer-indicator");
+    if (footerIndicator) {
+      if (loading && params.page > 1) {
+        footerIndicator.innerHTML = spiningLoading();
+      } else if (!pagination.hasNext) {
+        footerIndicator.innerHTML = `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`;
+      } else {
+        footerIndicator.innerHTML = "";
       }
     }
   };
@@ -152,7 +175,13 @@ export function ProductListPage(queryParams) {
         </div>
         <!-- 상품 목록 -->
         <div id="product-list-container" class="mb-6">
-          ${skeleton()}
+          <div class="mb-4 text-sm text-gray-600">
+            총 <span id="product-total-count" class="font-medium text-gray-900">0</span>개의 상품
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
+            ${skeleton()}
+          </div>
+          <div id="list-footer-indicator"></div>
         </div>
       </main>`;
 }
