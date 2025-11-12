@@ -3,6 +3,7 @@ import { Loading, ProductItem } from "./components/ProductList.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
+import { ADD_CART_LIST, getLocalStorage, setLocalStorage } from "./utils/localstorage.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -61,9 +62,10 @@ const render = async () => {
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, loading: false, categories });
 
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", async (e) => {
       const productCard = e.target.closest(".product-card");
       if (productCard) {
+        e.preventDefault();
         const productId = e.target.closest(".product-card").dataset.productId;
         push(`products/${productId}`);
         return;
@@ -82,6 +84,22 @@ const render = async () => {
         push(`?${searchParams}`);
         return;
       }
+    });
+
+    document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        e.stopPropagation(); // 프로덕트 카드 영역으로 이벤트 버블링 방지
+        e.preventDefault();
+
+        const productCard = e.target.closest(".product-card");
+
+        if (productCard) {
+          const storedData = getLocalStorage(ADD_CART_LIST);
+          const addToCartTarget = await getProduct(productCard.dataset.productId);
+          setLocalStorage(ADD_CART_LIST, [...storedData, addToCartTarget]);
+          return;
+        }
+      });
     });
 
     const searchBar = document.querySelector("#search-input");
