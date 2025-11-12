@@ -40,6 +40,21 @@ export const CategoryBreadcrumb = (category1, category2) => {
   `;
 };
 
+const getSortLabel = (sort) => {
+  switch (sort) {
+    case "price_asc":
+      return "가격 낮은순";
+    case "price_desc":
+      return "가격 높은순";
+    case "name_asc":
+      return "이름순";
+    case "name_desc":
+      return "이름 역순";
+    default:
+      return "가격 낮은순";
+  }
+};
+
 export const SearchForm = ({ categories, isLoading }) => {
   const filtersState = filters.getState();
 
@@ -85,18 +100,20 @@ export const SearchForm = ({ categories, isLoading }) => {
               <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
             </div>`) ||
           ""}
+          <!-- 1depth 카테고리 버튼 -->
+          ${(!isLoading &&
+            !filtersState.category1 &&
+            /* HTML */ `<div class="flex flex-wrap gap-2" id="category-filter-buttons">
+              ${Object.keys(categories).map(CategoryButton).join("")}
+            </div>`) ||
+          ""}
+          <!-- 2depth 카테고리 버튼 -->
           ${(!isLoading &&
             filtersState.category1 &&
             /* HTML */ `<div class="flex flex-wrap gap-2" id="category-filter-buttons">
               ${Object.keys(categories[filtersState.category1])
                 .map((category2) => Category2Button(filtersState.category1, category2))
                 .join("")}
-            </div>`) ||
-          ""}
-          ${(!isLoading &&
-            !filtersState.category1 &&
-            /* HTML */ `<div class="flex flex-wrap gap-2" id="category-filter-buttons">
-              ${Object.keys(categories).map(CategoryButton).join("")}
             </div>`) ||
           ""}
         </div>
@@ -110,12 +127,11 @@ export const SearchForm = ({ categories, isLoading }) => {
               class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
               ${["10", "20", "50", "100"]
-                .map(
-                  (limit) =>
-                    /* HTML */ `<option value="${limit}" ${limit === filtersState.limit ? "selected" : ""}>
-                      ${limit}개
-                    </option>`,
-                )
+                .map((limit) => {
+                  return /* HTML */ `<option value="${limit}" ${limit === filtersState.limit ? "selected" : ""}>
+                    ${limit}개
+                  </option>`;
+                })
                 .join("")}
             </select>
           </div>
@@ -127,10 +143,13 @@ export const SearchForm = ({ categories, isLoading }) => {
               class="text-sm border border-gray-300 rounded px-2 py-1
                           focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="price_asc" selected="">가격 낮은순</option>
-              <option value="price_desc">가격 높은순</option>
-              <option value="name_asc">이름순</option>
-              <option value="name_desc">이름 역순</option>
+              ${["price_asc", "price_desc", "name_asc", "name_desc"]
+                .map((sort) => {
+                  return /* HTML */ `<option value="${sort}" ${sort === filtersState.sort ? "selected" : ""}>
+                    ${getSortLabel(sort)}
+                  </option>`;
+                })
+                .join("")}
             </select>
           </div>
         </div>

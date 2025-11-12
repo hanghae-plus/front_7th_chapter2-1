@@ -15,9 +15,12 @@ const enableMocking = () =>
 const init = async () => {
   const $root = document.getElementById("root");
   $root.innerHTML = HomePage({ isLoading: true });
-  const data = await getProducts(filters.getState());
+  const data = await getProducts();
+
+  // 카테고리 담기
   const newCategories = await getCategories();
   categories = newCategories;
+
   $root.innerHTML = HomePage({ ...data, categories, isLoading: false });
 
   filters.subscribe(render);
@@ -50,31 +53,25 @@ const render = async () => {
 };
 
 const eventHandlers = () => {
-  // breadcrumb 전체 버튼 클릭 시 필터 초기화
   document.addEventListener("click", (event) => {
+    // breadcrumb 전체 버튼 클릭 시 필터 초기화
     if (event.target.closest("button[data-breadcrumb='reset']")) {
       filters.setState({ category1: "", category2: "" });
     }
-  });
 
-  // breadcrumb 카테고리 1 버튼 클릭 시 필터 적용
-  document.addEventListener("click", async (event) => {
+    // breadcrumb 카테고리 1 버튼 클릭 시 필터 적용
     if (event.target.closest("button[data-breadcrumb='category1']")) {
       const category1 = event.target.closest("button[data-breadcrumb='category1']").dataset.category1;
       filters.setState({ category1, category2: "" });
     }
-  });
-  // 카테고리 1 필터 버튼 클릭 이벤트 핸들러
-  document.addEventListener("click", async (event) => {
+
+    // 카테고리 1 필터 버튼 클릭 이벤트 핸들러
     if (event.target.closest(".category1-filter-btn")) {
       const category1 = event.target.dataset.category1;
 
       filters.setState({ category1 });
     }
-  });
-
-  // 카테고리 2 버튼 클릭 이벤트 핸들러
-  document.addEventListener("click", async (event) => {
+    // 카테고리 2 버튼 클릭 이벤트 핸들러
     if (event.target.closest(".category2-filter-btn")) {
       const category1 = event.target.closest(".category2-filter-btn").dataset.category1;
       const category2 = event.target.closest(".category2-filter-btn").dataset.category2;
@@ -97,19 +94,17 @@ const eventHandlers = () => {
     }
   });
 
-  // 개수 선택 이벤트 핸들러
-  document.addEventListener("change", async (event) => {
+  document.addEventListener("change", () => {
+    // 개수 선택 이벤트 핸들러
     const limitSelect = document.getElementById("limit-select");
     if (limitSelect) {
-      const limit = event.target.value;
+      const limit = limitSelect.value;
       filters.setState({ limit });
     }
-  });
-
-  // 정렬 선택 이벤트 핸들러
-  document.addEventListener("change", async (event) => {
-    if (event.target.closest("select[id='sort-select']")) {
-      const sort = event.target.value;
+    // 정렬 선택 이벤트 핸들러
+    const sortSelect = document.getElementById("sort-select");
+    if (sortSelect) {
+      const sort = sortSelect.value;
       filters.setState({ sort });
     }
   });
