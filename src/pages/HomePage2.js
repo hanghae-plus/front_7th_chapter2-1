@@ -9,6 +9,16 @@ const BASE_URL = import.meta.env.BASE_URL;
 export class HomePage2 extends Component {
   mount() {
     this.clickEventId = this.$container.addEventListener("click", (e) => {
+      // 카드 선택
+      const productCard = e.target.closest(".product-card") ?? e.target.closest(".related-product-card");
+      if (productCard) {
+        const productId = productCard.dataset.productId;
+        window.router2Instance.navigateTo(`${BASE_URL}product/${productId}`);
+      } else if (e.target.tagName === "A") {
+        e.preventDefault();
+        window.router2Instance.navigateTo(e.target.pathname);
+      }
+      // 카테고리 필터 버튼
       if (e.target.closest(".category1-filter-btn")) {
         const $category1Btn = e.target.closest(".category1-filter-btn");
         const category1 = $category1Btn.dataset.category1;
@@ -23,7 +33,9 @@ export class HomePage2 extends Component {
         if (category2 === currentCategory2) return;
         const newQueryString = getQueryStringAdding("category2", category2);
         window.router2Instance.navigateTo(`${BASE_URL}${newQueryString}`);
-      } else if (e.target.dataset.breadcrumb === "category1") {
+      }
+      // 브레드 크럼브 클릭
+      if (e.target.dataset.breadcrumb === "category1") {
         const category1 = e.target.dataset.category1;
         const currentCategory2 = getQueryStringValue("category2");
         const $input = this.$container.querySelector("#search-input");
