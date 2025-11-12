@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  base: "/front_7th_chapter2-1",
+  // base: "/front_7th_chapter2-1",
 
   test: {
     globals: true,
