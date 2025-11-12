@@ -36,23 +36,30 @@ export const renderCurrentPage = async (routes) => {
 
   const $root = document.querySelector("#root");
 
-  // 7. 로딩 상태로 먼저 렌더링 (동기)
+  // 7. beforeMount 단계 - 로딩 상태로 먼저 렌더링
   if (route.component.loading) {
     const loadingHtml = route.component.loading({ params, query });
     $root.innerHTML = loadingHtml;
   }
 
-  // 8. route.component를 호출하고 await로 HTML 받아오기
-  const html = await route.component({ params, query });
+  // 8. mount 단계 - API 호출 (있는 경우)
+  let data = null;
+  if (route.component.mount) {
+    data = await route.component.mount({ params, query });
+  }
 
-  // 9. #root에 HTML 삽입
+  // 9. render 단계 - route.component를 호출하고 await로 HTML 받아오기
+  // data가 있으면 전달, 없으면 기존 방식대로 (호환성 유지)
+  const html = data ? route.component({ params, query, data }) : await route.component({ params, query });
+
+  // 10. #root에 HTML 삽입
   $root.innerHTML = html;
 
-  // 10. 페이지별 핸들러 설정
+  // 11. mounted 단계 - 페이지별 핸들러 설정
   if (route.setupHandlers) {
     currentCleanup = route.setupHandlers();
   }
 
-  // 11. 페이지 상단으로 스크롤
+  // 12. 페이지 상단으로 스크롤
   window.scrollTo(0, 0);
 };

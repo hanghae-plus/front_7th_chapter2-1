@@ -3,7 +3,48 @@ import { SearchForm } from "../components/search/index.js";
 import { ProductList, ErrorState } from "../components/product/index.js";
 import { getProducts, getCategories } from "../api/productApi.js";
 
-export const HomePage = async ({ query = {} }) => {
+/**
+ * HomePage
+ * @param {Object} props
+ * @param {Object} props.query - URL 쿼리 파라미터
+ * @param {Object} props.data - mount에서 가져온 데이터
+ */
+export const HomePage = ({ query = {}, data = {} }) => {
+  // 1. query에서 필터 정보 추출
+  const filters = {
+    search: query.search || "",
+    category1: query.category1 || "",
+    category2: query.category2 || "",
+    sort: query.sort || "price_asc",
+    limit: parseInt(query.limit) || 20,
+  };
+
+  // 2. data에서 정보 추출
+  const { products = [], categories = {}, total = 0, error = null } = data;
+
+  // 3. 에러 상태 렌더링
+  if (error) {
+    return PageLayout({
+      children: `
+        ${SearchForm({ filters, categories: {} })}
+        ${ErrorState({ message: "상품을 불러오는데 실패했습니다" })}
+      `,
+    });
+  }
+
+  // 4. 정상 상태 렌더링
+  return PageLayout({
+    children: `
+      ${SearchForm({ filters, categories })}
+      ${ProductList({ loading: false, products, total })}
+    `,
+  });
+};
+
+/**
+ * HomePage mount - API 호출 로직
+ */
+HomePage.mount = async ({ query = {} }) => {
   // 1. query에서 필터 정보 추출
   const filters = {
     search: query.search || "",
@@ -17,23 +58,17 @@ export const HomePage = async ({ query = {} }) => {
     // 2. API 호출해서 상품 데이터 및 카테고리 데이터 가져오기
     const [data, categories] = await Promise.all([getProducts(filters), getCategories()]);
 
-    // 3. 페이지 렌더링
-    return PageLayout({
-      children: `
-        ${SearchForm({ filters, categories })}
-        ${ProductList({ loading: false, products: data.products, total: data.pagination.total })}
-      `,
-    });
+    // 3. 데이터 반환
+    return {
+      products: data.products,
+      categories,
+      total: data.pagination.total,
+    };
   } catch (error) {
     console.error("Failed to load products:", error);
 
-    // 에러 발생 시 에러 상태 렌더링
-    return PageLayout({
-      children: `
-        ${SearchForm({ filters, categories: {} })}
-        ${ErrorState({ message: "상품을 불러오는데 실패했습니다" })}
-      `,
-    });
+    // 에러 반환
+    return { error };
   }
 };
 
