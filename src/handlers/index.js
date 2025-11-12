@@ -1,4 +1,5 @@
 import { getCategories, getProducts } from "../api/productApi";
+import { router } from "../App";
 import { HomePage } from "../pages/HomePage";
 
 function itemLimitSelectEventListener() {
@@ -47,8 +48,20 @@ function clickCategory1EventListener() {
   });
 }
 
+function clickProductItem() {
+  const productItems = document.querySelectorAll(".product-image, .product-info");
+
+  productItems.forEach((item) => {
+    item.addEventListener("click", (event) => {
+      const productId = event.currentTarget.closest(".product-card").dataset.productId;
+      router.navigateTo(`/product/${productId}`);
+    });
+  });
+}
+
 export function attachHomePageEventListeners() {
   itemLimitSelectEventListener();
   searchEventListener();
   clickCategory1EventListener();
+  clickProductItem();
 }

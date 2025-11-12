@@ -1,4 +1,9 @@
-export const DetailPage = () => {
+export const DetailPage = ({ params }) => {
+  const { id } = params;
+
+  // TODO id에 따라 해당 하는 데이터 패칭 필요
+  console.log("id:", id);
+
   return `
 <div class="min-h-screen bg-gray-50">
   <header class="bg-white shadow-sm sticky top-0 z-40">
