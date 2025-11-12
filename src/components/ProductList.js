@@ -1,4 +1,5 @@
 import { store } from "../../store";
+import { ErrorState } from "./ErrorState";
 
 const skeleton = `
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
@@ -54,7 +55,7 @@ const loading = `
 
 const productItem = (list) => {
   return `
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col product-card"
     data-product-id="${list.productId}">
       <!-- 상품 이미지 -->
       <div class="aspect-square bg-gray-100 overflow-hidden cursor-pointer product-image">
@@ -64,19 +65,19 @@ const productItem = (list) => {
           loading="lazy">
       </div>
       <!-- 상품 정보 -->
-      <div class="p-3">
+      <div class="p-3 flex flex-col justify-between flex-1">
         <div class="cursor-pointer product-info mb-3">
           <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
           ${list.title}
           </h3>
-          ${list.brand ? `<p class="text-xs text-gray-500 mb-2">${list.brand}</p>` : ""}
+          <p class="text-xs text-gray-500 mb-2 h-4">${list.brand || ""}</p>
           <p class="text-lg font-bold text-gray-900">
           ${Number(list.lprice).toLocaleString()}원
           </p>
         </div>
         <!-- 장바구니 버튼 -->
         <button class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
-          hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${list.productId}">
+          hover:bg-blue-700 transition-colors mt-auto add-to-cart-btn" data-product-id="${list.productId}">
           장바구니 담기
         </button>
       </div>
@@ -85,7 +86,12 @@ const productItem = (list) => {
 };
 
 export const ProductList = () => {
-  const { isLoaded, products } = store.state;
+  const { isLoaded, products, error, isLoadingMore, hasMore } = store.state;
+
+  // 에러 상태
+  if (error && !isLoaded) {
+    return ErrorState();
+  }
 
   return `
   <div class="mb-6">
@@ -105,15 +111,30 @@ export const ProductList = () => {
             <div>
               <!-- 상품 개수 정보 -->
               <div class="mb-4 text-sm text-gray-600">
-                총 <span class="font-medium text-gray-900">${products.pagination.total}개</span>의 상품
+                총 <span class="font-medium text-gray-900">${products?.pagination?.total || 0}개</span>의 상품
               </div>
               <!-- 상품 그리드 -->
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-                ${products.products.map((list) => productItem(list)).join("")}
+                ${products?.products?.map((list) => productItem(list)).join("") || ""}
               </div>
-              <div class="text-center py-4 text-sm text-gray-500">
-                모든 상품을 확인했습니다
-              </div>
+              ${
+                isLoadingMore
+                  ? `
+                  <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid-loading">
+                    ${skeleton.repeat(2)}
+                  </div>
+                  ${loading}
+                  `
+                  : hasMore
+                    ? `
+                    <div id="scroll-trigger" class="h-4"></div>
+                    `
+                    : `
+                    <div class="text-center py-4 text-sm text-gray-500">
+                      모든 상품을 확인했습니다
+                    </div>
+                    `
+              }
             </div>
           </div>
           `
