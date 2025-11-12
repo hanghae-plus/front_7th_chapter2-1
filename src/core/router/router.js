@@ -31,11 +31,6 @@ export class Router {
     this.route();
   }
 
-  push(path) {
-    history.pushState(null, "", path);
-    this.route();
-  }
-
   matchRoute(pathname) {
     for (const route of this.routes) {
       const paramNames = [];
@@ -77,6 +72,14 @@ export class Router {
       this.currentComponent = new PageComponent(this.$target);
     }
   }
-}
 
-export const router = Router.getInstance();
+  getParams() {
+    const matched = this.matchRoute(location.pathname);
+    return matched?.params || {};
+  }
+
+  getParam(key) {
+    const params = this.getParams();
+    return params[key];
+  }
+}
