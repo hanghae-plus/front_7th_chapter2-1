@@ -63,7 +63,7 @@ async function main() {
 
   /* Event Handlers */
 
-  // PopState Event Handler
+  // Window Event Handler
   /**
    * @param {PopStateEvent} event
    */
@@ -80,16 +80,40 @@ async function main() {
     `;
   });
 
+  window.addEventListener("keydown", async (event) => {
+    if (!event.target) return;
+    if ($cartModalRoot.innerHTML !== "" && event.key === "Escape") {
+      console.log("[Keydown Event] Escape", event);
+      $cartModalRoot.innerHTML = "";
+      appStore.setSelectedCartIds([]);
+    }
+  });
+
   // Cart Modal Event Handlers
   /**
    * @param {MouseEvent} event
    */
   $cartModalRoot.addEventListener("click", async (event) => {
-    console.log("[Click Event] cart-modal-root", event);
+    if (!event.target) return;
+
     if (event.target.closest("#cart-modal-close-btn")) {
       console.log("[Click Event] cart-modal-close-btn", event);
       $cartModalRoot.innerHTML = "";
       appStore.setSelectedCartIds([]);
+    } else if (!event.target.closest("#cart-modal-container")) {
+      console.log("[Click Event] cart-modal-container", event);
+      $cartModalRoot.innerHTML = "";
+      appStore.setSelectedCartIds([]);
+    } else if (event.target.closest("#quantity-decrease-btn")) {
+      console.log("[Click Event] quantity-decrease-btn", event);
+      const productId = event.target.dataset.productId;
+      if (!productId) return;
+      appStore.subtractCartItemCountByProductId(productId);
+    } else if (event.target.closest("#quantity-increase-btn")) {
+      console.log("[Click Event] quantity-increase-btn", event);
+      const productId = event.target.dataset.productId;
+      if (!productId) return;
+      appStore.addCartItemCountByProductId(productId);
     }
   });
 
@@ -98,7 +122,6 @@ async function main() {
    * @param {MouseEvent} event
    */
   $root.addEventListener("click", async (event) => {
-    console.log("[Click Event]", event.target);
     if (!event.target) return;
 
     if (event.target.id === "category-filter-btn") {

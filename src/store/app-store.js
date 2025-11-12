@@ -136,6 +136,24 @@ const appStore = {
       appState.cart = [...appState.cart, { productId, count }];
     }
   },
+  addCartItemCountByProductId: (/** @type {string} */ productId) => {
+    console.log("[Store - Action] addCartItemCountByProductId", {
+      BEFORE: appState.cart,
+      AFTER: appState.cart.find((item) => item.productId === productId)?.count,
+    });
+    appState.cart = appState.cart.map((item) =>
+      item.productId === productId ? { ...item, count: Math.min(item.count + 1, 999) } : item,
+    );
+  },
+  subtractCartItemCountByProductId: (/** @type {string} */ productId) => {
+    console.log("[Store - Action] subtractCartItemCountByProductId", {
+      BEFORE: appState.cart,
+      AFTER: appState.cart.find((item) => item.productId === productId)?.count,
+    });
+    appState.cart = appState.cart.map((item) =>
+      item.productId === productId ? { ...item, count: Math.max(item.count - 1, 1) } : item,
+    );
+  },
   addCartItemCount: () => {
     console.log("[Store - Action] addCartItemCount", {
       BEFORE: appState.cartItemCount,
