@@ -5,6 +5,7 @@ import { getCategories } from "./api/productApi";
 import appStore from "./store/app-store";
 import { getProducts } from "./api/productApi";
 import { getProduct } from "./api/productApi";
+import NotFoundPage from "./pages/NotFoundPage";
 
 /** @typedef {import('./types.js').HomePageProps} HomePageProps */
 /** @typedef {import('./types.js').ProductDetailPageProps} ProductDetailPageProps */
@@ -73,5 +74,11 @@ export const ROUTES = Object.freeze({
         cart: appState.cart,
       };
     },
+  },
+  notFound: {
+    name: "notFound",
+    path: "/404",
+    pattern: pathToRegex("/404"),
+    render: NotFoundPage,
   },
 });

@@ -61,6 +61,12 @@ async function main() {
     $root.innerHTML = `
       ${productDetailRoute.render(props)}
     `;
+  } else {
+    console.log("[Initial Render] Not Found", relativePath);
+    history.pushState(null, "", `${basePath}404`);
+    $root.innerHTML = `
+      ${ROUTES.notFound.render()}
+    `;
   }
 
   /* Event Handlers */
