@@ -5,6 +5,8 @@ import {
   initInfiniteScroll,
   cleanupInfiniteScroll,
 } from '@/utils/infiniteScroll';
+import { addToCart } from '@/utils/cart';
+import { showToast } from '@/components';
 
 const enableMocking = () =>
   import('@/mocks/browser.js').then(({ worker }) =>
@@ -81,6 +83,23 @@ const render = async () => {
 
 document.body.addEventListener('click', (e) => {
   const $target = e.target;
+
+  if ($target.closest('.add-to-cart-btn')) {
+    e.stopPropagation();
+    const button = $target.closest('.add-to-cart-btn');
+
+    const product = {
+      productId: button.dataset.productId,
+      title: button.dataset.productTitle,
+      image: button.dataset.productImage,
+      lprice: button.dataset.productPrice,
+    };
+
+    addToCart(product, 1);
+    showToast('장바구니에 추가되었습니다.', 'success');
+
+    return;
+  }
 
   if ($target.closest('.product-card')) {
     const productId = $target.closest('.product-card').dataset.productId;

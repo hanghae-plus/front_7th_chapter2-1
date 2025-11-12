@@ -31,6 +31,9 @@ export const ProductListItem = ({ productId, title, image, lprice }) => {
           class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
                 hover:bg-blue-700 transition-colors add-to-cart-btn"
           data-product-id="${productId}"
+          data-product-title="${title}"
+          data-product-image="${image}"
+          data-product-price="${lprice}"
         >
           장바구니 담기
         </button>
