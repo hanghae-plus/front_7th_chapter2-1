@@ -10,6 +10,18 @@ export class E2EHelpers {
       const text = document.body.textContent;
       return text.includes("총") && text.includes("개");
     });
+    // 실제 product-card가 렌더링될 때까지 대기
+    await this.page.waitForFunction(
+      () => {
+        const grid = document.querySelector("#products-grid");
+        if (!grid) return false;
+        const cards = grid.querySelectorAll(".product-card");
+        // 로딩 스켈레톤이 없고, product-card가 최소 1개 이상 있어야 함
+        const hasSkeleton = grid.querySelector(".animate-pulse");
+        return !hasSkeleton && cards.length > 0;
+      },
+      { timeout: 10000 },
+    );
   }
 
   // 상품을 장바구니에 추가
