@@ -167,6 +167,12 @@
  * @property {string[]} [selectedCartIds]
  */
 
+/**
+ * @typedef {Object} ToastAlertProps
+ * @property {string} message
+ * @property {'success'|'info'|'error'} type
+ */
+
 // ============================================
 // Utility 타입
 // ============================================

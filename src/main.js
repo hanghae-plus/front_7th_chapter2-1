@@ -3,6 +3,7 @@ import CartModal from "./components/CartModal";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
 import { extractParams } from "./utils/route";
+import { showToastMessage } from "./utils/toast-utils";
 
 /**
  * @typedef {import('./types.js').CategoryTreeNode} CategoryTreeNode
@@ -191,11 +192,12 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
-    } else if (event.target.id === "add-to-cart-btn") {
+    } else if (event.target.closest("#add-to-cart-btn")) {
       console.log("[Click Event] add-to-cart-btn", event);
       const productId = event.target.dataset.productId;
       if (!productId) return;
       appStore.addToCart(productId, appState.cartItemCount);
+      showToastMessage("장바구니에 추가되었습니다", "success");
     } else if (event.target.closest("#cart-icon-btn")) {
       console.log("[Click Event] cart-icon-btn", event);
       $cartModalRoot.innerHTML = `
