@@ -26,7 +26,7 @@ export const initProductClickHandler = () => {
         const productId = productCard.dataset.productId;
         if (productId) {
           e.preventDefault();
-          navigateTo(`/front_7th_chapter2-1/product/${productId}`);
+          navigateTo(`/product/${productId}`);
         }
       }
     }

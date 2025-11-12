@@ -2,7 +2,7 @@
  * 상품 상세 페이지 이벤트 핸들러
  */
 
-import { addToCart } from "./cartManager.js";
+import { addToCart, updateCartIconCount } from "./cartManager.js";
 import { showToast } from "./toastManager.js";
 import { navigateTo } from "./navigation.js";
 
@@ -58,12 +58,14 @@ export const initProductDetailHandler = (product) => {
       const productData = {
         productId: product.productId,
         title: product.title,
-        lprice: product.lprice,
+        price: parseInt(product.lprice),
         image: product.image,
         brand: product.brand || "",
+        quantity: quantity,
       };
 
-      addToCart(productData, quantity);
+      addToCart(productData);
+      updateCartIconCount();
       showToast("장바구니에 추가되었습니다", "success");
     });
   }

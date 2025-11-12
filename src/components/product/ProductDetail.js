@@ -2,8 +2,6 @@
  * 상품 상세 정보 컴포넌트
  */
 
-const BASE_URL = "/front_7th_chapter2-1/";
-
 export const ProductDetail = ({ product, relatedProductsHTML }) => {
   const {
     productId,
@@ -43,7 +41,7 @@ export const ProductDetail = ({ product, relatedProductsHTML }) => {
   // 브레드크럼 생성
   const breadcrumb = [];
   if (category1) {
-    const category1Query = `${BASE_URL}?category1=${encodeURIComponent(category1)}`;
+    const category1Query = `/?category1=${encodeURIComponent(category1)}`;
     breadcrumb.push(`
       <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -54,8 +52,8 @@ export const ProductDetail = ({ product, relatedProductsHTML }) => {
     `);
   }
   if (category2) {
-    const category2Query = `${BASE_URL}?category1=${encodeURIComponent(category1)}&category2=${encodeURIComponent(category2)}`;
-    breadcrumb.push(`ㄸ
+    const category2Query = `/?category1=${encodeURIComponent(category1)}&category2=${encodeURIComponent(category2)}`;
+    breadcrumb.push(`
       <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       </svg>
@@ -69,7 +67,7 @@ export const ProductDetail = ({ product, relatedProductsHTML }) => {
     <!-- 브레드크럼 -->
     <nav class="mb-4">
       <div class="flex items-center space-x-2 text-sm text-gray-600">
-        <a href="${BASE_URL}" data-link class="hover:text-blue-600 transition-colors">홈</a>
+        <a href="/" data-link class="hover:text-blue-600 transition-colors">홈</a>
         ${breadcrumb.join("")}
       </div>
     </nav>
