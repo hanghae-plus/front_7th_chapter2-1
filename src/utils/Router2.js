@@ -8,29 +8,31 @@ const convertToRelativePath2 = (pathName) => {
   return pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 };
 
-class Router {
+export class Router2 {
   constructor($app) {
     this.$app = $app;
     this.routes = [];
     this.isPending = false;
     this.currentView = null;
+    this.currentLoaderData = null;
     this.init();
-
-    // TODO: 이거 쓰는건지 체크해보기!
-    // window.navigation.addEventListener("navigate", (e) => console.log("TEST2: location changed!", { e }));
   }
 
-  // TODO component -> Component
+  init() {
+    window.addEventListener("popstate", (e) => {
+      this.render();
+    });
+  }
+
   addRoute({ path, loader, component }) {
     this.routes.push({ path, loader, component });
   }
 
-  #matchRoute(path) {
-    console.log({ path, convertedPath: convertToRelativePath2(path) });
-    const [pathOnly, queryString] = path.split("?");
+  #matchRoute(_path) {
+    const path = convertToRelativePath2(_path);
     for (const route of this.routes) {
       const pathRegex = new RegExp("^" + route.path.replace(/:\w+/g, "([^/]+)") + "$");
-      const match = pathOnly.match(pathRegex);
+      const match = path.match(pathRegex);
 
       if (match) {
         // 1. 경로 매개변수 (Path Params) 추출
@@ -42,8 +44,8 @@ class Router {
 
         // 2. 쿼리스트링 매개변수 (Query Params) 추가
         const qString = {};
-        if (queryString) {
-          const queryParams = new URLSearchParams(queryString);
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.size > 0) {
           for (const [qKey, value] of queryParams.entries()) {
             if (!(qKey in params)) {
               qString[qKey] = value;
@@ -57,11 +59,59 @@ class Router {
     return { component: NotFoundPage, loader: () => Promise.resolve({}), params: {} };
   }
 
-  async #render() {
+  async render() {
     this.isPending = true;
-    const currentPath = location.pathname;
-    const matched = this.#matchRoute(currentPath);
+    const matched = this.#matchRoute(location.pathname);
 
-    // https://gemini.google.com/app/851c271ec60bc31f 이어서 참조하기...
+    if (this.currentView && this.currentView.constructor !== matched.component) {
+      console.log("Router: 컴포넌트 변경 감지. 기존 뷰 unmount 시작.");
+      this.currentView.unmount();
+      this.currentView = null;
+      this.currentLoaderData = null;
+    }
+
+    // 1. Loading UI 렌더링 (isPending: true)
+    if (!this.currentView) {
+      this.currentView = new matched.component(this.$app, {
+        params: matched.params,
+        queryString: matched.queryString,
+        isPending: this.isPending,
+        loaderData: null,
+      });
+    } else {
+      await this.currentView.updateProps({
+        params: matched.params,
+        queryString: matched.queryString,
+        isPending: this.isPending,
+        loaderData: this.currentLoaderData,
+      });
+    }
+
+    // 2. ⭐ 데이터 로딩 및 대기
+    if (matched.loader) {
+      console.log("2. Router: Loader 실행 및 데이터 대기 시작.");
+      try {
+        this.currentLoaderData = await matched.loader({ params: matched.params, queryString: matched.queryString });
+      } catch (e) {
+        console.error("Loader 실행 중 오류 발생:", e, e.message);
+        this.currentLoaderData = { error: e.message };
+      }
+    }
+
+    // 3. 로딩 완료 후 최종 렌더링 (isPending: false)
+    this.isPending = false;
+    if (this.currentView && this.currentView.updateProps) {
+      await this.currentView.updateProps({
+        params: matched.params,
+        queryString: matched.queryString,
+        isPending: this.isPending,
+        loaderData: this.currentLoaderData,
+      });
+    }
+  }
+
+  navigateTo(path) {
+    history.pushState(null, "", path);
+    this.render();
   }
 }

@@ -23,7 +23,7 @@ export class Component {
   }
 
   render() {
-    this.$target.innerHTML = this.template();
+    this.$container.innerHTML = this.template();
   }
 
   async updateProps(newProps) {

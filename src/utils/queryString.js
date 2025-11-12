@@ -25,3 +25,8 @@ export const getQueryStringAdding = (newKey, value) => {
 
   return "?" + newParams.toString();
 };
+
+export const getQueryStringValue = (name) => {
+  const currentParams = new URLSearchParams(window.location.search);
+  return currentParams.get(name);
+};
