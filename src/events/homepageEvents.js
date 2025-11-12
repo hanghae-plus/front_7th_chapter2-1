@@ -107,33 +107,7 @@ const handleProductsLoadMore = async () => {
   }
 };
 
-const handleDocumentClick = (router) => (event) => {
-  const cartIconButton = event.target.closest("#cart-icon-btn");
-  if (cartIconButton) {
-    const cartModal = document.querySelector("#cart-modal");
-    if (!cartModal) {
-      return;
-    }
-
-    const isHidden = cartModal.classList.toggle("hidden");
-    cartModal.setAttribute("aria-hidden", isHidden ? "true" : "false");
-
-    return;
-  }
-
-  const cartModalCloseButton = event.target.closest("#cart-modal-close-btn");
-  if (cartModalCloseButton) {
-    const cartModal = document.querySelector("#cart-modal");
-    if (!cartModal) {
-      return;
-    }
-
-    const isHidden = cartModal.classList.toggle("hidden");
-    cartModal.setAttribute("aria-hidden", isHidden ? "true" : "false");
-
-    return;
-  }
-
+const handleHomepageClick = (router) => (event) => {
   const addToCartButton = event.target.closest(".add-to-cart-btn");
   if (addToCartButton) {
     const productId = addToCartButton.dataset.productId;
@@ -159,5 +133,5 @@ const handleDocumentClick = (router) => (event) => {
 export const registerHomepageEvents = (router) => {
   eventBus.on("filters:change", handleFiltersChange(router));
   eventBus.on("products:loadMore", handleProductsLoadMore);
-  document.body.addEventListener("click", handleDocumentClick(router));
+  document.body.addEventListener("click", handleHomepageClick(router));
 };
