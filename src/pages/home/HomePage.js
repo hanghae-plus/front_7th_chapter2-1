@@ -12,7 +12,7 @@ import { ProductList } from "../../components/product/ProductList";
 import { showToast } from "../../utils/toast";
 import { cartStore } from "../../stores/cart-store";
 import { searchParamsStore } from "../../stores/search-params-store";
-import { Router } from "../../core/router/router";
+import { useNavigate } from "../../hooks/useNavigate";
 
 export class HomePage extends Component {
   constructor(props = {}) {
@@ -34,6 +34,7 @@ export class HomePage extends Component {
     this.boundRender = () => this.render();
     this.boundInit = () => this.init();
     this.createIntersectionObserver();
+    this.navigate = useNavigate();
 
     this.useEffect(() => {
       cartStore.subscribe(this.boundRender);
@@ -236,6 +237,8 @@ export class HomePage extends Component {
 
     // 4. 장바구니 상품 추가 이벤트
     this.addEventListener("click", ".add-to-cart-btn", (e) => {
+      e.stopPropagation();
+
       const productId = e.target.dataset.productId;
 
       const product = this.state.products.find((product) => product.productId === productId);
@@ -298,9 +301,10 @@ export class HomePage extends Component {
 
     // 7. 상품 클릭 이벤트
     this.addEventListener("click", ".product-card", (e) => {
+      if (e.target.closest(".add-to-cart-btn")) return;
       const productId = e.target.closest(".product-card").dataset.productId;
 
-      Router.getInstance().push(`/product/${productId}`);
+      this.navigate.push(`/product/${productId}`);
     });
   }
 }
