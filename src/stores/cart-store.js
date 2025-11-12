@@ -45,13 +45,13 @@ class CartStore {
     return [...this.cartItems];
   }
 
-  addItem(product) {
+  addItem(product, quantity = 1) {
     const existingItem = this.cartItems.find((item) => item.productId === product.productId);
 
     if (existingItem) {
-      existingItem.quantity += 1;
+      existingItem.quantity += quantity;
     } else {
-      this.cartItems.push({ ...product, quantity: 1 });
+      this.cartItems.push({ ...product, quantity });
     }
 
     this.saveToStorage();
