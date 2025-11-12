@@ -28,6 +28,21 @@ const BASE_URL = import.meta.env.BASE_URL;
 const $root = document.querySelector("#root");
 let categories;
 
+// router.addRoute({
+//   path: "/",
+//   loader: async ({ params, queryString }) => {
+//     const search = queryString.search ?? "";
+//     const category1 = queryString.category1 ?? "";
+//     const category2 = queryString.category2 ?? "";
+//     const data = await getProducts({ search, category1, category2 });
+//     if (!categories) {
+//       categories = await getCategories();
+//     }
+//     return { data, categories };
+//   },
+//   component: ({ params, queryString, loaderData: { data, categories }, isPending }) => {},
+// });
+
 router.addRoute("/", async () => {
   const params = new URLSearchParams(window.location.search);
   const search = params.get("search") ?? "";
