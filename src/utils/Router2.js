@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable no-unused-private-class-members */
-import { NotFoundPage } from "../pages/NotFoundPage";
+
+import { NotFoundPage2 } from "../pages/NotFoundPage2";
 
 // TODO: 쿼리스트링 안 없앤 버전
 const convertToRelativePath2 = (pathName) => {
@@ -56,7 +56,7 @@ export class Router2 {
         return { component: route.component, loader: route.loader, params: params, queryString: qString };
       }
     }
-    return { component: NotFoundPage, loader: () => Promise.resolve({}), params: {} };
+    return { component: NotFoundPage2, loader: () => Promise.resolve({}), params: {} };
   }
 
   async render() {
