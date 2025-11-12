@@ -4,7 +4,6 @@ import { setupHomePageHandlers } from "./handlers/homeHandlers.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { setupDetailPageHandlers } from "./handlers/detailHandlers.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
-import { openCartModal, closeCartModal } from "./components/cart/index.js";
 import { setupCartHandlers } from "./handlers/cartHandlers.js";
 import { subscribeCartChange } from "./utils/cartStorage.js";
 import { updateCartIconCount } from "./components/common/Header.js";
@@ -34,29 +33,7 @@ async function main() {
   // 2. 장바구니 변경 구독 - 자동으로 아이콘 업데이트
   subscribeCartChange(updateCartIconCount);
 
-  // 3. 전역 이벤트 리스너 등록 (이벤트 위임 사용)
-  document.addEventListener("click", (e) => {
-    const target = e.target;
-
-    // 장바구니 아이콘 클릭 -> 모달 열기
-    if (target.closest("#cart-icon-btn")) {
-      openCartModal();
-      return;
-    }
-
-    // 닫기 버튼 클릭 -> 모달 닫기
-    if (target.closest("#cart-modal-close-btn")) {
-      closeCartModal();
-      return;
-    }
-
-    // 오버레이 클릭 -> 모달 닫기
-    if (target.classList.contains("cart-modal-overlay")) {
-      closeCartModal();
-      return;
-    }
-  });
-
+  // 3. 장바구니 핸들러 등록 (모달 열기/닫기 + 아이템 조작)
   setupCartHandlers();
 }
 

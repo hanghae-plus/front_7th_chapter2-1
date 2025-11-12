@@ -8,7 +8,7 @@ import {
   getCartItems,
 } from "../utils/cartStorage.js";
 import { updateCartIconCount } from "../components/common/Header.js";
-import { refreshCartModal } from "../components/cart/CartModal.js";
+import { refreshCartModal, openCartModal, closeCartModal } from "../components/cart/CartModal.js";
 import { toast } from "../utils/toast.js";
 import { TOAST_MESSAGES } from "../constants.js";
 
@@ -82,10 +82,32 @@ const updateCartFooter = () => {
 
 /**
  * 장바구니 모달 이벤트 핸들러 등록
+ * 모달 열기/닫기 및 장바구니 아이템 조작 모두 처리
  */
 export const setupCartHandlers = () => {
   document.addEventListener("click", (e) => {
     const target = e.target;
+
+    // ===== 모달 열기/닫기 =====
+    // 장바구니 아이콘 클릭 -> 모달 열기
+    if (target.closest("#cart-icon-btn")) {
+      openCartModal();
+      return;
+    }
+
+    // 닫기 버튼 클릭 -> 모달 닫기
+    if (target.closest("#cart-modal-close-btn")) {
+      closeCartModal();
+      return;
+    }
+
+    // 오버레이 클릭 -> 모달 닫기
+    if (target.classList.contains("cart-modal-overlay")) {
+      closeCartModal();
+      return;
+    }
+
+    // ===== 장바구니 아이템 조작 =====
 
     // 개별 체크박스 클릭 - DOM만 업데이트 (성능 최적화)
     if (target.classList.contains("cart-item-checkbox")) {
