@@ -1,14 +1,18 @@
-const OptionSelect = (options) => {
+const OptionSelect = (id, { options, selected }) => {
   return /*html*/ `
-    <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
+    <select id="${id}" class="text-sm border border-gray-300 rounded px-2 py-1
                   focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-      ${options
-        .map(
-          (option) => /*html*/ `
-        <option value="${option.value}" ${option.selected ? "selected" : ""}>${option.label}</option>
+      ${
+        options?.length > 0
+          ? options
+              .map(
+                (option) => /*html*/ `
+        <option value="${option.value}" ${String(option.value) === String(selected) ? "selected" : ""}>${option.label}</option>
       `,
-        )
-        .join("")}
+              )
+              .join("")
+          : ""
+      }
     </select>
   `;
 };

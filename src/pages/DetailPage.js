@@ -1,4 +1,6 @@
 import { PageLayout } from "./PageLayout";
+import { getProduct } from "../api/productApi.js";
+import ErrorPage from "./ErrorPage.js";
 
 const Loading = () => {
   return /*html*/ `
@@ -161,4 +163,23 @@ export const DetailPage = ({ loading, product }) => {
       </main>
     `,
   });
+};
+
+export const renderDetailPage = async ({ params }) => {
+  const productId = params?.id;
+  if (!productId) {
+    console.warn("상품 ID가 제공되지 않았습니다.");
+    return ErrorPage();
+  }
+
+  try {
+    const product = await getProduct(productId);
+    return { html: DetailPage({ loading: false, product }), init: bindEvents };
+  } catch (error) {
+    console.error("상품 상세 로딩 실패", error);
+    return ErrorPage();
+  }
+};
+const bindEvents = () => {
+  return () => {};
 };
