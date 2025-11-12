@@ -19,7 +19,10 @@ class Router {
   }
 
   match(path) {
-    return this.routes[path] || this.routes["/404"];
+    const BASE_URL = "/front-chapter2-1";
+    const normalized = path.replace(BASE_URL, "/");
+    console.log("normalized", normalized);
+    return this.routes[normalized] || this.routes["/404"];
     // 필요하면 /product/:id 같은 패턴 매칭 로직을 추가
   }
 
