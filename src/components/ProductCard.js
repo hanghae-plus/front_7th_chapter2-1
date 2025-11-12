@@ -1,4 +1,5 @@
 import Component from "@/core/Component";
+import { cartStore } from "@/core/store";
 
 class ProductCard extends Component {
   template() {
@@ -26,11 +27,30 @@ class ProductCard extends Component {
           </div>
           <!-- 장바구니 버튼 -->
           <button class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
-                 hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="85067212996">
+                 hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${product.productId}">
             장바구니 담기
           </button>
         </div>
       </div>`;
+  }
+
+  setEvent() {
+    // 장바구니 담기 버튼 클릭
+    this.addEvent("click", ".add-to-cart-btn", (e) => {
+      // 이벤트 버블링 방지
+      e.stopPropagation();
+
+      const productId = e.target.closest(".add-to-cart-btn")?.dataset.productId;
+      if (!productId) return;
+
+      const { product } = this.$props;
+      if (product && product.productId === productId) {
+        // cartStore에 상품 추가
+        cartStore.addItem(product, 1);
+        // 장바구니 모달 열기 (선택적)
+        cartStore.openCart();
+      }
+    });
   }
 }
 
