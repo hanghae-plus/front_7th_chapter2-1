@@ -1,5 +1,6 @@
 import { getProducts } from '@/api/productApi';
 import Component from '@/core/component';
+import { navigate } from '@/core/router';
 
 // TODO: 로직 확인 필요!!
 export default class RelatedProducts extends Component {
@@ -11,10 +12,11 @@ export default class RelatedProducts extends Component {
   }
 
   async fetchProducts() {
-    const { category1, category2 } = this.props;
+    const { category1, category2, productId } = this.props;
     const { products } = await getProducts({ category1, category2 });
+    const filteredProducts = products.filter((product) => product.productId !== productId);
 
-    this.setState({ products });
+    this.setState({ products: filteredProducts });
   }
 
   template() {
@@ -43,5 +45,14 @@ export default class RelatedProducts extends Component {
         )
         .join('')}
     </div>`;
+  }
+
+  setEvent() {
+    this.addEvent('click', '.related-product-card', (e) => {
+      const $card = /** @type {HTMLElement} */ (e.target).closest('.related-product-card');
+      const { productId } = /** @type {HTMLElement} */ ($card).dataset;
+
+      navigate(`/product/${productId}`);
+    });
   }
 }

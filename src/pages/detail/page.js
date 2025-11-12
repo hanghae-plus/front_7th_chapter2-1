@@ -167,10 +167,10 @@ export default class DetailPage extends Component {
     const $productLoading = this.$target.querySelector('[data-slot="product-loading"]');
 
     if (product) {
-      const { category1, category2, rating } = product;
+      const { category1, category2, rating, productId } = product;
       new Breadcrumb($breadcrumb, { category1, category2 });
       new StarRating($starRating, { rating });
-      new RelatedProducts($relatedProducts, { category1, category2 });
+      new RelatedProducts($relatedProducts, { category1, category2, productId });
     } else {
       new ProductLoading($productLoading);
     }
