@@ -27,7 +27,7 @@ export default class SearchForm extends Component {
       search: params.get('search') || '',
       category1: params.get('category1'),
       category2: params.get('category2'),
-      limit: params.get('limit') || DEFAULT_LIMIT,
+      limit: params.get('limit') ? Number(params.get('limit')) : DEFAULT_LIMIT,
       sort: params.get('sort') || DEFAULT_SORT,
     };
     this.fetchCategories();
@@ -45,7 +45,7 @@ export default class SearchForm extends Component {
   }
 
   template() {
-    const { categories, category1, category2, limit, sort } = this.state;
+    const { categories, search, category1, category2, limit, sort } = this.state;
 
     return /* HTML */ `
       <!-- 검색 및 필터 -->
@@ -57,7 +57,7 @@ export default class SearchForm extends Component {
               type="text"
               id="search-input"
               placeholder="상품명을 검색해보세요..."
-              value=""
+              value="${search}"
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -191,6 +191,7 @@ export default class SearchForm extends Component {
   }
 
   setEvent() {
+    const { onSearchParamsChange } = this.props;
     this.addEvent('keydown', '#search-input', (e) => {
       if (/** @type {KeyboardEvent} */ (e).key !== 'Enter') return;
       const url = new URL(location.href);
@@ -203,6 +204,7 @@ export default class SearchForm extends Component {
       }
       history.replaceState({}, '', url.toString());
       this.setState({ search });
+      onSearchParamsChange();
     });
     this.addEvent('click', '[data-breadcrumb="reset"]', () => {
       const url = new URL(location.href);
@@ -211,6 +213,7 @@ export default class SearchForm extends Component {
       url.searchParams.delete('category2');
       history.replaceState({}, '', url.toString());
       this.setState({ category1: null, category2: null });
+      onSearchParamsChange();
     });
     this.addEvent('click', '[data-breadcrumb="category1"]', () => {
       const url = new URL(location.href);
@@ -218,6 +221,7 @@ export default class SearchForm extends Component {
       url.searchParams.delete('category2');
       history.replaceState({}, '', url.toString());
       this.setState({ category2: null });
+      onSearchParamsChange();
     });
     this.addEvent('click', '.category1-filter-btn', ({ target }) => {
       const url = new URL(location.href);
@@ -227,6 +231,7 @@ export default class SearchForm extends Component {
       url.searchParams.delete('category2');
       history.replaceState({}, '', url.toString());
       this.setState({ category1, category2: null });
+      onSearchParamsChange();
     });
     this.addEvent('click', '.category2-filter-btn', ({ target }) => {
       const url = new URL(location.href);
@@ -235,14 +240,16 @@ export default class SearchForm extends Component {
       url.searchParams.set('category2', category2);
       history.replaceState({}, '', url.toString());
       this.setState({ category2 });
+      onSearchParamsChange();
     });
     this.addEvent('change', '#limit-select', ({ target }) => {
       const url = new URL(location.href);
-      const limit = /** @type {HTMLSelectElement} */ (target).value;
+      const limit = Number(/** @type {HTMLSelectElement} */ (target).value);
 
-      url.searchParams.set('limit', limit);
+      url.searchParams.set('limit', limit.toString());
       history.replaceState({}, '', url.toString());
       this.setState({ limit });
+      onSearchParamsChange();
     });
     this.addEvent('change', '#sort-select', ({ target }) => {
       const url = new URL(location.href);
@@ -251,6 +258,7 @@ export default class SearchForm extends Component {
       url.searchParams.set('sort', sort);
       history.replaceState({}, '', url.toString());
       this.setState({ sort });
+      onSearchParamsChange();
     });
   }
 }

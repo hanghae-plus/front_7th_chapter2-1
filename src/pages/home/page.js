@@ -16,7 +16,11 @@ export default class HomePage extends Component {
     const $searchForm = this.$target.querySelector('[data-slot="search-form"]');
     const $productList = this.$target.querySelector('[data-slot="product-list"]');
 
-    new SearchForm($searchForm);
-    new ProductList($productList);
+    this.productList = new ProductList($productList);
+    this.searchForm = new SearchForm($searchForm, {
+      onSearchParamsChange: () => {
+        if (this.productList) this.productList.fetchProducts();
+      },
+    });
   }
 }
