@@ -1,9 +1,6 @@
 import { router } from "./router/index.js";
-import { CartModal } from "./components/CartModal.js";
 import { showToast } from "./components/Toast.js";
 import {
-  getCartItems,
-  getSelectedItems,
   addToCart,
   increaseQuantity,
   decreaseQuantity,
@@ -14,6 +11,7 @@ import {
   removeSelectedItems,
   subscribeCart,
 } from "./utils/cartStore.js";
+import { openModal, closeModal, subscribeModal } from "./utils/modalStore.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -22,69 +20,44 @@ const enableMocking = () =>
     }),
   );
 
-// 장바구니 모달 표시
-function showCartModal() {
-  const cartItems = getCartItems();
-  const selectedItems = getSelectedItems();
-  const modalHTML = CartModal({ cartItems, selectedItems });
-
-  // 모달 컨테이너 생성 또는 가져오기
-  let modalContainer = document.getElementById("cart-modal-container");
-  if (!modalContainer) {
-    modalContainer = document.createElement("div");
-    modalContainer.id = "cart-modal-container";
-    document.body.appendChild(modalContainer);
-  }
-
-  modalContainer.innerHTML = modalHTML;
-  modalContainer.style.display = "block";
-  document.body.style.overflow = "hidden"; // 스크롤 방지
-}
-
-// 장바구니 모달 숨기기
-function hideCartModal() {
-  const modalContainer = document.getElementById("cart-modal-container");
-  if (modalContainer) {
-    modalContainer.style.display = "none";
-    document.body.style.overflow = ""; // 스크롤 복원
-  }
-}
-
-// 장바구니 모달 다시 렌더링
-function rerenderCartModal() {
-  const modalContainer = document.getElementById("cart-modal-container");
-  if (modalContainer && modalContainer.style.display !== "none") {
-    const cartItems = getCartItems();
-    const selectedItems = getSelectedItems();
-    modalContainer.innerHTML = CartModal({ cartItems, selectedItems });
-  }
-}
-
 // 이벤트 리스너
 const initEventListeners = () => {
-  // 장바구니 변경 구독
+  const $root = document.querySelector("#root");
+
+  // 장바구니 변경 시 라우터 재렌더링
   subscribeCart(() => {
-    rerenderCartModal();
-    router.rerender(); // Header의 장바구니 개수 업데이트
+    router.rerender();
   });
 
-  document.body.addEventListener("click", (e) => {
+  // 모달 상태 변경 시 라우터 재렌더링
+  subscribeModal(() => {
+    router.rerender();
+  });
+
+  // ESC 키로 모달 닫기
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeModal();
+    }
+  });
+
+  $root.addEventListener("click", (e) => {
     // 장바구니 아이콘 클릭
     if (e.target.closest("#cart-icon-btn")) {
       e.preventDefault();
-      showCartModal();
+      openModal();
       return;
     }
 
     // 장바구니 모달 닫기
     if (e.target.closest("#cart-modal-close-btn")) {
-      hideCartModal();
+      closeModal();
       return;
     }
 
     // 모달 배경 클릭 시 닫기
-    if (e.target.closest("#cart-modal-container") && e.target.id === "cart-modal-container") {
-      hideCartModal();
+    if (e.target.classList.contains("cart-modal-overlay")) {
+      closeModal();
       return;
     }
 
@@ -123,19 +96,13 @@ const initEventListeners = () => {
 
     // 선택한 상품 삭제
     if (e.target.closest("#cart-modal-remove-selected-btn")) {
-      if (confirm("선택한 상품을 삭제하시겠습니까?")) {
-        removeSelectedItems();
-        showToast("선택한 상품이 삭제되었습니다", "info");
-      }
+      removeSelectedItems();
       return;
     }
 
     // 전체 비우기
     if (e.target.closest("#cart-modal-clear-cart-btn")) {
-      if (confirm("장바구니를 비우시겠습니까?")) {
-        clearCart();
-        showToast("장바구니가 비워졌습니다", "info");
-      }
+      clearCart();
       return;
     }
 
@@ -332,7 +299,7 @@ const initEventListeners = () => {
     }
   });
 
-  document.body.addEventListener("change", (e) => {
+  $root.addEventListener("change", (e) => {
     // limit 변경
     if (e.target.closest("#limit-select")) {
       const limit = e.target.value;
@@ -357,7 +324,7 @@ const initEventListeners = () => {
   });
 
   // 검색어 입력 (엔터키)
-  document.body.addEventListener("keypress", (e) => {
+  $root.addEventListener("keypress", (e) => {
     if (e.target.closest("#search-input") && e.key === "Enter") {
       const search = e.target.value;
       const currentParams = router.getQueryParams();
