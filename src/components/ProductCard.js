@@ -3,13 +3,13 @@ import Component from "@/core/Component";
 class ProductCard extends Component {
   template() {
     const { product } = this.$props;
-
+    console.log("product :: ", product);
     return /*html*/ `
      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card" data-product-id=${product.productId}>
         <!-- 상품 이미지 -->
         <div class="aspect-square bg-gray-100 overflow-hidden cursor-pointer product-image">
-          <img src=${product.image}
-               alt=${product.title}
+          <img src="${product.image}"
+               alt="${product.title}"
                class="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                loading="lazy">
         </div>
@@ -19,7 +19,7 @@ class ProductCard extends Component {
             <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
               ${product.title}
             </h3>
-            <p class="text-xs text-gray-500 mb-2"></p>
+            <p class="text-xs text-gray-500 mb-2">${product.brand || ""}</p>
             <p class="text-lg font-bold text-gray-900">
               ${Number(product.lprice).toLocaleString()}원
             </p>
