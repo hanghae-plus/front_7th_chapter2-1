@@ -67,8 +67,25 @@ export const FirstDepthCategory = ({ category1 }) => {
   `;
 };
 
-export const Search = ({ loading, categories = {}, limit, search = "", sort }) => {
-  const category1 = Object.keys(categories);
+export const SecondDepthCategory = ({ category2List = [] }) => {
+  if (!category2List || category2List.length === 0) return "";
+
+  return /*HTML*/ `
+    ${category2List
+      .map(
+        (category) => `
+      <button data-category2="${category}" class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+        ${category}
+      </button>
+    `,
+      )
+      .join("")}
+  `;
+};
+
+export const Search = ({ loading, categories, limit, search = "", sort = "price_asc", category1 = "" }) => {
+  const category1List = Object.keys(categories);
+  const category2List = category1 ? Object.keys(categories[category1] || {}) : [];
 
   return /*HTML*/ `   
       <!-- 검색 및 필터 -->
@@ -80,21 +97,28 @@ export const Search = ({ loading, categories = {}, limit, search = "", sort }) =
         <div class="space-y-2">
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600">카테고리:</label>
-            <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
+            ${category1 ? `<button id="category-reset-btn" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">← ${category1}</button>` : ""}
           </div>
           ${
             loading
               ? `    
-            <!-- 1depth 카테고리 -->
+            <!-- 카테고리 로딩 -->
             <div class="flex flex-wrap gap-2">
               ${CategoryLoading()}
             </div>`
-              : /*HTML*/ `
+              : category1
+                ? /*HTML*/ `
+               <!-- Category2 표시 (Category1 선택됨) -->
                <div class="flex flex-wrap gap-2">
-                  ${FirstDepthCategory({ category1 })}
-                </div>`
+                 ${SecondDepthCategory({ category2List })}
+               </div>`
+                : /*HTML*/ `
+               <!-- Category1 표시 (초기 상태) -->
+               <div class="flex flex-wrap gap-2">
+                 ${FirstDepthCategory({ category1: category1List })}
+               </div>`
           }
-          <!-- 2depth 카테고리 -->
+     
         </div>
        
         <!-- 기존 필터들 -->

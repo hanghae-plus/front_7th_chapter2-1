@@ -7,10 +7,11 @@ export const HomePage = ({
   loading = true,
   limit = 20,
   search = "",
+  category1 = "",
   categories = {},
   products = [],
   pagination = { total: 0 },
-  sort,
+  sort = "price_asc",
 }) => {
   return PageLayout({
     children: `${Search({
@@ -19,6 +20,7 @@ export const HomePage = ({
       limit,
       search,
       sort,
+      category1,
     })} ${ProductList({
       loading,
       products,

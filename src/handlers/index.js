@@ -10,7 +10,7 @@ function itemLimitSelectEventListener() {
     // 현재 URL의 searchParams 가져오기
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("limit", selectedLimit);
-    searchParams.set("page", "1"); // 필터 변경 시 첫 페이지로
+    searchParams.set("current", "1"); // 필터 변경 시 첫 페이지로
 
     // Router의 navigateTo 호출 (pathname + search)
     router.navigateTo(`/?${searchParams.toString()}`);
@@ -19,14 +19,16 @@ function itemLimitSelectEventListener() {
 
 function itemSortSelectEventListener() {
   const itemSortSelector = document.querySelector("#sort-select");
-  if (!itemSortSelector) return;
+  if (!itemSortSelector || itemSortSelector.dataset.listenerAttached) return;
 
+  itemSortSelector.dataset.listenerAttached = "true";
   itemSortSelector.addEventListener("change", (event) => {
     const selectedSort = event.target.value;
 
     // 현재 URL의 searchParams 가져오기
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("sort", selectedSort);
+    searchParams.set("current", "1"); // 필터 변경 시 첫 페이지로
 
     // Router의 navigateTo 호출
     router.navigateTo(`/?${searchParams.toString()}`);
@@ -45,7 +47,7 @@ function searchEventListener() {
     // 현재 URL의 searchParams 가져오기
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("search", searchValue);
-    searchParams.set("page", "1");
+    searchParams.set("current", "1");
 
     // Router의 navigateTo 호출
     router.navigateTo(`/?${searchParams.toString()}`);
@@ -56,17 +58,59 @@ function clickCategory1EventListener() {
   const categoryButtons = document.querySelectorAll(".category1-filter-btn");
 
   categoryButtons.forEach((button) => {
+    if (button.dataset.listenerAttached) return;
+    button.dataset.listenerAttached = "true";
+
     button.addEventListener("click", (event) => {
       const category1 = event.target.dataset.category1;
 
       // 현재 URL의 searchParams 가져오기
       const searchParams = new URLSearchParams(window.location.search);
       searchParams.set("category1", category1);
-      searchParams.set("page", "1");
+      searchParams.delete("category2"); // category1 변경 시 category2 초기화
+      searchParams.set("current", "1");
 
       // Router의 navigateTo 호출
       router.navigateTo(`/?${searchParams.toString()}`);
     });
+  });
+}
+
+function clickCategory2EventListener() {
+  const categoryButtons = document.querySelectorAll(".category2-filter-btn");
+
+  categoryButtons.forEach((button) => {
+    if (button.dataset.listenerAttached) return;
+    button.dataset.listenerAttached = "true";
+
+    button.addEventListener("click", (event) => {
+      const category2 = event.target.dataset.category2;
+
+      // 현재 URL의 searchParams 가져오기
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set("category2", category2);
+      searchParams.set("current", "1");
+
+      // Router의 navigateTo 호출
+      router.navigateTo(`/?${searchParams.toString()}`);
+    });
+  });
+}
+
+function clickCategoryResetBtn() {
+  const resetBtn = document.querySelector("#category-reset-btn");
+  if (!resetBtn || resetBtn.dataset.listenerAttached) return;
+
+  resetBtn.dataset.listenerAttached = "true";
+  resetBtn.addEventListener("click", () => {
+    // 현재 URL의 searchParams 가져오기
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete("category1");
+    searchParams.delete("category2");
+    searchParams.set("current", "1");
+
+    // Router의 navigateTo 호출
+    router.navigateTo(`/?${searchParams.toString()}`);
   });
 }
 
@@ -86,6 +130,8 @@ export function attachHomePageEventListeners() {
   itemSortSelectEventListener();
   searchEventListener();
   clickCategory1EventListener();
+  clickCategory2EventListener();
+  clickCategoryResetBtn();
   clickProductItem();
 }
 

@@ -9,6 +9,7 @@ async function loadPageData(currentPath, params, state) {
         limit: state.limit,
         search: state.search,
         category1: state.category1,
+        category2: state.category2,
         current: state.current,
         sort: state.sort,
       }),
@@ -96,6 +97,7 @@ export function createRouter(routes, state) {
       limit: parseInt(urlParams.get("limit")) || 20,
       search: urlParams.get("search") || "",
       category1: urlParams.get("category1") || "",
+      category2: urlParams.get("category2") || "",
       current: parseInt(urlParams.get("current")) || 1,
       sort: urlParams.get("sort") || "price_asc",
     };
