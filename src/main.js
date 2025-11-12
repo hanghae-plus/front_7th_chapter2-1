@@ -42,37 +42,41 @@ const render = async () => {
     url.searchParams.set('current', '1');
     window.history.replaceState(null, '', url);
 
-    $root.innerHTML = HomePage({
-      loading: true,
+    // 공통 상태 객체 추출
+    const pageState = {
       pagination: { limit, page },
       filters: { sort, search, category1, category2 },
+    };
+
+    const queryParams = { limit, page, search, category1, category2, sort };
+
+    // 로딩 상태 렌더링
+    $root.innerHTML = HomePage({
+      loading: true,
+      ...pageState,
     });
 
-    const productsData = await getProducts({
-      limit,
-      page,
-      search,
-      category1,
-      category2,
-      sort,
-    });
+    // 병렬 API 호출
+    const [productsData, categoriesData] = await Promise.all([
+      getProducts(queryParams),
+      getCategories(),
+    ]);
 
-    const categoriesData = await getCategories();
+    // 필요한 데이터만 구조분해
+    const { products, pagination } = productsData;
+    const { filters } = pageState;
+
+    // 완료 상태 렌더링
     $root.innerHTML = HomePage({
       loading: false,
-      ...productsData,
       categories: categoriesData,
+      products,
+      pagination,
+      filters,
     });
 
     // 홈 페이지에서만 무한 스크롤 초기화
-    initInfiniteScroll({
-      limit,
-      page,
-      search,
-      category1,
-      category2,
-      sort,
-    });
+    initInfiniteScroll(queryParams);
   } else {
     const productId = window.location.pathname.split('/products/')[1];
     $root.innerHTML = DetailPage({ loading: true });

@@ -2,13 +2,11 @@ import { LIMIT_OPTIONS, SORT_OPTIONS } from '@/constants';
 
 export const SearchForm = ({
   pagination = { limit: 20 },
-  filters = { sort: 'price_asc' },
+  filters = { sort: 'price_asc', search: '' },
   categories,
 }) => {
   const categoriesData = categories || {};
   const category1List = Object.keys(categoriesData);
-
-  console.log('categoriesData', categoriesData, 'category1List', category1List);
 
   return /* HTML */ `
     <!-- 검색 및 필터 -->
@@ -20,7 +18,7 @@ export const SearchForm = ({
             type="text"
             id="search-input"
             placeholder="상품명을 검색해보세요..."
-            value=""
+            value="${filters.search}"
             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <div
