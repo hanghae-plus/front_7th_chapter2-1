@@ -75,10 +75,26 @@ export function createRouter(routes, state) {
     handleRoute();
   };
 
+  /**
+   *
+   * NOTE 전체적으로 사용자 이벤트 발생 -> URL 변경 -> handleRoute() 호출 -> 상태 동기화 -> 페이지 렌더링 되도록 설정
+   */
   const handleRoute = async () => {
     // 현재 URL에서 base path 제거
     const fullPath = window.location.pathname;
     const currentPath = getPathWithoutBase(fullPath);
+
+    // URL에서 searchParams 파싱 → Store 업데이트
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParamsState = {
+      limit: parseInt(urlParams.get("limit")) || 20,
+      search: urlParams.get("search") || "",
+      category1: urlParams.get("category1") || "",
+      page: parseInt(urlParams.get("page")) || 1,
+    };
+
+    // 전역 상태 업데이트 (URL이 단일 진실 공급원)
+    state.setState(searchParamsState);
 
     const matchedRoute =
       routes.find((r) => matchStaticRoute(r, currentPath)) || routes.find((r) => matchDynamicRoute(r, currentPath));

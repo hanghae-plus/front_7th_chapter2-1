@@ -1,49 +1,55 @@
-import { getCategories, getProducts } from "../api/productApi";
 import { router } from "../App";
-import { HomePage } from "../pages/HomePage";
 
 function itemLimitSelectEventListener() {
   const itemLimitSelector = document.querySelector("#limit-select");
+  if (!itemLimitSelector) return;
 
-  itemLimitSelector.addEventListener("change", async (event) => {
+  itemLimitSelector.addEventListener("change", (event) => {
     const selectedLimit = event.target.value;
 
-    const $root = document.querySelector("#root");
-    const data = await getProducts({ limit: selectedLimit });
-    const categories = await getCategories();
+    // 현재 URL의 searchParams 가져오기
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("limit", selectedLimit);
+    searchParams.set("page", "1"); // 필터 변경 시 첫 페이지로
 
-    $root.innerHTML = HomePage({ ...data, categories, loading: false, limit: selectedLimit });
-    itemLimitSelectEventListener();
+    // Router의 navigateTo 호출 (pathname + search)
+    router.navigateTo(`/?${searchParams.toString()}`);
   });
 }
 
 function searchEventListener() {
   const searchInput = document.querySelector("#search-input");
+  if (!searchInput) return;
 
-  searchInput.addEventListener("keydown", async (event) => {
+  searchInput.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
 
     const searchValue = event.target.value;
-    const $root = document.querySelector("#root");
-    const data = await getProducts({ search: searchValue });
-    const categories = await getCategories();
 
-    $root.innerHTML = HomePage({ ...data, categories, loading: false, search: searchValue });
-    searchEventListener();
+    // 현재 URL의 searchParams 가져오기
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("search", searchValue);
+    searchParams.set("page", "1");
+
+    // Router의 navigateTo 호출
+    router.navigateTo(`/?${searchParams.toString()}`);
   });
 }
 
 function clickCategory1EventListener() {
-  const categoryButton = document.querySelectorAll(".category1-filter-btn");
+  const categoryButtons = document.querySelectorAll(".category1-filter-btn");
 
-  categoryButton.forEach((button) => {
-    button.addEventListener("click", async (event) => {
+  categoryButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
       const category1 = event.target.dataset.category1;
-      const $root = document.querySelector("#root");
-      const data = await getProducts({ category1 });
-      const categories = await getCategories();
-      $root.innerHTML = HomePage({ ...data, categories, loading: false });
-      clickCategory1EventListener();
+
+      // 현재 URL의 searchParams 가져오기
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set("category1", category1);
+      searchParams.set("page", "1");
+
+      // Router의 navigateTo 호출
+      router.navigateTo(`/?${searchParams.toString()}`);
     });
   });
 }
@@ -101,7 +107,7 @@ function onClickAddToCart() {
     const productId = addToCartButton.dataset.productId;
     console.log(`상품 ${productId}번이 장바구니에 추가되었습니다.`);
 
-    // ✅ Toast 표시
+    // Toast 표시
     showToast();
   };
 
@@ -111,59 +117,7 @@ function onClickAddToCart() {
 /**
  * Toast 메시지 표시
  */
-function showToast() {
-  // 1. Toast HTML 생성
-  const toastHTML = `
-    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300">
-      <div class="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
-        <div class="flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-        <p class="text-sm font-medium">장바구니에 추가되었습니다</p>
-        <button id="toast-close-btn" class="flex-shrink-0 ml-2 text-white hover:text-gray-200">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `;
-
-  // 2. DOM에 추가
-  document.body.insertAdjacentHTML("beforeend", toastHTML);
-
-  // 3. Toast 요소 가져오기
-  const toastContainer = document.getElementById("toast-container");
-  const closeBtn = document.getElementById("toast-close-btn");
-
-  // 4. 닫기 버튼 이벤트
-  closeBtn.addEventListener("click", () => {
-    removeToast(toastContainer);
-  });
-
-  // 5. 3초 후 자동 제거
-  setTimeout(() => {
-    removeToast(toastContainer);
-  }, 3000);
-}
-
-/**
- * Toast 제거 (페이드아웃 효과)
- */
-function removeToast(toastElement) {
-  if (!toastElement) return;
-
-  // 페이드아웃
-  toastElement.style.opacity = "0";
-  toastElement.style.transform = "translate(-50%, -20px)";
-
-  // 애니메이션 후 DOM에서 제거
-  setTimeout(() => {
-    toastElement.remove();
-  }, 300);
-}
+function showToast() {}
 
 export function attachDetailPageHandlers() {
   onClickIncreaseCounter();
