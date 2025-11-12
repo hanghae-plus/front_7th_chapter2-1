@@ -51,3 +51,17 @@ export const matchRoute = (path, routePath) => {
 
   return { match: false, params: {} };
 };
+
+// 파라미터 객체 비교 헬퍼 함수
+export const isParamsEqual = (params1, params2) => {
+  // null/undefined 체크
+  if (!params1 && !params2) return true;
+  if (!params1 || !params2) return false;
+
+  const keys1 = Object.keys(params1);
+  const keys2 = Object.keys(params2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  return keys1.every((key) => params1[key] === params2[key]);
+};
