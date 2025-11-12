@@ -46,6 +46,10 @@ export class HomePage extends Component {
         this.observer?.disconnect();
       };
     }, []);
+
+    this.useEffect(() => {
+      this.init();
+    }, []);
   }
 
   async init() {
@@ -181,21 +185,6 @@ export class HomePage extends Component {
     if (!sentinel) return;
 
     this.observer.observe(sentinel);
-  }
-
-  mount(selector) {
-    super.mount(selector);
-
-    // 최초 렌더링 시 init 실행
-    this.init();
-  }
-
-  unmount() {
-    super.unmount();
-
-    if (this.observer) {
-      this.observer.disconnect();
-    }
   }
 
   /** 렌더가 발생할 때마다 Observer가 바라보고 있는 요소를 다시 관찰하도록 설정 */

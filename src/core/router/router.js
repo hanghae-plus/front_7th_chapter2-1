@@ -2,8 +2,6 @@ export class Router {
   static _instance = null;
 
   constructor($target, routes) {
-    if (Router._instance) return Router._instance;
-
     this.$target = $target;
     this.routes = routes;
     this.currentComponent = null;
@@ -75,8 +73,8 @@ export class Router {
 
     if (matched) {
       const PageComponent = matched.component;
-      console.log(this.$target);
-      this.currentComponent = new PageComponent(this.$target, matched.params);
+
+      this.currentComponent = new PageComponent(this.$target);
     }
   }
 }

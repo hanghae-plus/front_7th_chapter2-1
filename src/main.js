@@ -1,6 +1,7 @@
-import { App } from "./app.js";
 import { CartModal } from "./components/cart/CartModal.js";
+import { Router } from "./core/router/router.js";
 import "./globals/html-global.js";
+import { routes } from "./routes/routes.js";
 import { modalStore } from "./stores/modal-store.js";
 
 const enableMocking = () =>
@@ -12,7 +13,10 @@ const enableMocking = () =>
 
 function main() {
   const $root = document.querySelector("#root");
-  new App($root);
+  const $app = document.createElement("div");
+  $app.id = "app";
+  $root.appendChild($app);
+  new Router($app, routes);
 
   modalStore.init();
   modalStore.register("cart", CartModal);
