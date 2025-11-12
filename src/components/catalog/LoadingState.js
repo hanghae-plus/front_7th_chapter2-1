@@ -1,6 +1,6 @@
 import { DEFAULT_LIMIT, DEFAULT_SORT } from "../../lib/config/catalog.js";
-import { renderSkeletonCards } from "../ui/skeleton.js";
-import { renderSpinner } from "../ui/spinner.js";
+import { renderSkeletonCards } from "./skeleton.js";
+import { renderSpinner } from "./spinner.js";
 import { renderFilterPanel } from "./FilterPanel.js";
 
 export const renderLoadingContent = ({

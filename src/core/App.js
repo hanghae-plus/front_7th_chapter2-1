@@ -1,7 +1,6 @@
 import { Router } from "./router.js";
-import { PageLayout } from "../components/index.js";
+import { PageLayout, showToast as showToastMessage } from "../components/index.js";
 import { DEFAULT_LIMIT, DEFAULT_SORT } from "../lib/config/catalog.js";
-import { showToast as showToastMessage } from "../components/ui/toast.js";
 import * as CartModule from "../lib/cartController.js";
 
 const CART_METHOD_NAMES = [

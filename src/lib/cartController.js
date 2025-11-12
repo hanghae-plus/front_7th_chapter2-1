@@ -1,5 +1,5 @@
 import { CART_BADGE_CLASSES, CART_SELECTION_STORAGE_KEY, CART_STORAGE_KEY } from "./constants.js";
-import { renderCartModal } from "../components/cart/index.js";
+import { renderCartModal } from "../components/index.js";
 
 export function loadCartFromStorage() {
   if (typeof window === "undefined" || !window.localStorage) {

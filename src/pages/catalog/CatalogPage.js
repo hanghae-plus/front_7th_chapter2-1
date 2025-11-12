@@ -1,5 +1,5 @@
 import { getProducts, getCategories } from "../../lib/api/productApi.js";
-import { renderLoadingContent, renderProductsContent, renderErrorContent } from "../../components/catalog/index.js";
+import { renderLoadingContent, renderProductsContent, renderErrorContent } from "../../components/index.js";
 
 /**
  * 상품 목록 페이지 컨트롤러
