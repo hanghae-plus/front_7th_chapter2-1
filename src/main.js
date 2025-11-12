@@ -7,8 +7,10 @@ import {
   detailTemplates,
   notFoundTemplates,
 } from "./templates/index.js";
-import { getProducts, getCategories, getProduct } from "./api/productApi.js";
+import { getProducts } from "./api/productApi.js";
 import { showToast } from "./util/commonUtils.js";
+import { store } from "./store.js";
+import { observe } from "./core/observer.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -16,29 +18,6 @@ const enableMocking = () =>
       onUnhandledRequest: "bypass",
     }),
   );
-
-// 전역 상태
-const state = {
-  products: [],
-  categories: [],
-  cart: [],
-  filters: {
-    search: "",
-    categories: [],
-    category1: "",
-    category2: "",
-    isSubItem: false,
-    limit: 20,
-    sort: "price_asc",
-  },
-  currentPage: 1,
-  totalCount: 0,
-  hasNext: true,
-  hasPrev: false,
-  isLoading: false,
-  detailProduct: {},
-  isMain: true,
-};
 
 async function initMain() {
   await Promise.all([navigate()]);
@@ -72,62 +51,26 @@ async function navigate() {
 
 // ===== 데이터 로딩 =====
 async function loadProducts() {
-  if (state.isLoading) return;
-
-  state.isLoading = true;
-
-  try {
-    const response = await getProducts({
-      page: state.currentPage,
-      limit: state.filters.limit,
-      search: state.filters.search,
-      category1: state.filters.category1,
-      category2: state.filters.category2,
-      sort: state.filters.sort,
-    });
-
-    state.products = response.products;
-    state.totalCount = response.pagination.total;
-    state.hasNext = response.pagination.hasNext;
-    state.hasPrev = response.pagination.hasPrev;
-
-    console.log("상품 로드 완료:", state.products.length, "개");
-  } catch (error) {
-    console.error("상품 로딩 실패:", error);
-    throw error;
-  } finally {
-    state.isLoading = false;
-  }
+  await store.dispatch("loadProducts");
 }
 
 async function loadCategories() {
-  try {
-    const response = await getCategories();
-    state.categories = response;
-    state.filters.categories = Object.keys(response);
-    state.filters.isSubItem = false;
-    console.log("카테고리 로드 완료:", state.categories.length, "개");
-  } catch (error) {
-    console.error("카테고리 로딩 실패:", error);
-  }
+  await store.dispatch("loadCategories");
 }
 
 // 상품 상세 정보
 async function loadDetailProduct(productId) {
-  try {
-    const response = await getProduct(productId);
-    state.detailProduct = response;
-    console.log("상품 상세 정보 로드 완료:", state.detailProduct);
-  } catch (error) {
-    console.error("상품 상세 정보 로딩 실패:", error);
-  }
+  await store.dispatch("loadProductDetail", productId);
 }
 
 // 관련 상품 정보
 async function loadRelatedProducts(productId = "") {
   try {
-    const response = await getProducts({ category2: state.detailProduct.category2 });
-    state.relatedProducts = response.products.filter((p) => p.productId !== productId);
+    const response = await getProducts({ category2: store.state.detailProduct.category2 });
+    store.commit(
+      "SET_RELATED_PRODUCTS",
+      response.products.filter((p) => p.productId !== productId),
+    );
   } catch (error) {
     console.error("관련 상품 정보 로딩 실패:", error);
   }
@@ -135,52 +78,58 @@ async function loadRelatedProducts(productId = "") {
 
 function renderLoading() {
   const content = searchTemplates.filterBox() + commonTemplates.skeleton();
-  document.body.innerHTML = layoutTemplates.page(content, state.cart.length);
+  document.body.innerHTML = layoutTemplates.page(content, store.state.cart.length);
 }
 
 // 초기 렌더링: 전체 페이지 구조 (필터 + 상품 목록 컨테이너)
 function renderInitialPage() {
-  const content = `
-    ${searchTemplates.filterBox(state.filters)}
-    ${productTemplates.count(state.totalCount)}
-    <div id="product-list-container">
-      ${productTemplates.list(state.products)}
-    </div>
-  `;
+  store.dispatch("initCart");
 
-  const localStorageCart = window.localStorage.getItem("shopping_cart");
-  state.cart = localStorageCart ? JSON.parse(localStorageCart) : [];
-
-  document.body.innerHTML = layoutTemplates.page(content, state.cart.length);
+  observe(() => {
+    const content = `
+      ${searchTemplates.filterBox(store.state.filters)}
+      ${productTemplates.count(store.state.totalCount)}
+      <div id="product-list-container">
+        ${productTemplates.list(store.state.products)}
+      </div>
+    `;
+    document.body.innerHTML = layoutTemplates.page(content, store.state.cart.length);
+  });
 }
 
 // 상세페이지 렌더링
 function renderProductDetailPage() {
-  document.body.innerHTML = detailTemplates.page(state.detailProduct, state.relatedProducts, state.cart.length);
+  observe(() => {
+    document.body.innerHTML = detailTemplates.page(
+      store.state.detailProduct,
+      store.state.relatedProducts,
+      store.state.cart.length,
+    );
+  });
 }
 
 // 404 페이지 렌더링
 function render404Page() {
   const content = notFoundTemplates.page();
-  document.body.innerHTML = layoutTemplates.page(content, state.cart.length);
+  document.body.innerHTML = layoutTemplates.page(content, store.state.cart.length);
 }
 
 // 카테고리 필터 업데이트
 function updateCategorys() {
   const targetrDiv = document.getElementById("category-filters");
-  const filters = state.filters;
+  const filters = store.state.filters;
   let categories = {};
 
   const categoryBreadcrumb = document.getElementById("category-breadcrumb");
   categoryBreadcrumb.innerHTML = searchTemplates.breadcrumb(filters.category1, filters.category2);
 
   if (!filters.category1) {
-    categories = state.categories;
+    categories = store.state.categories;
     targetrDiv.innerHTML = Object.keys(categories)
       .map((category) => searchTemplates.categoryButton1(category))
       .join("");
   } else {
-    categories = state.categories[filters.category1];
+    categories = store.state.categories[filters.category1];
     if (categories.length > 0 && filters.category2) {
       categories = categories[filters.category2];
     }
@@ -195,10 +144,10 @@ function updateProductList(append = false) {
   const productListContainer = document.getElementById("product-list-container");
   if (productListContainer) {
     if (!append) {
-      productListContainer.innerHTML = productTemplates.list(state.products);
+      productListContainer.innerHTML = productTemplates.list(store.state.products);
     } else {
       removeInfiniteScrollLoader();
-      productTemplates.appendList("products-grid", state.products);
+      productTemplates.appendList("products-grid", store.state.products);
     }
   }
   updateProductCount();
@@ -208,7 +157,7 @@ function updateProductList(append = false) {
 function updateProductCount() {
   const countElement = document.querySelector('[data-testid="product-count"]');
   if (countElement) {
-    countElement.innerHTML = `총 <span class="font-medium text-gray-900">${state.totalCount}</span>개의 상품`;
+    countElement.innerHTML = `총 <span class="font-medium text-gray-900">${store.state.totalCount}</span>개의 상품`;
   }
 }
 
@@ -218,15 +167,15 @@ function updateCartIcon() {
   if (cartIconBtn) {
     const existingBadge = cartIconBtn.querySelector("span");
     if (existingBadge) {
-      if (state.cart.length > 0) {
-        existingBadge.textContent = state.cart.length;
+      if (store.state.cart.length > 0) {
+        existingBadge.textContent = store.state.cart.length;
       } else {
         existingBadge.remove();
       }
-    } else if (!existingBadge && state.cart.length > 0) {
+    } else if (!existingBadge && store.state.cart.length > 0) {
       const badgeHTML = /* html */ `
         <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-          ${state.cart.length}
+          ${store.state.cart.length}
         </span>
       `;
       cartIconBtn.insertAdjacentHTML("beforeend", badgeHTML);
@@ -242,7 +191,7 @@ function showInfiniteScrollLoader() {
       <div class="col-span-2" id="infinite-scroll-loader">
         ${commonTemplates.loading("상품을 더 불러오는 중...")}
         <div class="grid grid-cols-2 gap-4 mt-4">
-          ${productTemplates.skeletonCards(state.filters.limit)}
+          ${productTemplates.skeletonCards(store.state.filters.limit)}
         </div>
       </div>
     `;
@@ -271,8 +220,8 @@ function addEventListeners() {
     if (event.key === "Enter") {
       event.defaultPrevented();
       const searchTerm = event.target.value.trim();
-      state.currentPage = 1;
-      state.filters.search = searchTerm;
+      store.commit("SET_CURRENT_PAGE", 1);
+      store.commit("SET_FILTERS", { search: searchTerm });
       await loadProducts();
       updateProductList();
     }
@@ -283,14 +232,14 @@ function addEventListeners() {
     event.stopPropagation();
 
     if (event.target.matches(".category-filter-btn")) {
-      state.currentPage = 1;
+      store.commit("SET_CURRENT_PAGE", 1);
 
       if (event.target.getAttribute("data-category1")) {
         const category1 = event.target.textContent.trim();
-        state.filters.category1 = category1;
+        store.commit("SET_FILTERS", { category1 });
       } else if (event.target.getAttribute("data-category2")) {
         const category2 = event.target.textContent.trim();
-        state.filters.category2 = category2;
+        store.commit("SET_FILTERS", { category2 });
       }
 
       await Promise.all([loadProducts()]);
@@ -307,10 +256,12 @@ function addEventListeners() {
     ) {
       event.stopPropagation();
 
-      state.filters.category1 = event.target.getAttribute("data-category1") || "";
-      state.filters.category2 = "";
-      state.filters.search = "";
-      state.currentPage = 1;
+      store.commit("SET_FILTERS", {
+        category1: event.target.getAttribute("data-category1") || "",
+        category2: "",
+        search: "",
+      });
+      store.commit("SET_CURRENT_PAGE", 1);
       await Promise.all([loadProducts()]);
       updateCategorys();
       updateProductList();
@@ -322,8 +273,8 @@ function addEventListeners() {
     event.stopPropagation();
 
     const newLimit = parseInt(event.target.value, 10);
-    state.filters.limit = newLimit;
-    state.currentPage = 1;
+    store.commit("SET_FILTERS", { limit: newLimit });
+    store.commit("SET_CURRENT_PAGE", 1);
     await loadProducts();
     updateProductList();
   });
@@ -333,8 +284,8 @@ function addEventListeners() {
     event.stopPropagation();
 
     const newSort = event.target.value;
-    state.filters.sort = newSort;
-    state.currentPage = 1;
+    store.commit("SET_FILTERS", { sort: newSort });
+    store.commit("SET_CURRENT_PAGE", 1);
     await loadProducts();
     updateProductList();
   });
@@ -346,16 +297,11 @@ function addEventListeners() {
     if (event.target.matches(".add-to-cart-btn")) {
       const productId = event.target.getAttribute("data-product-id");
 
-      if (state.cart.includes(productId)) {
-        return;
+      const success = store.dispatch("addToCart", productId);
+      if (success) {
+        showToast("장바구니에 추가되었습니다.", "info");
+        updateCartIcon();
       }
-
-      state.cart.push(productId);
-      window.localStorage.setItem("shopping_cart", JSON.stringify(state.cart));
-
-      showToast("장바구니에 추가되었습니다.", "info");
-
-      updateCartIcon();
     }
   });
 
@@ -374,7 +320,7 @@ function addEventListeners() {
     event.preventDefault();
     event.stopPropagation();
     if (event.target.parentElement.matches("#back-button")) {
-      state.currentPage = 1;
+      store.commit("SET_CURRENT_PAGE", 1);
       history.pushState(null, "", "/");
       navigate();
     }
@@ -395,7 +341,7 @@ function addEventListeners() {
     event.preventDefault();
     event.stopPropagation();
     if (event.target.matches(".go-to-product-list")) {
-      state.currentPage = 1;
+      store.commit("SET_CURRENT_PAGE", 1);
       history.pushState(null, "", "/");
       navigate();
     }
@@ -407,8 +353,8 @@ function addEventListeners() {
     const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
     if (scrollTop + clientHeight >= scrollHeight - 100) {
       // 100px 남았을 때 다음 페이지 로드
-      if (state.hasNext && !state.isLoading) {
-        state.currentPage++;
+      if (store.state.hasNext && !store.state.isLoading) {
+        store.commit("SET_CURRENT_PAGE", store.state.currentPage + 1);
 
         showInfiniteScrollLoader();
 
