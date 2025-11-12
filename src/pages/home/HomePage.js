@@ -5,11 +5,11 @@ import { SortSelect } from "../../components/filter/SortSelect";
 import { Header } from "../../components/layout/Header";
 import { Footer } from "../../components/layout/Footer";
 import { getProducts } from "../../api/productApi";
-import { BaseComponent } from "../../components/common/BaseComponent";
+import { BaseComponent } from "../../core/component/BaseComponent";
 import { HomePageSkeleton } from "./HomePageSkeleton";
 import { html } from "../../utils/html";
 import { ProductList } from "../../components/product/ProductList";
-import { showToast } from "../../components/common/toast";
+import { showToast } from "../../utils/toast";
 import { ProductListQueryParams } from "../../utils/query-params";
 
 export class HomePage extends BaseComponent {

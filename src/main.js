@@ -1,5 +1,6 @@
+import { App } from "./app.js";
 import "./globals/html-global.js";
-import { HomePage } from "./pages/home/HomePage.js";
+import { routes } from "./routes/routes.js";
 import { modalStore } from "./stores/modal-store.js";
 
 const enableMocking = () =>
@@ -10,7 +11,7 @@ const enableMocking = () =>
   );
 
 function main() {
-  new HomePage().mount("#root");
+  new App("#root", routes);
   modalStore.init();
 }
 
