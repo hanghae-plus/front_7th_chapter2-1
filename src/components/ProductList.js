@@ -3,24 +3,22 @@ import SearchFilter from "./SearchFilter";
 import ProductCard from "./ProductCard";
 import { navigateTo } from "../router";
 import { getProducts } from "../api/productApi";
+import { defaultProductState } from "../store/prodcutStore";
 
 class ProductList extends Component {
   initState() {
-    return {
-      products: [],
-      categories: {},
-      isLoading: true,
-      isLoadingMore: false,
-      error: null,
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 1,
-        hasNext: false,
-        hasPrev: false,
-      },
-    };
+    return this.getInitState();
+  }
+  getInitState() {
+    const initState = { ...defaultProductState };
+    const urlParams = new URLSearchParams(window.location.search);
+    const search = urlParams.get("search") || "";
+    const category1 = urlParams.get("category1") || "";
+    const category2 = urlParams.get("category2") || "";
+    const sort = urlParams.get("sort") || "price_asc";
+    const page = urlParams.get("search ") || 1;
+    const limit = urlParams.get("limit") || 20;
+    return { ...initState, page, limit, search, category1, category2, sort };
   }
   template() {
     console.log("state ::", this.state);
@@ -57,7 +55,7 @@ class ProductList extends Component {
     if (!$productList) return;
 
     // // 기존 ProductCard 제거
-    $productList.innerHTML = "";
+    // $productList.innerHTML = "";
 
     // 새로운 ProductCard 생성
     this.state?.products?.forEach((product) => {
