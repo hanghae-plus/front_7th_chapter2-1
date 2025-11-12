@@ -7,6 +7,7 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  base: "/front-chapter2-1/",
   test: {
     globals: true,
     environment: "jsdom",
