@@ -1,4 +1,4 @@
-import ProductList from "./pages/ProductList.js";
+import App from "./App.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -10,15 +10,8 @@ const enableMocking = () =>
     }),
   );
 
-function main() {
-  document.body.innerHTML = `
-    ${ProductList()}
-  `;
-}
-
-// 애플리케이션 시작
 if (import.meta.env.MODE !== "test") {
-  enableMocking().then(main);
+  enableMocking().then(App);
 } else {
-  main();
+  App();
 }
