@@ -213,7 +213,10 @@ export function openCartModal() {
   overlay.setAttribute("role", "presentation");
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) {
-      this.closeCartModal();
+      event.stopPropagation();
+      requestAnimationFrame(() => {
+        this.closeCartModal();
+      });
     }
   });
 
