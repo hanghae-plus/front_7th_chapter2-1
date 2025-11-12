@@ -3,6 +3,7 @@ const createRouter = () => {
   let notFoundComponent = () => "<h1>404 Not Found</h1>";
   let querySubscribers = new Set();
   let currentQueryParams = {};
+  let currentOnUnmount = null; // 현재 페이지의 unmount 함수를 저장
 
   // URL에서 쿼리를 파싱하는 함수
   const parseQuery = () => {
@@ -14,8 +15,16 @@ const createRouter = () => {
     querySubscribers.forEach((callback) => callback(currentQueryParams));
   };
 
-  // 경로 변경을 처리하는 메인 함수
+  /**
+   * 경로 변경 처리용 메인 함수
+   * */
   const handlePathChange = () => {
+    // 이전 페이지의 정리(unmount) 함수가 있으면 실행
+    if (currentOnUnmount) {
+      currentOnUnmount();
+      currentOnUnmount = null;
+    }
+
     const path = window.location.pathname;
     const route = routes.find((r) => r.path.test(path));
     const $root = document.getElementById("root");
@@ -27,13 +36,20 @@ const createRouter = () => {
       return;
     }
 
+    let pageComponent;
     if (route) {
       const pathParams = path.match(route.path)?.groups || {};
-      $root.innerHTML = route.component({ ...pathParams, ...currentQueryParams });
+      pageComponent = route.component({ ...pathParams, ...currentQueryParams });
     } else {
-      $root.innerHTML = notFoundComponent();
+      pageComponent = notFoundComponent();
     }
-    // 페이지 전체가 다시 렌더링될 때도 쿼리 구독자에게 알림
+
+    // 새 페이지 렌더링 및 초기화(mount)
+    $root.innerHTML = pageComponent.html;
+    if (pageComponent.onMount) {
+      currentOnUnmount = pageComponent.onMount(); // onMount는 onUnmount 함수를 반환
+    }
+
     notifyQuerySubscribers();
   };
 
@@ -64,11 +80,6 @@ const createRouter = () => {
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       // pushState는 popstate 이벤트를 발생시키지 않으므로, 수동으로 상태를 업데이트하고 알려야 합니다.
       window.history.pushState({}, "", newUrl);
-
-      currentQueryParams = parseQuery();
-      // 페이지 전체를 다시 그리지 않고, 쿼리 구독자에게만 알립니다.
-      // notifyQuerySubscribers();
-      // 페이지 전체를 다시 그리는 현재 구조에서는 handlePathChange를 호출합니다.
       handlePathChange();
     },
 

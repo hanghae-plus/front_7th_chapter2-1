@@ -96,7 +96,8 @@ function renderSearchFilter(params, categories) {
 
 export function ProductListPage(queryParams) {
   // 이벤트 리스너는 한 번만 설정
-  setupEventListeners();
+  // refactor : onMount에서 설
+  // setupEventListeners();
 
   /**
    * 랜더링 함수 (스토어 업데이트 시 실행)
@@ -145,21 +146,42 @@ export function ProductListPage(queryParams) {
     }
   };
 
-  /**
-   * 스토어 구독
-   * TODO : 라이프 싸이클 구현을 통해 메모리 누수 관리 (unmounted 훅 필요)
-   * --> 다른 페이지 접근 후 재접근 시 스토어 구독이 중복되어 실행 됨 (unmounted 훅에서 구독취소 로직 필요)
-   * */
-  let cancelSubscribe = productStore.subscribe(handleStoreUpdate);
-  console.log("ProductListPage - Proudct 스토어 구독 취소 콜백", cancelSubscribe);
+  const onMount = () => {
+    // 1. 이벤트 리스너 설정
+    setupEventListeners();
 
-  /**
-   * URL 파라미터에 따라 초기 데이터 요청
-   * setParams는 state를 변경하고,
-   * setParams의 내부 로직 중 this.#setState에서 notify()를 통해 리렌더링 실시 (handleStoreUpdate)
-   * */
-  productStore.setParams(queryParams);
-  productStore.getCategories();
+    // 2. 스토어 구독
+    const unsubscribe = productStore.subscribe(handleStoreUpdate);
+
+    // 3. IntersectionObserver 설정 (무한 스크롤)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const firstEntry = entries[0];
+        const { loading, pagination } = productStore.getState();
+        if (firstEntry.isIntersecting && !loading && pagination.hasNext) {
+          productStore.fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    const target = document.getElementById("list-footer-indicator");
+    if (target) {
+      observer.observe(target);
+    }
+
+    // 4. 초기 데이터 로드
+    // setParams는 state를 변경하고
+    // setParams의 내부 로직 중 this.#setState에서 notify()를 통해 리렌더링 실시 (handleStoreUpdate)
+    productStore.setParams(queryParams);
+    productStore.getCategories();
+
+    // 5. unmount 시 옵저버 패턴 구독 취소 (product 스토어 + intersectionObserver)
+    return () => {
+      unsubscribe();
+      observer.disconnect();
+    };
+  };
 
   /**
    * ProductListPage.js 호출 후 초기 페이지 DOM
@@ -167,7 +189,8 @@ export function ProductListPage(queryParams) {
    * 데이터 로딩이 완료시, 구독된 handleStoreUpdate 함수 실행 (상품 목록 채워진 버전으로 리렌더링).
    * */
   const initialState = productStore.getState();
-  return `
+  return {
+    html: `
       <main id="product-list-page" class="max-w-md mx-auto px-4 py-4">
         <!-- 검색 및 필터 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4" id="product-search-filter">
@@ -183,5 +206,7 @@ export function ProductListPage(queryParams) {
           </div>
           <div id="list-footer-indicator"></div>
         </div>
-      </main>`;
+      </main>`,
+    onMount,
+  };
 }
