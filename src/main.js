@@ -41,10 +41,21 @@ document.body.addEventListener("click", (e) => {
     router.push(`?${params.toString()}`);
   }
 
+  // breadcrumb category1 버튼 클릭
+  if (e.target.closest('[data-breadcrumb="category1"]')) {
+    const category1 = e.target.closest('[data-breadcrumb="category1"]').dataset.category1;
+    store.setState({ category1, category2: "" });
+    params.set("category1", category1);
+    params.delete("category2");
+    router.push(`?${params.toString()}`);
+  }
+
   // 전체 버튼 클릭
   if (e.target.closest('[data-breadcrumb="reset"]')) {
     store.setState({ category1: "", category2: "" });
-    router.push(`?`);
+    params.delete("category1");
+    params.delete("category2");
+    router.push(`?${params.toString()}`);
   }
 });
 

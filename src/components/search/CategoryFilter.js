@@ -17,10 +17,10 @@ export const CategoryFilter = () => {
           /* HTML */ `<span class="text-xs text-gray-500">&gt;</span>
             <button
               data-breadcrumb="category1"
-              data-category1="생활/건강"
+              data-category1=${category1}
               class="text-xs hover:text-blue-800 hover:underline"
             >
-              생활/건강
+              ${category1}
             </button>`}
           ${category2 &&
           /* HTML */ `
