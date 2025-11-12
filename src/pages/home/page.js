@@ -19,7 +19,7 @@ export default class HomePage extends Component {
     this.productList = new ProductList($productList);
     this.searchForm = new SearchForm($searchForm, {
       onSearchParamsChange: () => {
-        if (this.productList) this.productList.fetchProducts();
+        if (this.productList) this.productList.fetchProducts(true);
       },
     });
   }

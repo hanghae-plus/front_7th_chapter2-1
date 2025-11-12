@@ -8,33 +8,108 @@ const SKELETON_COUNT = 4;
 
 export default class ProductList extends Component {
   setup() {
-    // TODO: 로딩 상태 처리 필요
+    const params = new URLSearchParams(location.search);
+
     this.state = {
       products: [],
       pagination: null,
       filters: null,
+      current: params.get('current') ? Number(params.get('current')) : 1,
+      loading: false,
     };
-    this.fetchProducts();
+    this.currentFilters = this.getCurrentFilters();
+    this.observer = null;
+    this.observerTarget = null;
+    this.fetchProducts(true);
   }
 
-  // TODO: API 에러 처리 필요
-  async fetchProducts() {
+  getCurrentFilters() {
     const params = new URLSearchParams(location.search);
-    const { products, pagination, filters } = await getProducts({
-      page: params.get('page') ? Number(params.get('page')) : undefined,
-      current: params.get('current') ? Number(params.get('current')) : undefined,
+
+    return {
       limit: params.get('limit') ? Number(params.get('limit')) : undefined,
       search: params.get('search') || undefined,
       category1: params.get('category1') || undefined,
       category2: params.get('category2') || undefined,
       sort: /** @type {SortType} */ (params.get('sort')) || undefined,
-    });
+    };
+  }
 
-    this.setState({ products, pagination, filters });
+  // TODO: API 에러 처리 필요
+  async fetchProducts(reset = false) {
+    const newFilters = this.getCurrentFilters();
+    const filtersChanged = JSON.stringify(newFilters) !== JSON.stringify(this.currentFilters);
+    const shouldReset = reset || filtersChanged;
+
+    if (shouldReset) {
+      this.currentFilters = newFilters;
+      const url = new URL(location.href);
+      url.searchParams.delete('current');
+      history.replaceState({}, '', url.toString());
+      this.setState({
+        products: [],
+        pagination: null,
+        filters: null,
+        current: 1,
+        loading: true,
+      });
+    } else {
+      if (this.state.loading || !this.state.pagination?.hasNext) return;
+      this.setState({ loading: true });
+    }
+
+    try {
+      const { products, pagination, filters } = await getProducts({
+        ...this.currentFilters,
+        current: shouldReset ? 1 : this.state.current,
+      });
+
+      this.setState({
+        products: shouldReset ? products : [...this.state.products, ...products],
+        pagination,
+        filters,
+        current: pagination.page,
+        loading: false,
+      });
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      this.setState({ loading: false });
+    }
+  }
+
+  setupIntersectionObserver() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+
+    this.observerTarget = this.$target.querySelector('[data-observer-target]');
+    if (!this.observerTarget) return;
+
+    this.observer = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const { pagination, current, loading } = this.state;
+          if (loading || !pagination?.hasNext) return;
+
+          const url = new URL(location.href);
+          const nextPage = current + 1;
+
+          url.searchParams.set('current', nextPage.toString());
+          history.replaceState({}, '', url.toString());
+          this.setState({ current: nextPage });
+          this.fetchProducts(false);
+        }),
+      { threshold: 0.1 }
+    );
+
+    this.observer.observe(this.observerTarget);
   }
 
   template() {
-    const { products, pagination } = this.state;
+    const { products, pagination, loading } = this.state;
 
     return /* HTML */ `
       <!-- 상품 목록 -->
@@ -49,18 +124,54 @@ export default class ProductList extends Component {
               `
             : ''}
           <!-- 상품 그리드 -->
-          <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-            ${products.length
-              ? /* HTML */ `<div data-slot="product-item"></div>`.repeat(products.length)
-              : /* HTML */ `<div data-slot="product-item-skeleton"></div>`.repeat(SKELETON_COUNT)}
-          </div>
-
-          <!-- TODO: 페이지네이션 구현 -->
-          ${pagination?.total === products.length
-            ? /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">
-                모든 상품을 확인했습니다
-              </div>`
-            : /* HTML */ `<div data-slot="product-list-loading"></div>`}
+          ${loading
+            ? /* HTML */ `
+                <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
+                  ${
+                    /* HTML */ `<div data-slot="product-item-skeleton"></div>`.repeat(
+                      SKELETON_COUNT
+                    )
+                  }
+                </div>
+              `
+            : products.length
+              ? /* HTML */ `
+                  <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
+                    ${/* HTML */ `<div data-slot="product-item"></div>`.repeat(products.length)}
+                  </div>
+                `
+              : /* HTML */ `
+                  <div class="text-center py-12">
+                    <div class="text-gray-400 mb-4">
+                      <svg
+                        class="mx-auto h-12 w-12"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">상품을 찾을 수 없습니다</h3>
+                    <p class="text-gray-600">다른 검색어를 시도해보세요.</p>
+                  </div>
+                `}
+          ${products.length
+            ? /* HTML */ `
+                ${!pagination?.hasNext
+                  ? /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">
+                      모든 상품을 확인했습니다
+                    </div>`
+                  : loading
+                    ? /* HTML */ `<div data-slot="product-list-loading"></div>`
+                    : /* HTML */ `<div data-observer-target></div>`}
+              `
+            : ''}
         </div>
       </div>
     `;
@@ -75,11 +186,12 @@ export default class ProductList extends Component {
     const $productListLoading = this.$target.querySelector('[data-slot="product-list-loading"]');
 
     $productItems.forEach(($productItem, index) => {
-      new ProductItem($productItem, products[index]);
+      if (products[index]) new ProductItem($productItem, products[index]);
     });
     $productItemSkeletons.forEach(
       ($productItemSkeleton) => new ProductItemSkeleton($productItemSkeleton)
     );
-    new ProductListLoading($productListLoading);
+    if ($productListLoading) new ProductListLoading($productListLoading);
+    this.setupIntersectionObserver();
   }
 }
