@@ -12,6 +12,8 @@ const enableMocking = () =>
   );
 
 document.body.addEventListener("click", (e) => {
+  const params = new URLSearchParams(window.location.search);
+
   if (e.target.closest(".product-card")) {
     const productId = e.target.closest(".product-card").dataset.productId;
     router.push(`/products/${productId}`);
@@ -21,7 +23,8 @@ document.body.addEventListener("click", (e) => {
   if (e.target.closest(".category1-filter-btn")) {
     const category1 = e.target.closest(".category1-filter-btn").dataset.category1;
     store.setState({ category1, category2: "" });
-    router.push(`?category1=${category1}`);
+    params.set("category1", category1);
+    router.push(`?${params.toString()}`);
   }
 
   // category2 버튼 클릭
@@ -29,7 +32,9 @@ document.body.addEventListener("click", (e) => {
     const category1 = e.target.closest(".category2-filter-btn").dataset.category1;
     const category2 = e.target.closest(".category2-filter-btn").dataset.category2;
     store.setState({ category1, category2 });
-    router.push(`?category1=${category1}&category2=${category2}`);
+    params.set("category1", category1);
+    params.set("category2", category2);
+    router.push(`?${params.toString()}`);
   }
 
   // 전체 버튼 클릭
@@ -47,11 +52,20 @@ document.body.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const keyword = input.value.trim();
 
+    if (!keyword && !store.state.search) return;
+    if (keyword === store.state.search) return;
+
     // 상태 업데이트 (필요하면 페이지 리렌더 유도)
     store.setState({ search: keyword, pagination: { page: 1, limit: 20 } });
 
     // URL 쿼리 반영
-    router.push(`?search=${encodeURIComponent(keyword)}`);
+    const params = new URLSearchParams(window.location.search);
+    if (keyword) {
+      params.set("search", keyword);
+    } else {
+      params.delete("search");
+    }
+    router.push(`?${params.toString()}`);
   }
 });
 

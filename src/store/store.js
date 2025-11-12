@@ -3,10 +3,10 @@ import { createStore } from "./createStore";
 const params = new URLSearchParams(location.search);
 const category1 = params.get("category1");
 const category2 = params.get("category2");
-console.log(location.search);
+const search = params.get("search");
 
 export const initialState = {
-  search: "",
+  search: search || "",
   pagination: { page: 1, limit: 20 },
   products: [],
   categories: {},
