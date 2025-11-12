@@ -93,7 +93,7 @@ export const DetailInfo = ({ product }) => {
             <span class="text-sm font-medium text-gray-900">수량</span>
             ${Counter()}
           </div>
-          ${AddToCartButton(product.productId)}
+          ${AddToCartButton({ productId: product.productId })}
         </div>
       </div>`;
 };

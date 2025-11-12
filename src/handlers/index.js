@@ -92,7 +92,20 @@ function onClickDecreaseCounter() {
   decreaseButton.addEventListener("click", decreaseEventHandler);
 }
 
+function onClickAddToCart() {
+  const addToCartButton = document.querySelector("#add-to-cart-btn");
+
+  const addToCartEventHandler = () => {
+    const productId = addToCartButton.dataset.productId;
+    console.log(`상품 ${productId}번이 장바구니에 추가되었습니다.`);
+    // TODO 여기서 토스트 트리거 해야 함
+  };
+
+  addToCartButton.addEventListener("click", addToCartEventHandler);
+}
+
 export function attachDetailPageHandlers() {
   onClickIncreaseCounter();
   onClickDecreaseCounter();
+  onClickAddToCart();
 }
