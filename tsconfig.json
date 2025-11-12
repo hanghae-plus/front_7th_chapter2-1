@@ -2,6 +2,11 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "ESNext",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
 }

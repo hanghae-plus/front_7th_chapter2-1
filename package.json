@@ -46,6 +46,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "npm:rolldown-vite@latest",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "latest"
   },
   "msw": {
