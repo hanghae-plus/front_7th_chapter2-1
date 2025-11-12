@@ -93,12 +93,17 @@ function syncStateFromUrl() {
   const category1 = params.get("category1") || "";
   const category2 = params.get("category2") || "";
   const limit = parseInt(params.get("limit")) || 20;
+  const search = params.get("search") || "";
 
   const stateUpdates = {};
 
   if (store.state.category1 !== category1 || store.state.category2 !== category2) {
     stateUpdates.category1 = category1;
     stateUpdates.category2 = category2;
+  }
+
+  if (search !== store.state.search) {
+    stateUpdates.search = search;
   }
 
   if (store.state.pagination.limit !== limit) {
