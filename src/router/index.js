@@ -213,8 +213,23 @@ export const useQueryChange = (callback) => {
   const router = useRouter();
   if (!router) return () => {};
 
-  return router.subscribe(() => {
-    const queryParams = useQueryParams();
-    callback(queryParams);
+  let lastPath = router.getCurrent().path;
+  let lastQueryString = router.getCurrent().query.toString();
+
+  return router.subscribe((current) => {
+    // 경로가 변경되면 무시
+    if (lastPath !== current.path) {
+      lastPath = current.path;
+      lastQueryString = current.query.toString();
+      return;
+    }
+
+    // 경로가 같고 쿼리스트링만 변경된 경우에만 콜백 호출
+    const currentQueryString = current.query.toString();
+    if (lastQueryString !== currentQueryString) {
+      lastQueryString = currentQueryString;
+      const queryParams = useQueryParams();
+      callback(queryParams);
+    }
   });
 };
