@@ -5,7 +5,7 @@ import { CategoryFilter } from "./CategoryFilter";
 export const SearchForm = () => {
   const $el = document.createElement("div");
   $el.className = "bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4";
-
+  console.log("SearchForm");
   $el.appendChild(SearchBar());
 
   const $filters = document.createElement("div");
