@@ -1,5 +1,6 @@
 import { getProducts } from "./api/productApi";
 import CartModal from "./components/CartModal";
+import { TOAST_MESSAGE_MAP } from "./constants/toast-constant";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
 import { extractParams } from "./utils/route";
@@ -115,6 +116,20 @@ async function main() {
       const productId = event.target.dataset.productId;
       if (!productId) return;
       appStore.addCartItemCountByProductId(productId);
+    } else if (event.target.closest("#cart-modal-remove-selected-btn")) {
+      console.log("[Click Event] cart-modal-remove-selected-btn", event);
+      appStore.removeSelectedCartItems();
+      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
+    } else if (event.target.closest("#cart-modal-clear-cart-btn")) {
+      console.log("[Click Event] cart-modal-clear-cart-btn", event);
+      appStore.removeAllCartItems();
+      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
+    } else if (event.target.closest(".cart-item-remove-btn")) {
+      console.log("[Click Event] cart-item-remove-btn", event);
+      const productId = event.target.dataset.productId;
+      if (!productId) return;
+      appStore.removeCartItemByProductId(productId);
+      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
     }
   });
 
@@ -197,7 +212,7 @@ async function main() {
       const productId = event.target.dataset.productId;
       if (!productId) return;
       appStore.addToCart(productId, appState.cartItemCount);
-      showToastMessage("장바구니에 추가되었습니다", "success");
+      showToastMessage(TOAST_MESSAGE_MAP.ADD_TO_CART, "success");
     } else if (event.target.closest("#cart-icon-btn")) {
       console.log("[Click Event] cart-icon-btn", event);
       $cartModalRoot.innerHTML = `

@@ -168,6 +168,29 @@ const appStore = {
     });
     appState.cartItemCount -= 1;
   },
+  removeSelectedCartItems: () => {
+    console.log("[Store - Action] removeSelectedCartItems", {
+      BEFORE: appState.cart,
+      AFTER: appState.cart.filter((item) => !appState.selectedCartIds.includes(item.productId)),
+    });
+    appState.cart = appState.cart.filter((item) => !appState.selectedCartIds.includes(item.productId));
+    appState.selectedCartIds = [];
+  },
+  removeCartItemByProductId: (/** @type {string} */ productId) => {
+    console.log("[Store - Action] removeCartItemByProductId", {
+      BEFORE: appState.cart,
+      AFTER: appState.cart.filter((item) => item.productId !== productId),
+    });
+    appState.cart = appState.cart.filter((item) => item.productId !== productId);
+  },
+  removeAllCartItems: () => {
+    console.log("[Store - Action] removeAllCartItems", {
+      BEFORE: appState.cart,
+      AFTER: [],
+    });
+    appState.cart = [];
+    appState.selectedCartIds = [];
+  },
   reset: () => {
     console.log("[Store - Action] reset", { BEFORE: appState, AFTER: initialAppState });
     appState = initialAppState;
