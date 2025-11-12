@@ -20,7 +20,7 @@ function createInitialDetailState() {
     product: null,
   };
 }
-
+// 상태관리박스
 const state = {
   products: [],
   isLoadingProducts: false,
