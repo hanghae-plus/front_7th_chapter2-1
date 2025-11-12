@@ -10,14 +10,14 @@ const state = createStore({
   search: "",
 });
 
-const router = createRouter(
+export const router = createRouter(
   [
     {
       path: "/",
       element: HomePage,
     },
     {
-      path: "product/:id",
+      path: "/product/:id",
       element: DetailPage,
     },
   ],

@@ -1,5 +1,30 @@
 import { attachHomePageEventListeners } from "../handlers";
 
+// 정적 라우트 매칭
+function matchStaticRoute(route, currentPath) {
+  return route.path === currentPath;
+}
+
+// 동적 라우트 매칭
+function matchDynamicRoute(route, currentPath) {
+  if (!route.path.includes(":")) return false;
+
+  // '/product/:id' → /^\/product\/[^/]+$/
+  const regex = new RegExp("^" + route.path.replace(/:\w+/g, "[^/]+") + "$");
+  return regex.test(currentPath);
+}
+
+// 동적 파라미터 추출
+function extractParams(routePath, currentPath) {
+  const paramNames = routePath
+    .split("/")
+    .filter((p) => p.startsWith(":"))
+    .map((p) => p.slice(1));
+
+  const paramValues = currentPath.split("/").slice(-paramNames.length);
+  return Object.fromEntries(paramNames.map((n, i) => [n, paramValues[i]]));
+}
+
 export function createRouter(routes, state) {
   // base path 설정 (개발: /, 배포: /front_7th_chapter2-1/)
   const basePath = import.meta.env.BASE_URL || "/";
@@ -31,9 +56,10 @@ export function createRouter(routes, state) {
     const fullPath = window.location.pathname;
     const currentPath = getPathWithoutBase(fullPath);
 
-    // 현재 경로에 해당하는 컴포넌트 찾기
-    // FIXME : 동적 라우팅 부분 수정
-    const matchedRoute = routes.find((route) => route.path === currentPath);
+    const matchedRoute =
+      routes.find((r) => matchStaticRoute(r, currentPath)) || routes.find((r) => matchDynamicRoute(r, currentPath));
+
+    console.log("matchedRoute:", matchedRoute);
 
     const $root = document.querySelector("#root");
     if (!matchedRoute) {
@@ -41,11 +67,21 @@ export function createRouter(routes, state) {
       return;
     }
 
-    // 로딩 표시
-    $root.innerHTML = `<div>로딩 중...</div>`;
+    // params 처리 (동적일 경우만)
+    const params = matchedRoute.path.includes(":") ? extractParams(matchedRoute.path, currentPath) : {};
 
-    // 해당 컴포넌트 렌더링 (async!)
-    const html = await matchedRoute.element({ ...state.getState(), params: {} });
+    // 로딩 표시
+    $root.innerHTML = `
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p class="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    `;
+
+    // 렌더링
+    const html = await matchedRoute.element({ ...state.getState(), params });
     $root.innerHTML = html;
 
     // 이벤트 리스너 붙이기
