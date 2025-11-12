@@ -1,3 +1,5 @@
+import { observe } from '@/core/observer';
+
 /**
  * @class Component
  * @description
@@ -20,7 +22,13 @@ export default class Component {
     this.$target = $target;
     this.props = props;
     this.setup();
-    this.render();
+
+    // observe를 한 번만 등록하여 Store 구독
+    // Store가 변경되면 자동으로 render()가 호출됨
+    observe(() => {
+      this.render();
+    });
+
     this.setEvent();
   }
 
@@ -51,6 +59,7 @@ export default class Component {
    * @method render
    * @description
    * `template()`을 호출하여 DOM을 갱신하고, 렌더링 후 `mounted()`를 실행합니다.
+   * template() 내에서 Store에 접근하면 자동으로 구독이 등록됩니다.
    */
   render() {
     const templateResult = this.template();
@@ -66,7 +75,12 @@ export default class Component {
     template.innerHTML = templateString;
     const { children } = template.content;
 
-    if (children.length === 1) {
+    if (this.$target.hasAttribute('data-container')) {
+      this.$target.innerHTML = '';
+      Array.from(children).forEach((child) => {
+        this.$target.appendChild(child);
+      });
+    } else if (children.length === 1) {
       const newRoot = children[0];
       this.$target.replaceWith(newRoot);
       this.$target = /** @type {Element} */ (newRoot);

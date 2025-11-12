@@ -1,6 +1,8 @@
 import Component from '@/core/component';
+import { modalStore, openModal } from '@/stores/modal';
 
 export default class CartButton extends Component {
+  // TODO: 실제 장바구니 수량은 스토어에서 관리하도록 수정 필요
   setup() {
     this.state = {
       cartCount: 4,
@@ -9,6 +11,7 @@ export default class CartButton extends Component {
 
   template() {
     const { cartCount } = this.state;
+
     return /* HTML */ `
       <button
         id="cart-icon-btn"
@@ -33,8 +36,7 @@ export default class CartButton extends Component {
 
   setEvent() {
     this.addEvent('click', '#cart-icon-btn', () => {
-      // TODO: 장바구니 클릭 이벤트 처리
-      this.setState({ cartCount: this.state.cartCount + 1 });
+      modalStore.dispatch(openModal());
     });
   }
 }
