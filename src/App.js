@@ -1,5 +1,6 @@
 import { createRouter } from "./core/router";
 import { createStore } from "./core/store";
+import { attachDetailPageHandlers, attachHomePageEventListeners } from "./handlers";
 import { DetailPage } from "./pages/DetailPage";
 import { HomePage } from "./pages/HomePage";
 
@@ -15,10 +16,12 @@ export const router = createRouter(
     {
       path: "/",
       element: HomePage,
+      attachHandlers: attachHomePageEventListeners,
     },
     {
       path: "/product/:id",
       element: DetailPage,
+      attachHandlers: attachDetailPageHandlers,
     },
   ],
   state,

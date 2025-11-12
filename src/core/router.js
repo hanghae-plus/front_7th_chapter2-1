@@ -1,5 +1,3 @@
-import { attachHomePageEventListeners } from "../handlers";
-
 // 정적 라우트 매칭
 function matchStaticRoute(route, currentPath) {
   return route.path === currentPath;
@@ -84,8 +82,10 @@ export function createRouter(routes, state) {
     const html = await matchedRoute.element({ ...state.getState(), params });
     $root.innerHTML = html;
 
-    // 이벤트 리스너 붙이기
-    attachHomePageEventListeners();
+    // 페이지별 이벤트 리스너 붙이기
+    if (matchedRoute.attachHandlers) {
+      matchedRoute.attachHandlers();
+    }
   };
 
   return { initRouter, navigateTo };

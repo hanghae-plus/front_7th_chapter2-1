@@ -65,3 +65,34 @@ export function attachHomePageEventListeners() {
   clickCategory1EventListener();
   clickProductItem();
 }
+
+function onClickIncreaseCounter() {
+  const increaseButton = document.querySelector("#quantity-increase");
+
+  const increaseEventHandler = () => {
+    const quantityInput = document.querySelector("#quantity-input");
+    const currentValue = Number(quantityInput.value);
+    quantityInput.value = currentValue + 1;
+  };
+  increaseButton.addEventListener("click", increaseEventHandler);
+}
+
+function onClickDecreaseCounter() {
+  const decreaseButton = document.querySelector("#quantity-decrease");
+
+  const decreaseEventHandler = () => {
+    const quantityInput = document.querySelector("#quantity-input");
+    const currentValue = Number(quantityInput.value);
+
+    if (currentValue > 1) {
+      quantityInput.value = currentValue - 1;
+    }
+  };
+
+  decreaseButton.addEventListener("click", decreaseEventHandler);
+}
+
+export function attachDetailPageHandlers() {
+  onClickIncreaseCounter();
+  onClickDecreaseCounter();
+}
