@@ -122,6 +122,6 @@ export class Router2 {
 
   navigateTo(path) {
     history.pushState(null, "", path);
-    this.render();
+    this.render(path);
   }
 }

@@ -4,8 +4,6 @@ import { SearchForm } from "../components/SearchForm";
 import { getQueryStringAdding, getQueryStringExcluding, getQueryStringValue } from "../utils/queryString";
 import { PageLayout } from "./PageLayout";
 
-const BASE_URL = import.meta.env.BASE_URL;
-
 export class HomePage2 extends Component {
   mount() {
     this.clickEventId = this.$container.addEventListener("click", (e) => {
@@ -13,7 +11,7 @@ export class HomePage2 extends Component {
       const productCard = e.target.closest(".product-card");
       if (productCard) {
         const productId = productCard.dataset.productId;
-        window.router2Instance.navigateTo(`${BASE_URL}product/${productId}`);
+        window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
       } else if (e.target.tagName === "A") {
         e.preventDefault();
         window.router2Instance.navigateTo(e.target.pathname);
@@ -25,14 +23,14 @@ export class HomePage2 extends Component {
         const currentCategory1 = getQueryStringValue("category1");
         if (category1 === currentCategory1) return;
         const newQueryString = getQueryStringAdding("category1", category1);
-        window.router2Instance.navigateTo(`${BASE_URL}${newQueryString}`);
+        window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
       } else if (e.target.closest(".category2-filter-btn")) {
         const $category2Btn = e.target.closest(".category2-filter-btn");
         const category2 = $category2Btn.dataset.category2;
         const currentCategory2 = getQueryStringValue("category2");
         if (category2 === currentCategory2) return;
         const newQueryString = getQueryStringAdding("category2", category2);
-        window.router2Instance.navigateTo(`${BASE_URL}${newQueryString}`);
+        window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
       }
       // 브레드 크럼브 클릭
       if (e.target.dataset.breadcrumb === "category1") {
@@ -41,14 +39,14 @@ export class HomePage2 extends Component {
         const $input = this.$container.querySelector("#search-input");
         const newQueryString = `?search=${$input.value}&category1=${category1}`;
         if (!currentCategory2) return;
-        window.router2Instance.navigateTo(`${BASE_URL}${newQueryString}`);
+        window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
       } else if (e.target.dataset.breadcrumb === "reset") {
         const $input = this.$container.querySelector("#search-input");
         const currentCategory1 = getQueryStringValue("category1");
         const currentCategory2 = getQueryStringValue("category2");
         if (!currentCategory1 && !currentCategory2) return;
         const newQueryString = $input.value ? `?current=1&search=${$input.value}` : "?current=1&";
-        window.router2Instance.navigateTo(`${BASE_URL}${newQueryString}`);
+        window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
       }
     });
 
@@ -64,8 +62,18 @@ export class HomePage2 extends Component {
           window.router2Instance.navigateTo(queryString);
         } else {
           const newQueryString = getQueryStringExcluding("search");
-          window.router2Instance.navigateTo(`${BASE_URL}${newQueryString}`);
+          window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
         }
+      }
+    });
+
+    this.changeEventId = this.$container.addEventListener("change", (e) => {
+      if (e.target.closest("#sort-select")) {
+        const newQueryString = getQueryStringAdding("sort", e.target.value);
+        window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
+      } else if (e.target.closest("#limit-select")) {
+        const newQueryString = getQueryStringAdding("limit", e.target.value);
+        window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
       }
     });
   }
@@ -73,6 +81,7 @@ export class HomePage2 extends Component {
   unmount() {
     this.$container.removeEventListener("click", this.clickEventId);
     this.$container.removeEventListener("keydown", this.keydownEventId);
+    this.$container.removeEventListener("change", this.changeEventId);
   }
 
   template() {

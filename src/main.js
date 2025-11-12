@@ -34,8 +34,10 @@ router.addRoute({
     const search = queryString.search ?? "";
     const category1 = queryString.category1 ?? "";
     const category2 = queryString.category2 ?? "";
+    const sort = queryString.sort ?? "";
+    const limit = queryString.limit ?? "";
 
-    const data = await getProducts({ search, category1, category2 });
+    const data = await getProducts({ search, category1, category2, sort, limit });
     if (!categories) {
       categories = await getCategories();
     }
