@@ -1,3 +1,11 @@
-import { defineConfig } from "vitest/config";
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig } from "vite";
 
-export default defineConfig({});
+export default defineConfig({
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
+  base: "/front-chapter2-1/",
+});
