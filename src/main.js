@@ -1,5 +1,6 @@
 import { router } from "./router/index.js";
 import { CartModal } from "./components/CartModal.js";
+import { showToast } from "./components/Toast.js";
 import {
   getCartItems,
   getSelectedItems,
@@ -125,6 +126,7 @@ const initEventListeners = () => {
     if (e.target.closest("#cart-modal-remove-selected-btn")) {
       if (confirm("선택한 상품을 삭제하시겠습니까?")) {
         removeSelectedItems();
+        showToast("선택한 상품이 삭제되었습니다", "info");
       }
       return;
     }
@@ -133,13 +135,14 @@ const initEventListeners = () => {
     if (e.target.closest("#cart-modal-clear-cart-btn")) {
       if (confirm("장바구니를 비우시겠습니까?")) {
         clearCart();
+        showToast("장바구니가 비워졌습니다", "info");
       }
       return;
     }
 
     // 구매하기
     if (e.target.closest("#cart-modal-checkout-btn")) {
-      alert("구매 기능은 준비중입니다!");
+      showToast("구매 기능은 준비중입니다!", "info");
       return;
     }
 
@@ -158,7 +161,7 @@ const initEventListeners = () => {
         image: productImage,
       });
 
-      alert("장바구니에 추가되었습니다!");
+      showToast("장바구니에 추가되었습니다", "success");
       return;
     }
 
