@@ -61,6 +61,17 @@ document.body.addEventListener("change", (e) => {
     params.set("limit", limit);
     router.push(`?${params.toString()}`);
   }
+
+  // sort 선택 이벤트
+  if (e.target.id === "sort-select") {
+    const sort = e.target.value;
+    store.setState({ sort });
+
+    // URL에 sort 추가
+    const params = new URLSearchParams(window.location.search);
+    params.set("sort", sort);
+    router.push(`?${params.toString()}`);
+  }
 });
 
 document.body.addEventListener("keydown", (e) => {
@@ -94,6 +105,7 @@ function syncStateFromUrl() {
   const category2 = params.get("category2") || "";
   const limit = parseInt(params.get("limit")) || 20;
   const search = params.get("search") || "";
+  const sort = params.get("sort") || "price_asc";
 
   const stateUpdates = {};
 
@@ -110,16 +122,21 @@ function syncStateFromUrl() {
     stateUpdates.pagination = { page: 1, limit };
   }
 
+  if (store.state.sort !== sort) {
+    stateUpdates.sort = sort;
+  }
+
   if (Object.keys(stateUpdates).length > 0) {
     store.setState(stateUpdates);
   }
 }
 
 const loadProducts = async () => {
-  const { category1, category2, search, pagination } = store.state;
+  const { category1, category2, search, pagination, sort } = store.state;
   const filters = {
     page: pagination.page,
     limit: pagination.limit,
+    sort,
     ...(category1 && { category1 }),
     ...(category2 && { category2 }),
     ...(search && { search }),
