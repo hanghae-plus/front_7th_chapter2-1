@@ -171,6 +171,7 @@
  * @typedef {Object} ToastAlertProps
  * @property {string} message
  * @property {'success'|'info'|'error'} type
+ * @property {string} id
  */
 
 // ============================================

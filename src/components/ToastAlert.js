@@ -2,7 +2,7 @@
  * @param {import('../types').ToastAlertProps} props
  */
 
-export default function ToastAlert({ message, type }) {
+export default function ToastAlert({ message, type, id }) {
   /**
    * @param {'success'|'info'|'error'} type
    * @param {string} message
@@ -12,7 +12,10 @@ export default function ToastAlert({ message, type }) {
     switch (type) {
       case "success":
         return /* HTML */ `
-          <div class="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
+          <div
+            data-toast-id="${id}"
+            class="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm"
+          >
             <div class="flex-shrink-0">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -28,7 +31,10 @@ export default function ToastAlert({ message, type }) {
         `;
       case "info":
         return /* HTML */ `
-          <div class="bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
+          <div
+            data-toast-id="${id}"
+            class="bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm"
+          >
             <div class="flex-shrink-0">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -49,7 +55,10 @@ export default function ToastAlert({ message, type }) {
         `;
       case "error":
         return /* HTML */ `
-          <div class="bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
+          <div
+            data-toast-id="${id}"
+            class="bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm"
+          >
             <div class="flex-shrink-0">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -66,12 +75,5 @@ export default function ToastAlert({ message, type }) {
     }
   };
 
-  return /* HTML */ `
-    <div
-      class="toast-alert fixed bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col gap-2 items-center justify-center mx-auto"
-      style="width: fit-content;"
-    >
-      ${renderContent(type, message)}
-    </div>
-  `;
+  return /* HTML */ ` ${renderContent(type, message)} `;
 }
