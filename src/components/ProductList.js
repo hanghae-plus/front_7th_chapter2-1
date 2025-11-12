@@ -9,7 +9,7 @@ class ProductList extends Component {
     return {
       products: [],
       categories: {},
-      isLoading: false,
+      isLoading: true,
       isLoadingMore: false,
       error: null,
       pagination: {
@@ -52,16 +52,32 @@ class ProductList extends Component {
     this.getProducts();
   }
 
-  mounted() {
-    console.log("render!!");
-    const $searchFiler = document.querySelector(".search_filter");
-    new SearchFilter($searchFiler);
-    const $productList = document.querySelector("#products-grid");
-    this.state?.products.map((product) => {
+  mountProductCards() {
+    const $productList = this.$target.querySelector("#products-grid");
+    if (!$productList) return;
+
+    // // 기존 ProductCard 제거
+    $productList.innerHTML = "";
+
+    // 새로운 ProductCard 생성
+    this.state?.products?.forEach((product) => {
       const $product = document.createElement("article");
       $productList.appendChild($product);
-      new ProductCard($product, { product });
+      const productCardComponent = new ProductCard($product, { product });
+      this.addChildComponent(productCardComponent);
     });
+  }
+
+  updated() {
+    // render 후 자식 컴포넌트 재마운트
+    const $searchFilter = this.$target.querySelector(".search_filter");
+    if ($searchFilter && !$searchFilter.hasChildNodes()) {
+      const searchFilterComponent = new SearchFilter($searchFilter);
+      this.addChildComponent(searchFilterComponent);
+    }
+
+    // ProductCard 재마운트
+    this.mountProductCards();
   }
 
   setEvent() {
@@ -75,7 +91,6 @@ class ProductList extends Component {
   }
 
   async getProducts() {
-    console.log(123);
     const products = await getProducts();
     this.setState(products);
   }

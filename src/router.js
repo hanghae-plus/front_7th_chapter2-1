@@ -1,5 +1,4 @@
 import HomePage from "@/pages/HomePage";
-import CartPage from "@/pages/CartPage";
 import ProductPage from "@/pages/ProductPage";
 import NotFound from "@/pages/NotFound";
 
@@ -8,7 +7,6 @@ let currentPageComponent = null; // 현재 페이지 컴포넌트 추적
 
 const routes = [
   { path: "/", component: HomePage },
-  { path: "/cart", component: CartPage },
   { path: "/products/:id", component: ProductPage },
 ];
 
