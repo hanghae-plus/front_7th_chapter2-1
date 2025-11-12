@@ -50,8 +50,9 @@ const ProductItem = ({ title, productId, image, lprice, brand }) => {
           </div>`;
 };
 
-export const ProductList = ({ loading, products, pagination }) => {
-  console.log(products);
+export const ProductList = ({ loading, products, pagination, isLoadingMore }) => {
+  const hasMore = pagination.current < pagination.totalPages;
+
   return `<div class="mb-6">
       <div>
         ${
@@ -65,17 +66,40 @@ export const ProductList = ({ loading, products, pagination }) => {
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">          
           ${products.map(ProductItem).join("")}
         </div>
-      </div>      ${
-        loading
+      </div>
+      ${
+        loading && !isLoadingMore
           ? `
-          <!-- 상품 그리드 -->
-        <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-          <!-- 로딩 스켈레톤 -->
+          <!-- 초기 로딩 스켈레톤 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
           ${Skeleton.repeat(4)}
         </div>
           ${Loading}
           `
           : ""
-      } 
+      }
+      ${
+        isLoadingMore
+          ? `
+          <!-- 추가 로딩 표시 -->
+         ${Loading}
+          `
+          : ""
+      }
+      ${`
+        <!-- Intersection Observer 센티널 -->
+        <div id="infinite-scroll-trigger" class="h-20 flex items-center justify-center">
+          <div class="text-sm text-gray-400">스크롤하여 더 보기...</div>
+        </div>
+        `}
+      ${
+        !loading && !isLoadingMore && !hasMore && products.length > 0
+          ? `
+        <div class="text-center py-8 text-sm text-gray-500">
+          모든 상품을 불러왔습니다.
+        </div>
+        `
+          : ""
+      }
     </div>`;
 };
