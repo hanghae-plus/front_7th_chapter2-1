@@ -3,13 +3,32 @@ import { StarRating } from "../components/StarRating";
 import { PageLayout } from "./PageLayout";
 
 export class DetailPage2 extends Component {
-  mount() {}
-  unmount() {}
+  eventId = undefined;
+  cache = {};
+
+  mount() {
+    this.eventId = this.$container.addEventListener("click", (e) => {
+      const productCard = e.target.closest(".related-product-card");
+      if (productCard) {
+        const productId = productCard.dataset.productId;
+        window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
+      }
+    });
+  }
+
+  unmount() {
+    this.$container.removeEventListener("click", this.eventId);
+  }
+
   template() {
-    const { loaderData, isPending: loading, queryString } = this.props;
-    console.error({ loaderData, queryString });
+    const { loaderData, isPending: loading, params } = this.props;
+    let cachedData = this.cache?.[params.productId];
+    if (!cachedData && loaderData) {
+      this.cache[params.productId] = loaderData.product;
+    }
+    const props = cachedData ? { ...loaderData, product: cachedData } : loaderData;
     return PageLayout({
-      children: loading ? LoadingIndicator : LoadedDetailPage(loaderData),
+      children: loading && !cachedData ? LoadingIndicator : LoadedDetailPage(props),
     });
   }
 }
@@ -154,7 +173,7 @@ export const LoadedDetailPage = ({ product, relatedProducts }) => `
   </div>
   <!-- 관련 상품 -->
   ${
-    relatedProducts.length > 0
+    (relatedProducts?.length ?? []) > 0
       ? `<div class="bg-white rounded-lg shadow-sm">
               <div class="p-4 border-b border-gray-200">
                 <h2 class="text-lg font-bold text-gray-900">관련 상품</h2>

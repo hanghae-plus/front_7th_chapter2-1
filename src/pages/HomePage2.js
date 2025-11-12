@@ -10,7 +10,7 @@ export class HomePage2 extends Component {
   mount() {
     this.clickEventId = this.$container.addEventListener("click", (e) => {
       // 카드 선택
-      const productCard = e.target.closest(".product-card") ?? e.target.closest(".related-product-card");
+      const productCard = e.target.closest(".product-card");
       if (productCard) {
         const productId = productCard.dataset.productId;
         window.router2Instance.navigateTo(`${BASE_URL}product/${productId}`);

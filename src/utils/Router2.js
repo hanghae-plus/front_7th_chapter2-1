@@ -24,8 +24,8 @@ export class Router2 {
     });
   }
 
-  addRoute({ path, loader, component }) {
-    this.routes.push({ path, loader, component });
+  addRoute({ path, loader, component, cacheKeys }) {
+    this.routes.push({ path, loader, component, cacheKeys });
   }
 
   #matchRoute(_path) {
@@ -53,10 +53,16 @@ export class Router2 {
           }
         }
 
-        return { component: route.component, loader: route.loader, params: params, queryString: qString };
+        return {
+          component: route.component,
+          loader: route.loader,
+          params: params,
+          queryString: qString,
+          cacheKeys: route.cacheKeys,
+        };
       }
     }
-    return { component: NotFoundPage2, loader: () => Promise.resolve({}), params: {} };
+    return { component: NotFoundPage2, loader: () => Promise.resolve({}), params: {}, queryString: {}, cacheKeys: [] };
   }
 
   async render() {
@@ -79,11 +85,15 @@ export class Router2 {
         loaderData: null,
       });
     } else {
+      const cachedLoaderData = {};
+      (matched.cacheKeys ?? []).forEach((cKey) => {
+        cachedLoaderData[cKey] = this.currentLoaderData[cKey];
+      });
       await this.currentView.updateProps({
         params: matched.params,
         queryString: matched.queryString,
         isPending: this.isPending,
-        loaderData: this.currentLoaderData,
+        loaderData: cachedLoaderData,
       });
     }
 

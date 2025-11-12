@@ -25,6 +25,7 @@ const BASE_URL = import.meta.env.BASE_URL;
 const $root = document.querySelector("#root");
 const router = new Router2($root);
 window.router2Instance = router;
+window.BASE_URL = import.meta.env.BASE_URL;
 
 let categories;
 router.addRoute({
@@ -41,6 +42,7 @@ router.addRoute({
     return { ...data, categories };
   },
   component: HomePage2,
+  cacheKeys: ["categories"],
 });
 
 router.addRoute({
@@ -57,6 +59,7 @@ router.addRoute({
     return { product, relatedProducts };
   },
   component: DetailPage2,
+  cacheKeys: ["product"],
 });
 
 const main = async () => {
@@ -75,9 +78,5 @@ if (import.meta.env.MODE !== "test") {
     // }
   });
 } else {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", main);
-  } else {
-    main();
-  }
+  await main();
 }
