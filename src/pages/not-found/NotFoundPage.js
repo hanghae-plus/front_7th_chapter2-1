@@ -1,6 +1,6 @@
-import { BaseComponent } from "../../core/component/BaseComponent";
+import { Component } from "../../core/component/Component";
 
-export class NotFoundPage extends BaseComponent {
+export class NotFoundPage extends Component {
   constructor(props = {}) {
     super(props);
   }

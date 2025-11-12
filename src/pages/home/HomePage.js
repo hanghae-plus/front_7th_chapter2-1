@@ -5,19 +5,20 @@ import { SortSelect } from "../../components/filter/SortSelect";
 import { Header } from "../../components/layout/Header";
 import { Footer } from "../../components/layout/Footer";
 import { getProducts } from "../../api/productApi";
-import { BaseComponent } from "../../core/component/BaseComponent";
+import { Component } from "../../core/component/Component";
 import { HomePageSkeleton } from "./HomePageSkeleton";
 import { html } from "../../utils/html";
 import { ProductList } from "../../components/product/ProductList";
 import { showToast } from "../../utils/toast";
-import { ProductListQueryParams } from "../../utils/query-params";
+import { cartStore } from "../../stores/cart-store";
+import { searchParamsStore } from "../../stores/search-params-store";
 
-export class HomePage extends BaseComponent {
+export class HomePage extends Component {
   constructor(props = {}) {
     super(props);
+  }
 
-    this.queryParams = new ProductListQueryParams();
-
+  setup() {
     this.state = {
       products: [],
       isLoading: true,
@@ -26,16 +27,31 @@ export class HomePage extends BaseComponent {
         page: 1,
         hasNext: true,
       },
-      cartItems: new Set(),
     };
+
     this.observer = null;
+    this.boundRender = () => this.render();
+    this.boundInit = () => this.init();
+    this.createIntersectionObserver();
+
+    this.useEffect(() => {
+      cartStore.subscribe(this.boundRender);
+      searchParamsStore.subscribe(this.boundRender);
+      searchParamsStore.subscribe(this.boundInit);
+
+      return () => {
+        cartStore.unsubscribe(this.boundRender);
+        searchParamsStore.unsubscribe(this.boundRender);
+        searchParamsStore.unsubscribe(this.boundInit);
+        this.observer?.disconnect();
+      };
+    }, []);
   }
 
   async init() {
     try {
-      const queryParams = new ProductListQueryParams();
       const { page } = this.state.pagination;
-      const response = await getProducts({ ...queryParams.getQueryParams(), page });
+      const response = await getProducts({ ...searchParamsStore.get(), page });
 
       this.setState({
         products: response.products,
@@ -53,8 +69,6 @@ export class HomePage extends BaseComponent {
 
       showToast({ type: "error", message: "상품을 불러올 수 없습니다" });
     }
-    this.render();
-    this.setupInfiniteScroll();
   }
 
   template() {
@@ -83,8 +97,7 @@ export class HomePage extends BaseComponent {
       `;
     }
 
-    const { category1, category2, limit, sort } = this.queryParams.getQueryParams();
-    console.log(category1, category2, limit, sort);
+    const { category1 = null, category2 = null, limit = 20, sort = "price_asc" } = searchParamsStore.get();
 
     const {
       products,
@@ -94,7 +107,7 @@ export class HomePage extends BaseComponent {
 
     return html`
       <div class="bg-gray-50">
-        ${Header({ cartCount: this.state.cartItems.size })}
+        ${Header({ cartCount: cartStore.getItemsSize() })}
 
         <main class="max-w-md mx-auto px-4 py-4">
           <!-- 검색 및 필터 -->
@@ -127,7 +140,7 @@ export class HomePage extends BaseComponent {
       pagination: { ...this.state.pagination, page: nextPage },
     });
 
-    const response = await getProducts({ ...this.queryParams.getQueryParams(), page: nextPage });
+    const response = await getProducts({ ...searchParamsStore.get(), page: nextPage });
 
     this.setState({
       products: [...this.state.products, ...response.products],
@@ -136,11 +149,7 @@ export class HomePage extends BaseComponent {
     });
   }
 
-  setupInfiniteScroll() {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
-
+  createIntersectionObserver() {
     this.observer = new IntersectionObserver(
       (entries) => {
         const sentinel = entries[0];
@@ -163,26 +172,26 @@ export class HomePage extends BaseComponent {
         threshold: 0.1,
       },
     );
-
-    const sentinel = this.el.querySelector("#load-more-sentinel");
-
-    if (sentinel) {
-      this.observer.observe(sentinel);
-    }
   }
 
-  handlePopState() {
-    this.init();
+  observeSentinel() {
+    if (!this.observer) return;
+    const sentinel = this.$target.querySelector("#load-more-sentinel");
+
+    if (!sentinel) return;
+
+    this.observer.observe(sentinel);
   }
 
   mount(selector) {
     super.mount(selector);
-    window.addEventListener("popstate", this.handlePopState);
+
+    // 최초 렌더링 시 init 실행
     this.init();
   }
 
   unmount() {
-    window.removeEventListener("popstate", this.handlePopState);
+    super.unmount();
 
     if (this.observer) {
       this.observer.disconnect();
@@ -192,12 +201,12 @@ export class HomePage extends BaseComponent {
   /** 렌더가 발생할 때마다 Observer가 바라보고 있는 요소를 다시 관찰하도록 설정 */
   render() {
     super.render();
-    this.setupInfiniteScroll();
+    this.observeSentinel();
   }
 
-  events() {
+  setEvents() {
     // 1. 재시도 이벤트
-    this.el.addEventListener("click", (e) => {
+    this.addEventListener("click", '[data-action="retry"]', (e) => {
       const action = e.target.dataset.action;
 
       if (action === "retry") {
@@ -206,104 +215,95 @@ export class HomePage extends BaseComponent {
     });
 
     // 2. 상품 limit 변경 이벤트
-    this.el.addEventListener("change", (e) => {
-      if (e.target.id === "limit-select") {
-        const limit = Number(e.target.value);
+    this.addEventListener("change", '[id="limit-select"]', (e) => {
+      const limit = Number(e.target.value);
 
-        this.queryParams.updateQueryParams({ limit });
-        this.setState({
-          pagination: { ...this.state.pagination, page: 1 },
-        });
-
-        this.init();
-      }
-    });
-
-    // 3. 상품 sort 변경 이벤트
-    this.el.addEventListener("change", (e) => {
-      if (e.target.id === "sort-select") {
-        const sort = e.target.value;
-
-        this.queryParams.updateQueryParams({ sort });
-        this.setState({
-          pagination: { ...this.state.pagination, page: 1 },
-        });
-        this.init();
-      }
-    });
-
-    // 4. 장바구니 상품 추가 이벤트
-    this.el.addEventListener("click", (e) => {
-      if (e.target.classList.contains("add-to-cart-btn")) {
-        const productId = e.target.dataset.productId;
-
-        if (this.state.cartItems.has(productId)) return;
-
-        this.setState({
-          cartItems: this.state.cartItems.add(productId),
-        });
-
-        showToast({ type: "success", message: "장바구니에 추가되었습니다" });
-      }
-    });
-
-    // 5. 검색 이벤트
-    this.el.addEventListener("keydown", (e) => {
-      if (e.target.id !== "search-input" || e.key !== "Enter") return;
-
-      const search = e.target.value;
-
-      this.queryParams.updateQueryParams({ search });
+      searchParamsStore.set({ limit });
       this.setState({
         pagination: { ...this.state.pagination, page: 1 },
       });
+    });
 
-      this.init();
+    // 2. 상품 limit 변경 이벤트
+    this.addEventListener("change", '[id="sort-select"]', (e) => {
+      const sort = e.target.value;
+
+      searchParamsStore.set({ sort });
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
+    });
+
+    // 3. 상품 sort 변경 이벤트
+    this.addEventListener("change", '[id="sort-select"]', (e) => {
+      const sort = e.target.value;
+
+      searchParamsStore.set({ sort });
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
+    });
+
+    // 4. 장바구니 상품 추가 이벤트
+    this.addEventListener("click", ".add-to-cart-btn", (e) => {
+      const productId = e.target.dataset.productId;
+
+      const product = this.state.products.find((product) => product.productId === productId);
+
+      if (!product) return;
+
+      cartStore.addItem(product);
+
+      showToast({ type: "success", message: "장바구니에 추가되었습니다" });
+    });
+
+    // 5. 검색 이벤트
+    this.addEventListener("keydown", '[id="search-input"]', (e) => {
+      if (e.key !== "Enter") return;
+
+      const search = e.target.value;
+
+      searchParamsStore.set({ search });
+
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
     });
 
     // 6-1. 카테고리 1Depth 필터 이벤트
-    this.el.addEventListener("click", (e) => {
-      if (e.target.classList.contains("category1-filter-btn")) {
-        const category1 = e.target.dataset.category1;
+    this.addEventListener("click", ".category1-filter-btn", (e) => {
+      const category1 = e.target.dataset.category1;
 
-        this.queryParams.updateQueryParams({ category1 });
-        this.setState({
-          pagination: { ...this.state.pagination, page: 1 },
-        });
-
-        this.init();
-      }
+      searchParamsStore.set({ category1 });
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
     });
 
     // 6-2. 카테고리 2Depth 필터 이벤트
-    this.el.addEventListener("click", (e) => {
-      if (e.target.classList.contains("category2-filter-btn")) {
-        const category2 = e.target.dataset.category2;
+    this.addEventListener("click", ".category2-filter-btn", (e) => {
+      const category2 = e.target.dataset.category2;
 
-        this.queryParams.updateQueryParams({ category2 });
-        this.setState({
-          pagination: { ...this.state.pagination, page: 1 },
-        });
-        this.init();
-      }
+      searchParamsStore.set({ category2 });
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
     });
 
-    // 6-3. 브레드크럼 클릭 이벤트
-    this.el.addEventListener("click", (e) => {
-      if (e.target.dataset.breadcrumb === "reset") {
-        this.queryParams.updateQueryParams({ category1: null, category2: null });
-        this.setState({
-          pagination: { ...this.state.pagination, page: 1 },
-        });
-        this.init();
-      }
-      if (e.target.dataset.breadcrumb === "category1") {
-        this.queryParams.updateQueryParams({ category2: null });
-        this.setState({
-          pagination: { ...this.state.pagination, page: 1 },
-        });
-        this.init();
-      }
+    // 6-3. 브레드크럼 리셋 클릭 이벤트
+    this.addEventListener("click", '[data-breadcrumb="reset"]', () => {
+      searchParamsStore.set({ category1: null, category2: null });
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
+    });
+
+    // 6-4. 브레드크럼 1Depth 클릭 이벤트
+    this.addEventListener("click", '[data-breadcrumb="category1"]', () => {
+      searchParamsStore.set({ category2: null });
+      this.setState({
+        pagination: { ...this.state.pagination, page: 1 },
+      });
     });
   }
 }

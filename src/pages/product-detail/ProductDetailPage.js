@@ -1,6 +1,6 @@
-import { BaseComponent } from "../../core/component/BaseComponent.js";
+import { Component } from "../../core/component/Component";
 
-export class ProductDetailPage extends BaseComponent {
+export class ProductDetailPage extends Component {
   constructor(props = {}) {
     super(props);
   }
