@@ -40,13 +40,6 @@ const render = async () => {
   const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
   const $root = document.querySelector("#root");
-
-  // const searchParams = new URLSearchParams(location.search);
-  // const category1 = searchParams.get("category1");
-  // const category2 = searchParams.get("category2");
-  // const search = searchParams.get("search");
-  // const limit = +searchParams.get("limit");
-  // const sort = searchParams.get("sort");
   const { category1, category2, search, limit, sort, searchParams } = getQueryParams();
 
   if (relativePath === "/") {
@@ -63,49 +56,6 @@ const render = async () => {
     });
     const categories = await getCategories();
     $root.innerHTML = HomePage({ ...data, loading: false, categories });
-
-    // TODO : 지금 이벤트가 홈 갈 때마다 추가됨 => 상세 갔다가 홈 왔다가 하면 클릭 이벤트가 중복 등록돼서 한 번 클릭해도 2번, 3번 클릭되는 현상 발견
-    // 이벤트 위임으로 해결할 수 있다 ?
-    // document.addEventListener("click", async (e) => {
-    //   const productCard = e.target.closest(".product-card");
-    //   if (productCard) {
-    //     e.preventDefault();
-    //     const productId = e.target.closest(".product-card").dataset.productId;
-    //     push(`products/${productId}`);
-    //     return;
-    //   }
-
-    //   const category1Button = e.target.closest(".category1-filter-btn");
-    //   if (category1Button) {
-    //     searchParams.set("category1", e.target.dataset.category1);
-    //     push(`?${searchParams}`);
-    //     return;
-    //   }
-
-    //   const category2Button = e.target.closest(".category2-filter-btn");
-    //   if (category2Button) {
-    //     searchParams.set("category2", e.target.dataset.category2);
-    //     push(`?${searchParams}`);
-    //     return;
-    //   }
-    // });
-
-    // TODO : 렌더를 해주지 않으면 장바구니 아이콘에 숫자가 반영되지 않음
-    // document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
-    //   button.addEventListener("click", async (e) => {
-    //     e.stopPropagation(); // 프로덕트 카드 영역으로 이벤트 버블링 방지
-    //     e.preventDefault();
-
-    //     const productCard = e.target.closest(".product-card");
-
-    //     if (productCard) {
-    //       const storedData = getLocalStorage(ADD_CART_LIST);
-    //       const addToCartTarget = await getProduct(productCard.dataset.productId);
-    //       setLocalStorage(ADD_CART_LIST, [...storedData, addToCartTarget]);
-    //       return;
-    //     }
-    //   });
-    // });
 
     const searchBar = document.querySelector("#search-input");
     searchBar.addEventListener("change", (e) => {
@@ -136,6 +86,7 @@ const render = async () => {
     });
 
     // 무한 스크롤 Observer 설정
+    // TODO : #observer 요소를 index.html에 추가해서 main 함수로 뺄 수 있을지도 ?
     const observerElement = document.querySelector("#observer");
     if (observerElement) {
       // observerElement가 있을 때만 실행
@@ -207,6 +158,7 @@ function main() {
   // => root 요소가 바뀔 때 클릭 이벤트 핸들러가 추가되지 않음 ! (main 함수는 최초 렌더링 시에만 실행되기 때문)
   // => 따라서 이벤트 위임 방식으로 $root에 클릭 이벤트 추가 ($root는 없어지지 않으니깐 !)
   const $root = document.querySelector("#root");
+  // TODO : 렌더를 해주지 않으면 장바구니 아이콘에 숫자가 반영되지 않음
   $root.addEventListener("click", async (e) => {
     const addCartButton = e.target.closest(".add-to-cart-btn");
     if (addCartButton) {
