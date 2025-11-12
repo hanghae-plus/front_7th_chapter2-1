@@ -9,12 +9,12 @@ export const store = new Store({
   currentPage: "/",
   isFetching: true,
   categories: {},
-  // filters: {
-  //   search: "",
-  //   category1: "",
-  //   category2: "",
-  //   sort: "price_asc",
-  // },
+  filters: {
+    search: "",
+    category1: "",
+    category2: "",
+    sort: "price_asc",
+  },
 });
 
 // 액션 함수들 (상태 변경 로직)
@@ -22,6 +22,12 @@ export const actions = {
   // 상품 목록 설정
   setProducts(products) {
     store.setState({ products });
+  },
+
+  // 카테고리 선택
+  setFilters(filters) {
+    store.setState({ filters: Object.assign({}, store.state.filters, filters) });
+    console.log("filters-->", store.state.filters);
   },
 
   // 장바구니에 상품 추가

@@ -1,3 +1,3 @@
 export * from "./ProductItem.js";
-export * from "./productList.js";
+export * from "./ProductList.js";
 export * from "./Skeleton.js";

@@ -1,6 +1,5 @@
+import { ProductItem, ProductListSkeleton } from "@/components/product-list/index.js";
 import { store } from "@/store/store.js";
-import { ProductItem } from "./ProductItem";
-import { ProductListSkeleton } from "./Skeleton";
 
 export const ProductList = () => {
   const { products, isFetching } = store.state;

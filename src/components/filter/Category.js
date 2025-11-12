@@ -1,7 +1,7 @@
 import { store } from "@/store/store.js";
 
 export const Category = () => {
-  const { categories, isFetching } = store.state;
+  const { categories, filters, isFetching } = store.state;
 
   const category = () => {
     if (isFetching) {
@@ -15,21 +15,35 @@ export const Category = () => {
       return html`
         <!-- 1depth 카테고리 -->
         <div class="flex flex-wrap gap-2">
-          ${Object.keys(categories)
-            .map(
-              (category) => html`
-                <button
-                  data-category1="${category}"
-                  class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  ${category}
-                </button>
-              `,
-            )
-            .join("")}
+          ${!filters.category1
+            ? `${Object.keys(categories)
+                .map(
+                  (category) => html`
+                    <button
+                      data-category1="${category}"
+                      class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    >
+                      ${category}
+                    </button>
+                  `,
+                )
+                .join("")}`
+            : `${Object.keys(categories[filters.category1])
+                .map(
+                  (category) => html`
+                    <button
+                      data-category2="${category}"
+                      class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors ${category ===
+                      filters.category2
+                        ? "bg-blue-100 border-blue-300 text-blue-700" // TODO: 컬러 확인 필요
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"} "
+                    >
+                      ${category}
+                    </button>
+                  `,
+                )
+                .join("")}`}
         </div>
-        <div>하위 카테고리</div>
-        <!-- 2depth 카테고리 -->
       `;
     }
   };
@@ -40,7 +54,10 @@ export const Category = () => {
       <!-- 브래드크럼 -->
       <div class="flex items-center gap-2">
         <label class="text-sm text-gray-600">카테고리:</label>
-        <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
+        <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">
+          전체 ${filters.category1 ? `&nbsp;&gt; ${filters.category1}` : ""}
+          ${filters.category2 ? `&nbsp;&gt; ${filters.category2}` : ""}
+        </button>
       </div>
       <!-- 필터 카테고리 -->
       ${category()}

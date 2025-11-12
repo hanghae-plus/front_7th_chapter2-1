@@ -1,7 +1,7 @@
+import { Filter } from "@/components/filter/index.js";
+import { Layout } from "@/components/layout/index.js";
 import { ProductList } from "@/components/product-list/index.js";
-import { dispatch, store } from "@/store/store.js";
-import { Filter } from "../components/filter/index.js";
-import { Layout } from "../components/layout/index.js";
+import { actions, dispatch, store } from "@/store/store.js";
 
 export function ProductListPage() {
   let unsubscribe = null;
@@ -22,23 +22,37 @@ export function ProductListPage() {
     container.innerHTML = `${Filter()}${ProductList()}`;
   }
 
-  // function handleClick(e) {
-  //   const target = e.target;
-  //   const productId = target.dataset.id;
+  function handleClick(e) {
+    const target = e.target;
+    const { category1, category2, breadcrumb } = target.dataset;
 
-  //   if (target.classList.contains("view-detail")) {
-  //     // 🔑 스토어 액션을 통해 라우팅
-  //     actions.goToProductDetail(productId);
-  //   }
+    if (category1) {
+      actions.setFilters({ category1 });
+    }
 
-  //   if (target.classList.contains("add-to-cart")) {
-  //     const product = store.state.products.find((p) => p.id === productId);
-  //     actions.addToCart(product);
+    if (category2) {
+      actions.setFilters({ category2 });
+    }
 
-  //     // 선택적: 장바구니 페이지로 이동
-  //     // actions.goToCart();
-  //   }
-  // }
+    if (breadcrumb) {
+      actions.setFilters({ category1: "", category2: "" });
+    }
+
+    console.log(target.classList.contains("category1-filter-btn"), target.dataset);
+
+    // if (target.classList.contains("view-detail")) {
+    //   // 🔑 스토어 액션을 통해 라우팅
+    //   actions.goToProductDetail(productId);
+    // }
+
+    // if (target.classList.contains("add-to-cart")) {
+    //   const product = store.state.products.find((p) => p.id === productId);
+    //   actions.addToCart(product);
+
+    //   // 선택적: 장바구니 페이지로 이동
+    //   // actions.goToCart();
+    // }
+  }
 
   function mount() {
     unsubscribe = store.subscribe((state) => {
@@ -48,12 +62,14 @@ export function ProductListPage() {
     dispatch.fetchProducts();
 
     render(store.state);
-    // container.addEventListener("click", handleClick);
+    const container = document.querySelector("main");
+    container?.addEventListener("click", handleClick);
   }
 
   function unmount() {
     if (unsubscribe) unsubscribe();
-    // container.removeEventListener("click", handleClick);
+    const container = document.querySelector("main");
+    container?.removeEventListener("click", handleClick);
     unsubscribe = null;
   }
 
