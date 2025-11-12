@@ -6,15 +6,7 @@ import {
   FragmentNode,
 } from "@core/jsx/factory";
 import { searchCurrentNode } from "@core/jsx/utils/searchCurrentNode";
-import { useState } from "@core/state/useState";
-import {
-  isNil,
-  isNotNil,
-  kebabCase,
-  lowerCase,
-  omit,
-  shuffle,
-} from "es-toolkit";
+import { isNil, isNotNil, kebabCase, lowerCase } from "es-toolkit";
 
 export let renderTree: ElementNode | null = null;
 
@@ -48,19 +40,22 @@ export function render(
     return;
   }
 
-  jsx.key = path === "" ? jsx.key : `${path}.${jsx.key}`;
+  jsx.key =
+    path === ""
+      ? jsx.key
+      : isNil(jsx.key) || jsx.key === ""
+        ? `${path}`
+        : `${path}.${jsx.key}`;
 
   if (jsx instanceof CompnentElementNode) {
     const target = searchCurrentNode(jsx.key) ?? jsx;
 
-    currentRenderingNode = jsx;
+    currentRenderingNode = target;
     jsx.parent = parent;
     jsx.state = jsx.state ?? [];
     jsx.stateCursor = 0;
     jsx.sideEffects = jsx.sideEffects ?? [];
     jsx.sideEffectsCursor = 0;
-
-    let idx = 0;
 
     target?.nodes?.forEach((node) => {
       node.remove();
@@ -87,7 +82,6 @@ export function render(
 
     render(rendered, parent, jsx.key, (callback) => {
       callback(target);
-      idx++;
     });
     return;
   }
@@ -118,6 +112,12 @@ export function render(
       );
       continue;
     }
+
+    if (key === "className") {
+      element.setAttribute("class", value as string);
+      continue;
+    }
+
     element.setAttribute(kebabCase(key), value as string);
   }
 
@@ -135,8 +135,8 @@ export function render(
     parent.appendChild(element);
   }
 
-  for (const child of jsx.children) {
-    render(child, element);
+  for (const [idx, child] of jsx.children.entries()) {
+    render(child, element, `${path}[${idx}]`);
   }
 }
 
