@@ -1,5 +1,9 @@
 import { getProducts, getCategories } from "../../lib/api/productApi.js";
 import { renderLoadingContent, renderProductsContent, renderErrorContent } from "../../components/index.js";
+import * as catalogActions from "../../store/actions/catalogActions.js";
+import * as categoryActions from "../../store/actions/categoryActions.js";
+import * as cartActions from "../../store/actions/cartActions.js";
+import * as filterActions from "../../store/actions/filterActions.js";
 
 /**
  * 상품 목록 페이지 컨트롤러
@@ -10,8 +14,8 @@ export class CatalogPage {
   }
 
   async init() {
-    this.app.state = { ...this.app.state, isLoading: true };
-    this.app.categoriesState = { ...this.app.categoriesState, isLoading: true, error: null };
+    catalogActions.setInitialLoading(this.app.store);
+    categoryActions.startCategoryLoad(this.app.store);
     void this.loadCategories();
     await this.loadProducts({ showSkeleton: true });
   }
@@ -41,12 +45,7 @@ export class CatalogPage {
   async loadProducts({ showSkeleton = true } = {}) {
     if (showSkeleton) {
       this.app.resetObserver();
-      this.app.state = {
-        ...this.app.state,
-        isLoading: true,
-        isLoadingMore: false,
-        loadMoreError: null,
-      };
+      catalogActions.setInitialLoading(this.app.store);
       this.app.render(
         renderLoadingContent({
           selectedLimit: this.app.lastParams.limit,
@@ -62,25 +61,14 @@ export class CatalogPage {
 
     try {
       const data = await getProducts({ ...this.app.lastParams, page: 1 });
-      this.app.lastParams = { ...this.app.lastParams, page: data.pagination?.page ?? 1 };
+      filterActions.setPage(this.app.store, data.pagination?.page ?? 1);
 
-      this.app.state = {
-        products: data.products,
-        pagination: data.pagination,
-        isLoading: false,
-        isLoadingMore: false,
-        loadMoreError: null,
-      };
+      catalogActions.setProducts(this.app.store, data.products, data.pagination);
 
       this.updateView();
     } catch (error) {
       console.error("상품 목록을 불러오는 중 오류가 발생했습니다.", error);
-      this.app.state = {
-        ...this.app.state,
-        isLoading: false,
-        isLoadingMore: false,
-        loadMoreError: error?.message ?? null,
-      };
+      catalogActions.setError(this.app.store, error?.message ?? null);
       this.app.resetObserver();
       this.app.render(renderErrorContent(error?.message));
       this.attachRetryHandler();
@@ -95,18 +83,10 @@ export class CatalogPage {
         children: Object.keys(children ?? {}).sort(),
       }));
 
-      this.app.categoriesState = {
-        data: parsedCategories,
-        isLoading: false,
-        error: null,
-      };
+      categoryActions.setCategoriesSuccess(this.app.store, parsedCategories);
     } catch (error) {
       console.error("카테고리를 불러오는 중 오류가 발생했습니다.", error);
-      this.app.categoriesState = {
-        data: [],
-        isLoading: false,
-        error: error?.message ?? "카테고리를 불러오지 못했습니다.",
-      };
+      categoryActions.setCategoriesError(this.app.store, error?.message ?? "카테고리를 불러오지 못했습니다.");
     } finally {
       if (this.app.state.isLoading) {
         this.app.render(
@@ -138,31 +118,17 @@ export class CatalogPage {
 
     const nextPage = (pagination.page ?? 1) + 1;
 
-    this.app.state = {
-      ...this.app.state,
-      isLoadingMore: true,
-      loadMoreError: null,
-    };
+    catalogActions.startLoadMore(this.app.store);
     this.updateView();
 
     try {
       const data = await getProducts({ ...this.app.lastParams, page: nextPage });
-      this.app.lastParams = { ...this.app.lastParams, page: data.pagination?.page ?? nextPage };
-      this.app.state = {
-        ...this.app.state,
-        products: [...this.app.state.products, ...data.products],
-        pagination: data.pagination,
-        isLoadingMore: false,
-        loadMoreError: null,
-      };
+      filterActions.setPage(this.app.store, data.pagination?.page ?? nextPage);
+      catalogActions.loadMoreSuccess(this.app.store, data.products, data.pagination);
       this.updateView();
     } catch (error) {
       console.error("다음 상품을 불러오는 중 오류가 발생했습니다.", error);
-      this.app.state = {
-        ...this.app.state,
-        isLoadingMore: false,
-        loadMoreError: error?.message ?? "잠시 후 다시 시도해주세요.",
-      };
+      catalogActions.loadMoreError(this.app.store, error?.message ?? "잠시 후 다시 시도해주세요.");
       this.updateView();
     }
   }
@@ -177,30 +143,16 @@ export class CatalogPage {
       return;
     }
 
-    const existingIndex = this.app.cartItems.findIndex((item) => item.productId === productId);
+    // Cart Actions 사용
+    const cartProduct = {
+      productId,
+      title: product.title ?? "",
+      price: product.lprice ?? "",
+      image: product.image ?? "",
+      brand: product.brand ?? "",
+    };
 
-    if (existingIndex >= 0) {
-      const existingItem = this.app.cartItems[existingIndex];
-      const updatedItem = {
-        ...existingItem,
-        quantity: this.app.getCartItemQuantity(existingItem) + 1,
-      };
-      this.app.cartItems = [
-        ...this.app.cartItems.slice(0, existingIndex),
-        updatedItem,
-        ...this.app.cartItems.slice(existingIndex + 1),
-      ];
-    } else {
-      const cartItem = {
-        productId,
-        title: product.title ?? "",
-        price: product.lprice ?? "",
-        image: product.image ?? "",
-        brand: product.brand ?? "",
-        quantity: 1,
-      };
-      this.app.cartItems = [...this.app.cartItems, cartItem];
-    }
+    cartActions.addToCart(this.app.store, cartProduct);
 
     this.app.saveCartToStorage();
     this.app.updateCartIcon();
@@ -218,11 +170,7 @@ export class CatalogPage {
       return;
     }
 
-    this.app.lastParams = {
-      ...this.app.lastParams,
-      search: nextSearch,
-      page: 1,
-    };
+    filterActions.setSearchQuery(this.app.store, nextSearch);
 
     void this.loadProducts({ showSkeleton: true });
   }
@@ -238,12 +186,7 @@ export class CatalogPage {
       return;
     }
 
-    this.app.lastParams = {
-      ...this.app.lastParams,
-      category1: nextCategory1,
-      category2: nextCategory2,
-      page: 1,
-    };
+    filterActions.setCategory(this.app.store, { category1: nextCategory1, category2: nextCategory2 });
 
     void this.loadProducts({ showSkeleton: true });
   }
@@ -316,7 +259,7 @@ export class CatalogPage {
           return;
         }
 
-        this.app.lastParams = { ...this.app.lastParams, limit: nextLimit, page: 1 };
+        filterActions.setPageLimit(this.app.store, nextLimit);
         void this.loadProducts({ showSkeleton: true });
       });
     }
@@ -334,7 +277,7 @@ export class CatalogPage {
           return;
         }
 
-        this.app.lastParams = { ...this.app.lastParams, sort: nextSort, page: 1 };
+        filterActions.setSortOption(this.app.store, nextSort);
         void this.loadProducts({ showSkeleton: true });
       });
     }

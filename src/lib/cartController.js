@@ -1,5 +1,6 @@
 import { CART_BADGE_CLASSES, CART_SELECTION_STORAGE_KEY, CART_STORAGE_KEY } from "./constants.js";
 import { renderCartModal } from "../components/index.js";
+import * as cartActions from "../store/actions/cartActions.js";
 
 export function loadCartFromStorage() {
   if (typeof window === "undefined" || !window.localStorage) {
@@ -112,10 +113,14 @@ export function saveCartSelectionToStorage() {
 }
 
 export function ensureSelectedIdsSet() {
-  if (!(this.cartState.selectedIds instanceof Set)) {
-    this.cartState.selectedIds = new Set();
+  // Store에서 항상 Set으로 관리되므로 검증만 수행
+  const selectedIds = this.cartState.selectedIds;
+  if (!(selectedIds instanceof Set)) {
+    console.warn("selectedIds is not a Set, initializing to empty Set");
+    cartActions.setCartSelection(this.store, new Set());
+    return this.cartState.selectedIds;
   }
-  return this.cartState.selectedIds;
+  return selectedIds;
 }
 
 export function areSetsEqual(setA, setB) {
@@ -151,7 +156,8 @@ export function setSelectedIds(nextIds) {
 
   const currentSelections = this.ensureSelectedIdsSet();
   const hasChanged = !this.areSetsEqual(currentSelections, sanitized);
-  this.cartState.selectedIds = sanitized;
+
+  cartActions.setCartSelection(this.store, sanitized);
 
   if (hasChanged) {
     this.saveCartSelectionToStorage();
@@ -198,9 +204,8 @@ export function openCartModal() {
     this.closeCartModal(false);
   }
 
-  this.cartState.isOpen = true;
   this.ensureSelectedIdsSet();
-  this.cartState.lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
   const overlay = document.createElement("div");
   overlay.className =
@@ -212,7 +217,17 @@ export function openCartModal() {
     }
   });
 
-  this.cartModalElement = overlay;
+  const escListener = (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      this.closeCartModal();
+    }
+  };
+  document.addEventListener("keydown", escListener);
+
+  // Actions를 통한 상태 업데이트
+  cartActions.openCartModal(this.store, overlay, lastFocusedElement, escListener);
+
   this.updateCartModalView();
   document.body.appendChild(overlay);
   document.body.style.overflow = "hidden";
@@ -222,16 +237,6 @@ export function openCartModal() {
   if (root) {
     root.setAttribute("aria-hidden", "true");
   }
-
-  if (!this.cartState.escListener) {
-    this.cartState.escListener = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        this.closeCartModal();
-      }
-    };
-  }
-  document.addEventListener("keydown", this.cartState.escListener);
 }
 
 export function closeCartModal(restoreFocus = true) {
@@ -241,13 +246,9 @@ export function closeCartModal(restoreFocus = true) {
 
   if (this.cartState.escListener) {
     document.removeEventListener("keydown", this.cartState.escListener);
-    this.cartState.escListener = null;
   }
 
   this.cartModalElement.remove();
-  this.cartModalElement = null;
-  this.cartState.isOpen = false;
-  this.saveCartSelectionToStorage();
   document.body.style.overflow = "";
 
   // 모달이 닫힐 때 메인 콘텐츠를 다시 보이게 함
@@ -256,10 +257,16 @@ export function closeCartModal(restoreFocus = true) {
     root.removeAttribute("aria-hidden");
   }
 
-  if (restoreFocus && this.cartState.lastFocusedElement instanceof HTMLElement) {
-    this.cartState.lastFocusedElement.focus();
+  const lastFocusedElement = this.cartState.lastFocusedElement;
+
+  // Actions를 통한 상태 업데이트
+  cartActions.closeCartModal(this.store);
+
+  this.saveCartSelectionToStorage();
+
+  if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
+    lastFocusedElement.focus();
   }
-  this.cartState.lastFocusedElement = null;
 }
 
 export function updateCartModalView() {
@@ -430,28 +437,20 @@ export function changeCartItemQuantity(productId, delta) {
     return;
   }
 
-  let updated = false;
-  this.cartItems = this.cartItems.map((item) => {
-    if (item.productId !== productId) {
-      return item;
-    }
-
-    const currentQuantity = this.getCartItemQuantity(item);
-    const nextQuantity = currentQuantity + delta;
-    const finalQuantity = nextQuantity < 1 ? 1 : nextQuantity;
-    if (finalQuantity !== currentQuantity) {
-      updated = true;
-    }
-
-    return {
-      ...item,
-      quantity: finalQuantity,
-    };
-  });
-
-  if (!updated) {
+  const item = this.cartItems.find((item) => item.productId === productId);
+  if (!item) {
     return;
   }
+
+  const currentQuantity = this.getCartItemQuantity(item);
+  const nextQuantity = currentQuantity + delta;
+  const finalQuantity = nextQuantity < 1 ? 1 : nextQuantity;
+
+  if (finalQuantity === currentQuantity) {
+    return;
+  }
+
+  cartActions.updateCartItemQuantity(this.store, productId, finalQuantity);
 
   this.saveCartToStorage();
   this.updateCartIcon();
@@ -460,14 +459,17 @@ export function changeCartItemQuantity(productId, delta) {
 
 export function removeCartItem(productId) {
   const initialLength = this.cartItems.length;
-  this.cartItems = this.cartItems.filter((item) => item.productId !== productId);
+
+  if (initialLength === 0) {
+    return;
+  }
+
+  cartActions.removeCartItem(this.store, productId);
+
   if (this.cartItems.length === initialLength) {
     return;
   }
 
-  const nextSelected = new Set(this.ensureSelectedIdsSet());
-  nextSelected.delete(productId);
-  this.setSelectedIds(nextSelected);
   this.saveCartToStorage();
   this.updateCartIcon();
   this.updateCartModalView();
@@ -480,14 +482,14 @@ export function removeSelectedCartItems() {
     return;
   }
 
-  const idsToRemove = new Set(currentSelected);
-  const nextItems = this.cartItems.filter((item) => !idsToRemove.has(item.productId));
-  if (nextItems.length === this.cartItems.length) {
+  const initialLength = this.cartItems.length;
+
+  cartActions.removeSelectedCartItems(this.store);
+
+  if (this.cartItems.length === initialLength) {
     return;
   }
 
-  this.cartItems = nextItems;
-  this.setSelectedIds(new Set());
   this.saveCartToStorage();
   this.updateCartIcon();
   this.updateCartModalView();
@@ -499,8 +501,8 @@ export function clearCartItems() {
     return;
   }
 
-  this.cartItems = [];
-  this.setSelectedIds(new Set());
+  cartActions.clearCart(this.store);
+
   this.saveCartToStorage();
   this.updateCartIcon();
   this.updateCartModalView();

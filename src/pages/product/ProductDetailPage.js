@@ -1,6 +1,9 @@
 import { getProduct, getProducts } from "../../lib/api/productApi.js";
 import { PageLayout, Header, CartIconButton } from "../../components/index.js";
 import { formatCurrency, escapeHtml } from "../../lib/utils/format.js";
+import * as productDetailActions from "../../store/actions/productDetailActions.js";
+import * as cartActions from "../../store/actions/cartActions.js";
+import * as filterActions from "../../store/actions/filterActions.js";
 
 /**
  * 상품 상세 페이지 컨트롤러
@@ -11,13 +14,7 @@ export class ProductDetailPage {
   }
 
   async load(productId) {
-    this.app.detailState = {
-      product: null,
-      relatedProducts: [],
-      isLoading: true,
-      error: null,
-      quantity: 1,
-    };
+    productDetailActions.startProductLoad(this.app.store);
 
     this.renderLoading();
 
@@ -38,22 +35,12 @@ export class ProductDetailPage {
         relatedProducts = relatedData.products.filter((p) => p.productId !== productId).slice(0, 4);
       }
 
-      this.app.detailState = {
-        product: product,
-        relatedProducts,
-        isLoading: false,
-        error: null,
-        quantity: 1,
-      };
+      productDetailActions.setProductSuccess(this.app.store, product, relatedProducts);
 
       this.renderContent();
     } catch (error) {
       console.error("상품 상세 정보를 불러오는 중 오류가 발생했습니다.", error);
-      this.app.detailState = {
-        ...this.app.detailState,
-        isLoading: false,
-        error: error?.message || "상품 정보를 불러올 수 없습니다.",
-      };
+      productDetailActions.setProductError(this.app.store, error?.message || "상품 정보를 불러올 수 없습니다.");
       this.renderError();
     }
   }
@@ -308,12 +295,10 @@ export class ProductDetailPage {
     if (breadcrumbCategory1) {
       breadcrumbCategory1.addEventListener("click", () => {
         const category1 = breadcrumbCategory1.dataset.category1;
-        this.app.lastParams = {
-          ...this.app.lastParams,
+        filterActions.setCategory(this.app.store, {
           category1: category1 || "",
           category2: "",
-          page: 1,
-        };
+        });
         this.app.navigateTo("/");
       });
     }
@@ -322,12 +307,10 @@ export class ProductDetailPage {
       breadcrumbCategory2.addEventListener("click", () => {
         const category1 = breadcrumbCategory2.dataset.category1;
         const category2 = breadcrumbCategory2.dataset.category2;
-        this.app.lastParams = {
-          ...this.app.lastParams,
+        filterActions.setCategory(this.app.store, {
           category1: category1 || "",
           category2: category2 || "",
-          page: 1,
-        };
+        });
         this.app.navigateTo("/");
       });
     }
@@ -392,29 +375,32 @@ export class ProductDetailPage {
     }
 
     const product = this.app.detailState.product;
+
+    // 기존 장바구니 아이템 확인
     const existingIndex = this.app.cartItems.findIndex((item) => item.productId === productId);
 
     if (existingIndex >= 0) {
+      // 기존 아이템의 수량에 추가
       const existingItem = this.app.cartItems[existingIndex];
-      const updatedItem = {
-        ...existingItem,
-        quantity: this.app.getCartItemQuantity(existingItem) + quantity,
-      };
-      this.app.cartItems = [
-        ...this.app.cartItems.slice(0, existingIndex),
-        updatedItem,
-        ...this.app.cartItems.slice(existingIndex + 1),
-      ];
+      const newQuantity = this.app.getCartItemQuantity(existingItem) + quantity;
+      cartActions.updateCartItemQuantity(this.app.store, productId, newQuantity);
     } else {
-      const cartItem = {
+      // 새 아이템 추가 (수량 지정)
+      const cartProduct = {
         productId,
         title: product.title ?? "",
         price: product.lprice ?? "",
         image: product.image ?? "",
         brand: product.brand ?? "",
-        quantity: quantity,
       };
-      this.app.cartItems = [...this.app.cartItems, cartItem];
+
+      // addToCart는 수량 1로 추가하므로, 여러 번 호출하거나 직접 설정
+      cartActions.addToCart(this.app.store, cartProduct);
+
+      // 수량이 1보다 크면 업데이트
+      if (quantity > 1) {
+        cartActions.updateCartItemQuantity(this.app.store, productId, quantity);
+      }
     }
 
     this.app.saveCartToStorage();
