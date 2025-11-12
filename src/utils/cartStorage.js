@@ -1,5 +1,32 @@
 const CART_STORAGE_KEY = "shopping_cart";
 
+// 장바구니 변경을 구독하는 리스너들
+const cartListeners = [];
+
+/**
+ * 장바구니 변경을 구독
+ * @param {Function} callback - 장바구니 변경 시 호출될 함수
+ * @returns {Function} 구독 해제 함수
+ */
+export const subscribeCartChange = (callback) => {
+  cartListeners.push(callback);
+
+  // 구독 해제 함수 반환
+  return () => {
+    const index = cartListeners.indexOf(callback);
+    if (index > -1) {
+      cartListeners.splice(index, 1);
+    }
+  };
+};
+
+/**
+ * 장바구니 변경 시 모든 구독자에게 알림
+ */
+const notifyCartChange = () => {
+  cartListeners.forEach((callback) => callback());
+};
+
 /**
  * LocalStorage에서 장바구니 데이터 읽기
  */
@@ -61,6 +88,7 @@ const addCartItem = (product, quantity) => {
   }
 
   saveCartItems(items);
+  notifyCartChange(); // 구독자들에게 알림
 };
 
 /**
@@ -73,6 +101,7 @@ const updateItemQuantity = (productId, newQuantity) => {
   if (item) {
     item.quantity = Math.max(1, newQuantity);
     saveCartItems(items);
+    notifyCartChange(); // 구독자들에게 알림
   }
 };
 
@@ -83,6 +112,7 @@ const removeItem = (productId) => {
   const items = getCartItems();
   const filteredItems = items.filter((item) => item.id !== productId);
   saveCartItems(filteredItems);
+  notifyCartChange(); // 구독자들에게 알림
 };
 
 /**
@@ -92,6 +122,7 @@ const removeSelectedItems = () => {
   const items = getCartItems();
   const filteredItems = items.filter((item) => !item.selected);
   saveCartItems(filteredItems);
+  notifyCartChange(); // 구독자들에게 알림
 };
 
 /**
@@ -99,6 +130,7 @@ const removeSelectedItems = () => {
  */
 const clearCart = () => {
   localStorage.removeItem(CART_STORAGE_KEY);
+  notifyCartChange(); // 구독자들에게 알림
 };
 
 /**

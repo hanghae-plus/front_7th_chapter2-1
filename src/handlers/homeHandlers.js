@@ -1,5 +1,4 @@
 import { updateQueryParams } from "../utils/queryParams.js";
-import { updateCartIconCount } from "../components/common/Header.js";
 import { getProducts } from "../api/productApi.js";
 import { ProductItem } from "../components/product/ProductItem.js";
 import { LoadingSpinner } from "../components/product/LoadingSpinner.js";
@@ -227,7 +226,7 @@ export const setupHomePageHandlers = () => {
       const productCard = target.closest(".product-card");
       const productData = extractProductData(productCard);
 
-      addToCartWithFeedback(productData, 1, updateCartIconCount);
+      addToCartWithFeedback(productData, 1);
     }
   };
 

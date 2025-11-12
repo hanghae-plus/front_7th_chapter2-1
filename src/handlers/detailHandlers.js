@@ -1,6 +1,4 @@
 import { navigateTo } from "../router/navigation.js";
-import { routes } from "../main.js";
-import { updateCartIconCount } from "../components/common/Header.js";
 import { TOAST_MESSAGES } from "../constants.js";
 import { toast } from "../utils/toast.js";
 import { extractProductData, addToCartWithFeedback } from "../utils/cartHelpers.js";
@@ -25,11 +23,11 @@ export const setupDetailPageHandlers = () => {
 
       // category1만 있으면 1depth 카테고리로 이동
       if (category1 && !category2) {
-        navigateTo(routes, "/", { category1 });
+        navigateTo("/", { category1 });
       }
       // category2도 있으면 2depth 카테고리로 이동
       else if (category1 && category2) {
-        navigateTo(routes, "/", { category1, category2 });
+        navigateTo("/", { category1, category2 });
       }
 
       return;
@@ -71,7 +69,7 @@ export const setupDetailPageHandlers = () => {
         const productData = extractProductData(productInfo);
         const quantity = parseInt(quantityInput.value) || 1;
 
-        addToCartWithFeedback(productData, quantity, updateCartIconCount);
+        addToCartWithFeedback(productData, quantity);
       } else {
         toast.error(TOAST_MESSAGES.PRODUCT_INFO_ERROR);
       }

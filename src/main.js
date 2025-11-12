@@ -6,6 +6,8 @@ import { setupDetailPageHandlers } from "./handlers/detailHandlers.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
 import { openCartModal, closeCartModal } from "./components/cart/index.js";
 import { setupCartHandlers } from "./handlers/cartHandlers.js";
+import { subscribeCartChange } from "./utils/cartStorage.js";
+import { updateCartIconCount } from "./components/common/Header.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -29,7 +31,10 @@ async function main() {
   const router = initRouter(routes);
   window.router = router;
 
-  // 2. 전역 이벤트 리스너 등록 (이벤트 위임 사용)
+  // 2. 장바구니 변경 구독 - 자동으로 아이콘 업데이트
+  subscribeCartChange(updateCartIconCount);
+
+  // 3. 전역 이벤트 리스너 등록 (이벤트 위임 사용)
   document.addEventListener("click", (e) => {
     const target = e.target;
 

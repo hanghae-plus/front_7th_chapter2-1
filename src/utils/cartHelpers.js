@@ -24,10 +24,9 @@ export const extractProductData = (element) => {
  * 상품을 장바구니에 추가하고 사용자에게 피드백을 제공합니다.
  * @param {Object} productData - 상품 데이터
  * @param {number} quantity - 추가할 수량
- * @param {Function} updateCartCount - 장바구니 카운트 업데이트 함수
  * @returns {boolean} 성공 여부
  */
-export const addToCartWithFeedback = (productData, quantity, updateCartCount) => {
+export const addToCartWithFeedback = (productData, quantity) => {
   if (!productData || !productData.id || !productData.title || productData.price === undefined) {
     toast.error(TOAST_MESSAGES.PRODUCT_INFO_ERROR);
     return false;
@@ -45,9 +44,7 @@ export const addToCartWithFeedback = (productData, quantity, updateCartCount) =>
   addCartItem(product, validQuantity);
   toast.success(TOAST_MESSAGES.CART_ADD_SUCCESS);
 
-  if (updateCartCount && typeof updateCartCount === "function") {
-    updateCartCount();
-  }
+  // updateCartIconCount()는 자동으로 호출됨 (subscribeCartChange)
 
   return true;
 };
