@@ -12,6 +12,8 @@ export const store = {
       category1: "",
       category2: "",
       loading: false,
+      filters: [],
+      pagination: [],
       error: null,
       limit: 0,
     },
@@ -23,36 +25,58 @@ export const store = {
     },
   },
   subscribe: observer.subscribe,
+  unsubscribe: observer.unsubscribe,
   notify: observer.notify,
 
-  setState(newState) {
-    this.state = {
-      ...this.state,
-      list: { ...this.state.list, ...newState.list },
-      detail: { ...this.state.detail, ...newState.detail },
-    };
-    observer.notify(); // 상태 바뀌면 알림
+  setState(key, value) {
+    // key 형태: 'list.products', 'detail.loading' 등으로 받아오기
+    const [topKey, nestedKey] = key.split(".");
+
+    if (nestedKey) {
+      // 중첩된 경로: list.products
+      this.state[topKey] = { ...this.state[topKey], [nestedKey]: value };
+    } else {
+      // 최상위 경로 (거의 사용 안 됨)
+      this.state[key] = value;
+    }
+
+    // 해당 경로 구독자에게만 알림
+    observer.notify(key);
   },
 
   async fetchProducts() {
     try {
-      this.setState({ list: { ...this.state.list, loading: true, error: null } });
+      this.setState("list.loading", true);
+      this.setState("list.error", null);
       const response = await getProducts(this.state.list);
-      console.log(response);
-      this.setState({ list: { ...this.state.list, ...response, loading: false } });
-      console.log(this.state.list);
+      console.log("products response", response);
+      // response의 각 필드를 개별적으로 업데이트
+      Object.keys(response).forEach((key) => {
+        this.setState(`list.${key}`, response[key]);
+      });
+      this.setState("list.loading", false);
     } catch (error) {
-      this.setState({ list: { ...this.state.list, error, loading: false } });
+      this.setState("list.error", error);
+      this.setState("list.loading", false);
     }
   },
 
   async fetchProductDetail(productId) {
     try {
-      this.setState({ detail: { ...this.state.detail, loading: true, error: null } });
+      this.setState("detail.loading", true);
+      this.setState("detail.error", null);
       const response = await getProduct(productId);
-      this.setState({ detail: { ...this.state.detail, ...response, loading: false } });
+      console.log("detail response", response);
+      // response의 각 필드를 개별적으로 업데이트
+      // Object.keys(response).forEach((key) => {
+      //   this.setState(`detail.${key}`, response[key]);
+      // });
+      this.setState("detail.product", response);
+      this.setState("detail.loading", false);
+      console.log("detail state", this.state.detail);
     } catch (error) {
-      this.setState({ detail: { ...this.state.detail, error, loading: false } });
+      this.setState("detail.error", error);
+      this.setState("detail.loading", false);
     }
   },
 };

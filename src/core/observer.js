@@ -1,19 +1,37 @@
 // observer pattern
 export const createObserver = () => {
-  const listeners = new Set(); // 이벤트 리스너 저장소 (중복 방지)
+  const listeners = new Map(); // stateKey별 리스너 저장소
 
   return {
-    subscribe(fn) {
-      // 이벤트 리스너 추가
-      listeners.add(fn);
+    subscribe(fn, stateKey = null) {
+      // stateKey가 없으면 전체 구독, 있으면 특정 상태만 구독
+      if (!listeners.has(stateKey)) {
+        listeners.set(stateKey, new Set());
+      }
+      listeners.get(stateKey).add(fn);
     },
-    unsubscribe(fn) {
+    unsubscribe(fn, stateKey = null) {
       // 이벤트 리스너 제거
-      listeners.delete(fn);
+      if (listeners.has(stateKey)) {
+        listeners.get(stateKey).delete(fn);
+      }
     },
-    notify() {
-      // 이벤트 발생시 모든 리스너에게 알림
-      listeners.forEach((fn) => fn());
+    notify(stateKey) {
+      // 해당 stateKey를 구독하는 리스너만 실행 (전파 없음)
+      const notifyListeners = new Set();
+
+      // 전체 구독자 추가 (stateKey가 null인 경우만)
+      if (listeners.has(null)) {
+        listeners.get(null).forEach((fn) => notifyListeners.add(fn));
+      }
+
+      // 해당 경로 구독자만 추가 (상위/하위 전파 없음)
+      if (stateKey && listeners.has(stateKey)) {
+        listeners.get(stateKey).forEach((fn) => notifyListeners.add(fn));
+      }
+
+      // 중복 제거된 리스너 실행
+      notifyListeners.forEach((fn) => fn());
     },
   };
 };
