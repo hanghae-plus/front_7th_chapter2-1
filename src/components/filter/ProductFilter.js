@@ -202,8 +202,11 @@ export const ProductFilter = () => {
           categoryContainer.innerHTML = '<div class="text-sm text-gray-500 italic">카테고리가 없습니다.</div>';
         } else {
           // URL 상태에 따라 적절한 카테고리 렌더링
-          if (currentFilters.category1) {
-            // category1이 선택된 경우 category2 목록 렌더링
+          if (currentFilters.category1 && currentFilters.category2) {
+            // category1과 category2가 모두 선택된 경우 category2 목록 렌더링
+            renderCategory2List(currentFilters.category1);
+          } else if (currentFilters.category1) {
+            // category1만 선택된 경우 category2 목록 렌더링
             renderCategory2List(currentFilters.category1);
           } else {
             // 초기 상태: category1 목록 렌더링
