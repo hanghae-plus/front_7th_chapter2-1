@@ -48,6 +48,21 @@ document.body.addEventListener("click", (e) => {
   }
 });
 
+document.body.addEventListener("change", (e) => {
+  // limit 선택 이벤트
+  if (e.target.id === "limit-select") {
+    const limit = parseInt(e.target.value);
+    store.setState({
+      pagination: { page: 1, limit },
+    });
+
+    // URL에 limit 추가
+    const params = new URLSearchParams(window.location.search);
+    params.set("limit", limit);
+    router.push(`?${params.toString()}`);
+  }
+});
+
 document.body.addEventListener("keydown", (e) => {
   const input = e.target.closest("#search-input");
   if (!input) return;
@@ -77,9 +92,21 @@ function syncStateFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const category1 = params.get("category1") || "";
   const category2 = params.get("category2") || "";
+  const limit = parseInt(params.get("limit")) || 20;
+
+  const stateUpdates = {};
 
   if (store.state.category1 !== category1 || store.state.category2 !== category2) {
-    store.setState({ category1, category2 });
+    stateUpdates.category1 = category1;
+    stateUpdates.category2 = category2;
+  }
+
+  if (store.state.pagination.limit !== limit) {
+    stateUpdates.pagination = { page: 1, limit };
+  }
+
+  if (Object.keys(stateUpdates).length > 0) {
+    store.setState(stateUpdates);
   }
 }
 

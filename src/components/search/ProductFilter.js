@@ -1,8 +1,11 @@
+import { store } from "../../store/store";
+
 export const ProductFilter = () => {
   const $el = document.createElement("div");
   $el.className = "flex gap-2 items-center justify-between";
 
   function render() {
+    const { pagination } = store.state;
     $el.innerHTML = /* HTML */ `
       <div class="flex items-center gap-2">
         <label class="text-sm text-gray-600">개수:</label>
@@ -10,10 +13,10 @@ export const ProductFilter = () => {
           id="limit-select"
           class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="10">10개</option>
-          <option value="20" selected="">20개</option>
-          <option value="50">50개</option>
-          <option value="100">100개</option>
+          <option value="10" ${pagination.limit === 10 ? "selected" : ""}>10개</option>
+          <option value="20" ${pagination.limit === 20 ? "selected" : ""}>20개</option>
+          <option value="50" ${pagination.limit === 50 ? "selected" : ""}>50개</option>
+          <option value="100" ${pagination.limit === 100 ? "selected" : ""}>100개</option>
         </select>
       </div>
       <div class="flex items-center gap-2">
@@ -30,6 +33,8 @@ export const ProductFilter = () => {
       </div>
     `;
   }
+
   render();
+  store.subscribe(render);
   return $el;
 };

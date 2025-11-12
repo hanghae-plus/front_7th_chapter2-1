@@ -4,10 +4,11 @@ const params = new URLSearchParams(location.search);
 const category1 = params.get("category1");
 const category2 = params.get("category2");
 const search = params.get("search");
+const limit = parseInt(params.get("limit")) || 20;
 
 export const initialState = {
   search: search || "",
-  pagination: { page: 1, limit: 20 },
+  pagination: { page: 1, limit },
   products: [],
   categories: {},
   category1: category1 || "",
