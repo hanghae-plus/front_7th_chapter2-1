@@ -1,117 +1,35 @@
-import { LIMIT_OPTIONS, SORT_OPTIONS } from '@/constants';
+import {
+  SearchInput,
+  CategoryBreadcrumb,
+  CategoryButtons,
+  FilterOptions,
+} from '@/components';
 
 export const SearchForm = ({
   pagination = { limit: 20 },
   filters = { sort: 'price_asc', search: '' },
   categories,
 }) => {
-  const categoriesData = categories || {};
-  const category1List = Object.keys(categoriesData);
-
   return /* HTML */ `
     <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
       <!-- 검색창 -->
-      <div class="mb-4">
-        <div class="relative">
-          <input
-            type="text"
-            id="search-input"
-            placeholder="상품명을 검색해보세요..."
-            value="${filters.search}"
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-          >
-            <svg
-              class="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              ></path>
-            </svg>
-          </div>
-        </div>
-      </div>
+      <div class="mb-4">${SearchInput({ value: filters.search })}</div>
       <!-- 필터 옵션 -->
       <div class="space-y-3">
         <!-- 카테고리 필터 -->
         <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600">카테고리:</label>
-            <button
-              data-breadcrumb="reset"
-              class="text-xs hover:text-blue-800 hover:underline"
-            >
-              전체
-            </button>
-          </div>
-          ${!categories || category1List.length === 0
-            ? /* HTML */ `
-                <!-- 1depth 카테고리 -->
-                <div class="flex flex-wrap gap-2">
-                  <div class="text-sm text-gray-500 italic">
-                    카테고리 로딩 중...
-                  </div>
-                </div>
-              `
-            : /* HTML */ `
-                <!-- 1depth 카테고리 -->
-                <div class="flex flex-wrap gap-2">
-                  ${category1List
-                    .map(
-                      (category1) => /* HTML */ `
-                        <button
-                          data-category1="${category1}"
-                          class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                         bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                        >
-                          ${category1}
-                        </button>
-                      `,
-                    )
-                    .join('')}
-                </div>
-              `}
-
-          <!-- 2depth 카테고리 -->
+          ${CategoryBreadcrumb({
+            category1: filters.category1,
+            category2: filters.category2,
+          })}
+          ${CategoryButtons({
+            categories,
+            category1: filters.category1,
+            category2: filters.category2,
+          })}
         </div>
-        <!-- 기존 필터들 -->
-        <div class="flex gap-2 items-center justify-between">
-          <!-- 페이지당 상품 수 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600">개수:</label>
-            <select
-              id="limit-select"
-              class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            >
-              ${LIMIT_OPTIONS.map(
-                (option) =>
-                  `<option value="${option.value}" ${pagination.limit === option.value ? 'selected' : ''}>${option.label}</option>`,
-              ).join('')}
-            </select>
-          </div>
-          <!-- 정렬 -->
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600">정렬:</label>
-            <select
-              id="sort-select"
-              class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            >
-              ${SORT_OPTIONS.map(
-                (option) =>
-                  `<option value="${option.value}" ${filters.sort === option.value ? 'selected' : ''}>${option.label}</option>`,
-              ).join('')}
-            </select>
-          </div>
-        </div>
+        ${FilterOptions({ pagination, filters })}
       </div>
     </div>
   `;

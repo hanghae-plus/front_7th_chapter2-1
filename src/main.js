@@ -8,6 +8,13 @@ import {
 import { addToCart } from '@/utils/cart';
 import { showToast } from '@/components';
 
+//TODO: 캐싱 전략 고민
+//TODO: 라이프사이클 관리 고민
+
+// 만약 캐시한다면?? (임시)
+// let categoriesCache = null;
+// let productsCache = {}; // 필터별 products 캐시
+
 const enableMocking = () =>
   import('@/mocks/browser.js').then(({ worker }) =>
     worker.start({
@@ -49,12 +56,66 @@ const render = async () => {
     };
 
     const queryParams = { limit, page, search, category1, category2, sort };
+    // 캐싱한다면?? (임시)
+
+    // const filterKey = JSON.stringify({
+    //   search,
+    //   category1,
+    //   category2,
+    //   sort,
+    //   limit,
+    // });
+
+    // JSON.stringify 객체 프로퍼티 순서 문제 방지
+    // const stableKey = (obj) => {
+    //   return JSON.stringify(Object.fromEntries(Object.entries(obj).sort()));
+    // };
+    // const filterKey = stableKey({ search, category1, category2, sort, limit });
+
+    // const cachedData = productsCache[filterKey];
+
+    // 로딩 상태 렌더링 (캐시된 categories 전달)
+    // $root.innerHTML = HomePage({
+    //   loading: true,
+    //   categories: categoriesCache,
+    //   products: cachedData?.products || [],
+    //   pagination: cachedData?.pagination || pageState.pagination,
+    //   ...pageState,
+    // });
 
     // 로딩 상태 렌더링
     $root.innerHTML = HomePage({
       loading: true,
       ...pageState,
     });
+
+    // 캐싱 시 조건부 API 호출
+    // let productsData;
+    // if (!categoriesCache) {
+    //   // 첫 로딩
+    //   if (!cachedData) {
+    //     // 병렬 호출
+    //     [productsData, categoriesCache] = await Promise.all([
+    //       getProducts(queryParams),
+    //       getCategories(),
+    //     ]);
+    //     productsCache[filterKey] = productsData;
+    //   } else {
+    //     // categories만 로드
+    //     categoriesCache = await getCategories();
+    //     productsData = cachedData;
+    //   }
+    // } else {
+    //   // 이후
+    //   if (!cachedData) {
+    //     // products 로드
+    //     productsData = await getProducts(queryParams);
+    //     productsCache[filterKey] = productsData;
+    //   } else {
+    //     // 캐시 사용 (API 호출 없음)
+    //     productsData = cachedData;
+    //   }
+    // }
 
     // 병렬 API 호출
     const [productsData, categoriesData] = await Promise.all([
@@ -78,7 +139,7 @@ const render = async () => {
     // 홈 페이지에서만 무한 스크롤 초기화
     initInfiniteScroll(queryParams);
   } else {
-    const productId = window.location.pathname.split('/products/')[1];
+    const productId = window.location.pathname.split('/product/')[1];
     $root.innerHTML = DetailPage({ loading: true });
     const data = await getProduct(productId);
     $root.innerHTML = DetailPage({ loading: false, product: data });

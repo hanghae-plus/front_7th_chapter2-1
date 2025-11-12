@@ -8,6 +8,7 @@ const infiniteScrollState = {
   hasMore: true,
   observer: null,
   currentFilters: {},
+  isInitialLoad: true,
 };
 
 // 추가 상품 로드 함수
@@ -97,6 +98,7 @@ export const initInfiniteScroll = (filters = {}) => {
   infiniteScrollState.currentPage = filters.page || 1;
   infiniteScrollState.hasMore = true;
   infiniteScrollState.isLoading = false;
+  infiniteScrollState.isInitialLoad = true;
 
   // 센티널 요소 찾기
   const sentinel = document.querySelector('#infinite-scroll-trigger');
@@ -109,6 +111,12 @@ export const initInfiniteScroll = (filters = {}) => {
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
+        // 초기 로드 시 트리거 방지
+        if (infiniteScrollState.isInitialLoad) {
+          infiniteScrollState.isInitialLoad = false;
+          return;
+        }
+
         // 요소가 화면에 보이고, 로딩 중이 아니며, 더 로드할 데이터가 있을 때
         if (
           entry.isIntersecting &&
