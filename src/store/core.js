@@ -15,10 +15,8 @@ export class Store {
     const nextState =
       typeof newState === "object" && !Array.isArray(newState) ? { ...prevState, ...newState } : newState;
 
-    const prevKey = Object.keys(prevState);
-    const nextKey = Object.keys(nextState);
     // 키를 가져와서 값 비교
-    const isEqual = prevKey.every((key) => Object.is(prevKey[key], nextKey[key]));
+    const isEqual = Object.keys(prevState).every((key) => Object.is(prevState[key], nextState[key]));
     // 이전 state와 같으면 렌더링 불필요
     if (isEqual) return;
 
