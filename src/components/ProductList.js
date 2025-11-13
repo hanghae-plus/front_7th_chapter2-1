@@ -1,4 +1,4 @@
-const skeleton = `
+const skeleton = /* html */ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
         <div class="aspect-square bg-gray-200"></div>
         <div class="p-3">
@@ -10,7 +10,7 @@ const skeleton = `
     </div>
 `;
 
-const Loading = `
+const Loading = /* html */ `
     <div class="text-center py-4">
         <div class="inline-flex items-center">
             <svg class="animate-spin h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24">
@@ -24,13 +24,15 @@ const Loading = `
     </div>
 `;
 
-const ProductItem = ({ title, productId, image, lprice }) => {
-  return `
+const ProductItem = ({ title, productId, image, lprice, brand, maker }) => {
+  const brandName = brand || maker || "";
+  return /* html */ `
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
             data-product-id="${productId}">
             <!-- 상품 이미지 -->
             <div class="aspect-square bg-gray-100 overflow-hidden cursor-pointer product-image">
                 <img src="${image}"
+                    alt="${title}"
                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                     loading="lazy">
             </div>
@@ -40,7 +42,7 @@ const ProductItem = ({ title, productId, image, lprice }) => {
                     <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
                         ${title}
                     </h3>
-                    <p class="text-xs text-gray-500 mb-2"></p>
+                    <p class="text-xs text-gray-500 mb-2">${brandName}</p>
                     <p class="text-lg font-bold text-gray-900">
                         ${Number(lprice).toLocaleString()}원
                     </p>
@@ -55,26 +57,33 @@ const ProductItem = ({ title, productId, image, lprice }) => {
     `;
 };
 
-export const ProductList = ({ loading, products }) => {
-  return `
-        <div class="mb-6">
+export const ProductList = ({ loading, products, pagination }) => {
+  return /* html */ `
+        <div class="product-list mb-6">
             <div>
                 ${
                   loading
-                    ? `
+                    ? /* html */ `
                         <!-- 상품 그리드 -->
                         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
                             <!-- 로딩 스켈레톤 -->
                             ${skeleton.repeat(4)}
                         </div>
                         ${Loading}`
-                    : `
+                    : /* html */ `
                         <div class="mb-4 text-sm text-gray-600">
-                            총 <span class="font-medium text-gray-900">${products.length}개</span>의 상품
+                            총 <span class="font-medium text-gray-900">${pagination?.total || products.length}개</span>의 상품
                         </div>
                         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
                             ${products.map(ProductItem).join("")}
                         </div>
+                        <!-- 무한스크롤 트리거 -->
+                        <div id="infinite-scroll-trigger" class="h-10"></div>
+                        ${
+                          pagination?.hasNext
+                            ? `<div id="loading-more" class="text-center py-4 hidden">${Loading}</div>`
+                            : `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다.</div>`
+                        }
                     `
                 }
             </div>
