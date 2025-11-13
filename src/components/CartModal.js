@@ -1,4 +1,4 @@
-import { getCartState, subscribe } from "../store/appStore.js";
+import { getCartState, subscribe, removeCartItem, resetCartState } from "../store/appStore.js";
 
 const EMPTY_VIEW = /*html*/ `
   <div class="flex-1 flex items-center justify-center p-8">
@@ -49,7 +49,7 @@ const renderCartItem = ({ id, title, price, image, quantity }) => {
       </div>
       <div class="text-right ml-3">
         <p class="text-sm font-medium text-gray-900">${totalPrice.toLocaleString()}원</p>
-        <button class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800" data-product-id="85067212996">
+        <button class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800" data-product-id="${id}">
           삭제
         </button>
       </div>
@@ -98,6 +98,10 @@ const renderCartItems = (items = []) => {
       </div>
       <!-- 액션 버튼들 -->
       <div class="space-y-2">
+        <button id="cart-modal-remove-selected-btn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md 
+              hover:bg-red-700 transition-colors text-sm hidden">
+          선택한 상품 삭제 (0개)
+        </button>
         <div class="flex gap-2">
           <button id="cart-modal-clear-cart-btn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md 
                     hover:bg-gray-700 transition-colors text-sm">
@@ -157,6 +161,9 @@ const updateCartModalContent = () => {
     if (newTotalPriceSpan) {
       newTotalPriceSpan.textContent = `${totalPrice.toLocaleString()}원`;
     }
+
+    // 선택된 상품 삭제 버튼 초기 상태 업데이트
+    updateRemoveSelectedButton();
   });
 };
 
@@ -172,6 +179,26 @@ const handleSelectAll = (event) => {
   itemCheckboxes.forEach((checkbox) => {
     checkbox.checked = isChecked;
   });
+
+  // 선택된 상품 삭제 버튼 업데이트
+  updateRemoveSelectedButton();
+};
+
+const updateRemoveSelectedButton = () => {
+  const removeSelectedBtn = document.querySelector("#cart-modal-remove-selected-btn");
+  if (!removeSelectedBtn) {
+    return;
+  }
+
+  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+  const checkedCount = Array.from(itemCheckboxes).filter((cb) => cb.checked).length;
+
+  if (checkedCount > 0) {
+    removeSelectedBtn.classList.remove("hidden");
+    removeSelectedBtn.textContent = `선택한 상품 삭제 (${checkedCount}개)`;
+  } else {
+    removeSelectedBtn.classList.add("hidden");
+  }
 };
 
 const handleItemCheckboxChange = () => {
@@ -185,6 +212,44 @@ const handleItemCheckboxChange = () => {
 
   // 모든 아이템이 선택되었으면 전체선택 체크박스도 체크
   selectAllCheckbox.checked = checkedCount === itemCheckboxes.length && itemCheckboxes.length > 0;
+
+  // 선택된 상품 삭제 버튼 업데이트
+  updateRemoveSelectedButton();
+};
+
+const handleItemRemove = (event) => {
+  const removeBtn = event.target.closest(".cart-item-remove-btn");
+  if (!removeBtn) {
+    return;
+  }
+
+  const productId = removeBtn.getAttribute("data-product-id");
+  if (!productId) {
+    return;
+  }
+
+  removeCartItem(productId);
+};
+
+const handleRemoveSelected = () => {
+  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+  const checkedCheckboxes = Array.from(itemCheckboxes).filter((cb) => cb.checked);
+
+  if (checkedCheckboxes.length === 0) {
+    return;
+  }
+
+  // 체크된 상품들의 productId를 가져와서 삭제
+  checkedCheckboxes.forEach((checkbox) => {
+    const productId = checkbox.getAttribute("data-product-id");
+    if (productId) {
+      removeCartItem(productId);
+    }
+  });
+};
+
+const handleClearCart = () => {
+  resetCartState();
 };
 
 let isSetup = false;
@@ -212,6 +277,24 @@ export const setupCartModal = (router) => {
         checkbox.removeEventListener("change", handleItemCheckboxChange);
         checkbox.addEventListener("change", handleItemCheckboxChange);
       });
+
+      const removeButtons = document.querySelectorAll(".cart-item-remove-btn");
+      removeButtons.forEach((button) => {
+        button.removeEventListener("click", handleItemRemove);
+        button.addEventListener("click", handleItemRemove);
+      });
+
+      const removeSelectedBtn = document.querySelector("#cart-modal-remove-selected-btn");
+      if (removeSelectedBtn) {
+        removeSelectedBtn.removeEventListener("click", handleRemoveSelected);
+        removeSelectedBtn.addEventListener("click", handleRemoveSelected);
+      }
+
+      const clearCartBtn = document.querySelector("#cart-modal-clear-cart-btn");
+      if (clearCartBtn) {
+        clearCartBtn.removeEventListener("click", handleClearCart);
+        clearCartBtn.addEventListener("click", handleClearCart);
+      }
     });
   };
 

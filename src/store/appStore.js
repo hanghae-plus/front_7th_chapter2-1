@@ -183,3 +183,17 @@ export const appendCartProduct = ({ id, title, price, image, quantity = 1 }) => 
     };
   });
 };
+
+export const removeCartItem = (productId) => {
+  if (!productId) {
+    return;
+  }
+
+  updateCart((prev) => {
+    const items = prev.items.filter((item) => item.id !== productId);
+    return {
+      ...prev,
+      items,
+    };
+  });
+};
