@@ -299,7 +299,9 @@ export default class CartModal extends Component {
     );
     this.addEvent('click', '.cart-item-remove-btn', (e) => {
       const { productId } = /** @type {HTMLElement} */ (e.target).dataset;
+
       cartStore.dispatch(removeItem(productId));
+      toastStore.dispatch(openToast({ type: 'info', message: '상품이 삭제되었습니다' }));
     });
     this.addEvent('click', '.quantity-decrease-btn', (e) => {
       const $button = /** @type {HTMLElement} */ (e.target).closest('.quantity-decrease-btn');
