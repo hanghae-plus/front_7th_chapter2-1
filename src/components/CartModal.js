@@ -1,4 +1,5 @@
 import { getCartState, subscribe, removeCartItem, resetCartState } from "../store/appStore.js";
+import { showToast } from "../events/uiEvents.js";
 
 const EMPTY_VIEW = /*html*/ `
   <div class="flex-1 flex items-center justify-center p-8">
@@ -229,6 +230,9 @@ const handleItemRemove = (event) => {
   }
 
   removeCartItem(productId);
+
+  // Toast 표시
+  showToast("info", "선택된 상품들이 삭제되었습니다");
 };
 
 const handleRemoveSelected = () => {
@@ -246,10 +250,16 @@ const handleRemoveSelected = () => {
       removeCartItem(productId);
     }
   });
+
+  // Toast 표시
+  showToast("info", "선택된 상품들이 삭제되었습니다");
 };
 
 const handleClearCart = () => {
   resetCartState();
+
+  // Toast 표시
+  showToast("info", "선택된 상품들이 삭제되었습니다");
 };
 
 let isSetup = false;
