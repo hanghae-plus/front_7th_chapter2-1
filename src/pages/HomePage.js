@@ -15,16 +15,20 @@ const runtime = {
   setCategories: null,
   setIsLoading: null,
   setError: null,
+
   filters: null,
   pagination: null,
   products: null,
   categories: null,
-  isLoading: false,
   error: null,
+
+  isLoading: false,
   isInitializing: false,
   isLoadingMore: false,
   lastKnownSearch: "",
   reobserveSentinel: null,
+
+  unMount: null,
 };
 
 const ensureCategories = async () => {
@@ -122,9 +126,11 @@ const loadInitialData = async (query) => {
       }
     }
 
+    const maximumItems = (normalizedPagination.limit ?? DEFAULT_LIMIT) * currentPage;
+
     runtime.setFilters?.(normalizedFilters);
     runtime.setPagination?.(normalizedPagination);
-    runtime.setProducts?.(aggregatedProducts);
+    runtime.setProducts?.(aggregatedProducts.slice(0, maximumItems));
     runtime.setCategories?.(categories ?? {});
   } catch (error) {
     console.error("홈 페이지 로딩 실패", error);
@@ -180,6 +186,9 @@ const mountHomePage = () => {
   // ✅ HomePage가 실제 DOM에 마운트될 때 단 한 번 실행되는 로직
   const root = document.getElementById("root");
   if (!root) return () => {};
+
+  runtime.unMount?.();
+  runtime.unMount = null;
 
   const handleProductCardClick = (event) => {
     // ✅ 상품 카드를 클릭하면 상세 페이지로 이동한다
@@ -321,7 +330,7 @@ const mountHomePage = () => {
   };
   runtime.reobserveSentinel();
 
-  return () => {
+  const unMount = () => {
     root.removeEventListener("click", handleProductCardClick);
     root.removeEventListener("click", handleCategoryClick);
     root.removeEventListener("change", handleLimitChange);
@@ -329,7 +338,11 @@ const mountHomePage = () => {
     root.removeEventListener("submit", handleSearchSubmit);
     observer.disconnect();
     runtime.reobserveSentinel = null;
+    if (runtime.unMount === unMount) runtime.unMount = null;
   };
+
+  runtime.unMount = unMount;
+  return unMount;
 };
 
 const buildPageView = (state) => {

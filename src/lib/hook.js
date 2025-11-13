@@ -1,5 +1,6 @@
 // 렌더마다 재사용될 컴포넌트 상태값 목록
-const hooks = [];
+const hookStore = new WeakMap();
+let hooks = [];
 let hookIndex = 0; // 현재 훅 호출이 위치한 인덱스
 let renderScheduled = false; // 렌더 재실행이 예약되었는지 여부
 let isPrepared = false; // prepareRender가 호출되어 훅 순서가 초기화되었는지 여부
@@ -49,6 +50,8 @@ export const useState = (initialValue) => {
 // 컴포넌트 실행 함수를 등록하고 훅 인덱스를 초기화
 export const prepareRender = (runner) => {
   currentRunner = runner;
+  hooks = hookStore.get(currentRunner) ?? [];
+  hookStore.set(currentRunner, hooks);
   hookIndex = 0;
   isPrepared = true;
 };
