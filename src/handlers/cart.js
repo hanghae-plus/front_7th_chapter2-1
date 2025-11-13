@@ -1,6 +1,19 @@
 import { cartState } from "../App";
 import { CartIcon } from "../components/cart/CartIcon";
-import { CartModal } from "../components/cart/CartModal";
+import { CartModal, CartModalContent } from "../components/cart/CartModal";
+
+let modalUnsubscribe = null;
+
+/**
+ * CartModal 렌더링 (내용만 업데이트)
+ */
+function renderCartModalContent() {
+  const contentContainer = document.querySelector("[data-cart-modal-content]");
+  if (!contentContainer) return;
+
+  const { items } = cartState.getState();
+  contentContainer.innerHTML = CartModalContent({ items });
+}
 
 /**
  * CartModal 표시
@@ -10,7 +23,7 @@ export function showCartModal() {
   if (!modalContainer) return;
 
   // 모달 렌더링
-  modalContainer.innerHTML = CartModal();
+  modalContainer.innerHTML = CartModal({ items: cartState.getState().items });
 
   // 닫기 버튼 이벤트
   const closeBtn = document.getElementById("cart-modal-close-btn");
@@ -35,6 +48,14 @@ export function showCartModal() {
 
   // body 스크롤 막기
   document.body.style.overflow = "hidden";
+
+  // cartState 구독 설정 (모달이 열려있는 동안만)
+  if (modalUnsubscribe) {
+    modalUnsubscribe();
+  }
+  modalUnsubscribe = cartState.subscribe(() => {
+    renderCartModalContent();
+  });
 }
 
 /**
@@ -43,6 +64,12 @@ export function showCartModal() {
 export function hideCartModal() {
   const modalContainer = document.getElementById("cart-modal");
   if (!modalContainer) return;
+
+  // 구독 해제
+  if (modalUnsubscribe) {
+    modalUnsubscribe();
+    modalUnsubscribe = null;
+  }
 
   modalContainer.innerHTML = "";
 
