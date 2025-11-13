@@ -1,8 +1,5 @@
-/* eslint-disable no-unused-vars */
-
 import { NotFoundPage } from "../pages/NotFoundPage";
 
-// TODO: 쿼리스트링 안 없앤 버전
 const convertToRelativePath2 = (pathName) => {
   const basePath = import.meta.env.BASE_URL;
   return pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
@@ -13,13 +10,17 @@ export class Router {
     this.$app = $app;
     this.routes = [];
     this.isPending = false;
-    this.currentView = null;
-    this.currentLoaderData = null;
+    this.current = {
+      view: null,
+      loaderData: null,
+      params: null,
+      queryString: null,
+    };
     this.init();
   }
 
   init() {
-    window.addEventListener("popstate", (e) => {
+    window.addEventListener("popstate", () => {
       this.render();
     });
   }
@@ -68,45 +69,56 @@ export class Router {
     this.isPending = true;
     const matched = this.#matchRoute(location.pathname);
 
-    if (this.currentView && this.currentView.constructor !== matched.component) {
-      this.currentView.unmount();
-      this.currentView = null;
+    if (this.current.view && this.current.view.constructor !== matched.component) {
+      this.current.view.unmount();
+      this.current = {
+        view: null,
+        loaderData: null,
+        params: null,
+        queryString: null,
+      };
     }
 
     // 1. Loading UI 렌더링 (isPending: true)
-    if (!this.currentView) {
-      this.currentView = new matched.component(this.$app, {
+    if (!this.current.view) {
+      this.current.view = new matched.component(this.$app, {
         params: matched.params,
         queryString: matched.queryString,
         isPending: this.isPending,
         loaderData: null,
       });
     } else {
-      await this.currentView.updateProps({
+      await this.current.view.updateProps({
         params: matched.params,
         queryString: matched.queryString,
         isPending: this.isPending,
-        loaderData: this.currentLoaderData,
+        loaderData: this.current.loaderData,
       });
     }
 
     // 2. ⭐ 데이터 로딩 및 대기
-    if (withLoader && matched.loader) {
+    const fetchLoaderData =
+      withLoader ||
+      (JSON.stringify(matched.params) !== JSON.stringify(this.current.params) &&
+        JSON.stringify(matched.queryString) !== JSON.stringify(this.current.queryString));
+    if (fetchLoaderData) {
       try {
-        this.currentLoaderData = await matched.loader({ params: matched.params, queryString: matched.queryString });
+        this.current.params = matched.params;
+        this.current.queryString = matched.queryString;
+        this.current.loaderData = await matched.loader({ params: matched.params, queryString: matched.queryString });
       } catch (e) {
-        this.currentLoaderData = { error: e.message };
+        this.current.loaderData = { error: e.message };
       }
     }
 
     // 3. 로딩 완료 후 최종 렌더링 (isPending: false)
     this.isPending = false;
-    if (this.currentView && this.currentView.updateProps) {
-      await this.currentView.updateProps({
+    if (this.current.view && this.current.view.updateProps) {
+      await this.current.view.updateProps({
         params: matched.params,
         queryString: matched.queryString,
         isPending: this.isPending,
-        loaderData: this.currentLoaderData,
+        loaderData: this.current.loaderData,
       });
     }
   }

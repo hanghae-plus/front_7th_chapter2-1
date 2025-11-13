@@ -2,12 +2,12 @@ import { ToastManager } from "../../../../항해99/front_7th_chapter2-1/src/util
 import { LocalStorageUtil } from "./localstorage";
 
 export class CartUtil {
-  static addCard(product) {
+  static addCard(product, count = 1) {
     const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
     const existCartItem = existCartItems.find((item) => item.id === product.productId);
 
     if (existCartItem) {
-      existCartItem.quantity = existCartItem.quantity + 1;
+      existCartItem.quantity = existCartItem.quantity + count;
     } else {
       existCartItems.push({
         id: product.productId,
@@ -29,8 +29,26 @@ export class CartUtil {
     ToastManager.show("add");
   }
 
+  static updateQuantity(productId, count) {
+    const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
+    const existCartItem = existCartItems.find((item) => item.id === productId);
+    existCartItem.quantity = count;
+    LocalStorageUtil.setItem(
+      "shopping_cart",
+      JSON.stringify({
+        items: existCartItems,
+      }),
+    );
+  }
+
   static getCartItems() {
     return JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
+  }
+
+  static getCartItem(productId) {
+    return (JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? []).find(
+      (prod) => prod.id === productId,
+    );
   }
 
   static removeCart() {}

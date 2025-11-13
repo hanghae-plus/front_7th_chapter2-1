@@ -83,8 +83,6 @@ export class HomePage extends Component {
   }
 
   mount() {
-    console.error("mount!!!!");
-    // 바인딩된 함수를 인스턴스 변수로 저장
     this.boundHandleClick = this.handleClick.bind(this);
     this.boundHandleKeydown = this.handleKeydown.bind(this);
     this.boundHandleChange = this.handleChange.bind(this);
@@ -95,8 +93,6 @@ export class HomePage extends Component {
   }
 
   unmount() {
-    console.error("unmount!!!!");
-    // 같은 함수 참조를 사용하여 제거
     this.$container.removeEventListener("click", this.boundHandleClick);
     this.$container.removeEventListener("keydown", this.boundHandleKeydown);
     this.$container.removeEventListener("change", this.boundHandleChange);
