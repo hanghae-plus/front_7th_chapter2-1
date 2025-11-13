@@ -54,6 +54,8 @@ export const SearchBox = (
   onSortChangeCallback = null,
   currentLimit = 20,
   currentSort = "price_asc",
+  currentCategory1 = null,
+  currentCategory2 = null,
 ) => {
   categoryLoading = loading;
   categoryData = categories; // 이미 객체 형태로 받음
@@ -64,6 +66,8 @@ export const SearchBox = (
   // 현재 선택된 값 업데이트
   selectedLimit = currentLimit;
   selectedSort = currentSort;
+  selectedCategory1 = currentCategory1;
+  selectedCategory2 = currentCategory2;
 
   setTimeout(() => {
     // DOM이 교체된 후 실행되므로 여기서 플래그 리셋
