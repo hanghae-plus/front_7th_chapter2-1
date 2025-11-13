@@ -561,7 +561,7 @@ document.body.addEventListener('change', (e) => {
     const url = new URL(window.location);
     url.searchParams.set('limit', newLimit);
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
   }
 });
 
@@ -573,7 +573,7 @@ document.body.addEventListener('change', (e) => {
     const url = new URL(window.location);
     url.searchParams.set('sort', newSort);
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
   }
 });
 
@@ -590,7 +590,7 @@ document.body.addEventListener('keypress', (e) => {
       url.searchParams.delete('search');
     }
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
   }
 });
 
@@ -605,7 +605,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category1', category1);
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
     return;
   }
 
@@ -617,7 +617,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category1', category1);
     url.searchParams.set('category2', category2);
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
     return;
   }
 
@@ -627,7 +627,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.delete('category1');
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
     return;
   }
 
@@ -638,7 +638,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category1', category1);
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
-    push(url);
+    push(url.pathname + url.search);
     return;
   }
 });
