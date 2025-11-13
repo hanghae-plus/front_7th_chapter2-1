@@ -72,6 +72,8 @@ const ProductItem = ({ title, image, lprice, productId, brand }) => {
 
 export const ProductList = ({ products, loading, pagination = {} }) => {
   const totalCount = pagination.total || products.length;
+  const isLoadingMore = pagination.isLoadingMore || false;
+  const hasNext = pagination.hasNext !== undefined ? pagination.hasNext : true;
 
   return /* HTML */ `
     <div class="mb-6">
@@ -86,6 +88,11 @@ export const ProductList = ({ products, loading, pagination = {} }) => {
                 총 <span class="font-medium text-gray-900">${totalCount}개</span>의 상품
               </div>
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
+              ${isLoadingMore
+                ? Loading
+                : !hasNext && products.length > 0
+                  ? /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`
+                  : ""}
             `}
       </div>
     </div>
