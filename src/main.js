@@ -1,6 +1,7 @@
 import { HomePage } from "./pages/HomePage.js";
 import { getProducts, getProduct, getCategories } from "./api/productApi.js";
 import { DetailPage } from "./pages/Detailpage.js";
+import { NotFoundPage } from "./pages/NotFoundPage.js";
 import { bindSearchFormEvents } from "./components/SearchForm.js";
 import { openCartModal } from "./app/cart/modal.js";
 import { showToast } from "./app/toast/toast.js";
@@ -70,12 +71,14 @@ function filtersEqual(a = {}, b = {}) {
   );
 }
 
-function buildQueryFromFilters(filters = {}) {
+function buildQueryFromFilters(filters = {}, options = {}) {
   const params = new URLSearchParams();
-  if (filters.limit && filters.limit !== DEFAULT_FILTERS.limit) {
+  const forceInclude = options.forceInclude ?? {};
+
+  if ((filters.limit && filters.limit !== DEFAULT_FILTERS.limit) || forceInclude.limit === true) {
     params.set("limit", String(filters.limit));
   }
-  if (filters.sort && filters.sort !== DEFAULT_FILTERS.sort) {
+  if (filters.sort && (filters.sort !== DEFAULT_FILTERS.sort || forceInclude.sort === true)) {
     params.set("sort", filters.sort);
   }
   if (filters.search && filters.search.trim() !== "") {
@@ -90,8 +93,8 @@ function buildQueryFromFilters(filters = {}) {
   return params.toString();
 }
 
-function buildHomeUrlFromFilters(filters = {}) {
-  const query = buildQueryFromFilters(filters);
+function buildHomeUrlFromFilters(filters = {}, options = {}) {
+  const query = buildQueryFromFilters(filters, options);
   const homePath = basePath ? `${basePath}/` : "/";
   return query ? `${homePath}?${query}` : homePath;
 }
@@ -126,6 +129,37 @@ function getNormalizedPathname() {
 
 const initialFilters = parseFiltersFromUrl();
 const appStore = createAppStore({ filters: initialFilters });
+
+function updateFiltersWithNavigation(partialFilters, { push = true } = {}) {
+  suppressUrlSync = true;
+  appStore.updateFilters(partialFilters);
+  suppressUrlSync = false;
+
+  const filters = appStore.getState().filters;
+  lastSyncedFilters = { ...filters };
+
+  if (!isHomePath()) {
+    return;
+  }
+
+  const forceInclude = {};
+  if (Object.prototype.hasOwnProperty.call(partialFilters ?? {}, "limit")) {
+    forceInclude.limit = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(partialFilters ?? {}, "sort")) {
+    forceInclude.sort = true;
+  }
+
+  const targetUrl = buildHomeUrlFromFilters(filters, { forceInclude });
+  const targetObj = new URL(targetUrl, location.origin);
+  const next = `${targetObj.pathname}${targetObj.search}`;
+
+  if (push) {
+    history.pushState({}, "", next);
+  } else {
+    history.replaceState({}, "", next);
+  }
+}
 
 let suppressUrlSync = false;
 let lastSyncedFilters = { ...appStore.getState().filters };
@@ -195,7 +229,7 @@ function bindFilters() {
       if (latest.limit === nextLimit) {
         return;
       }
-      appStore.updateFilters({ limit: nextLimit });
+      updateFiltersWithNavigation({ limit: nextLimit });
       render();
     },
     onSortChange: (nextSort) => {
@@ -203,7 +237,7 @@ function bindFilters() {
       if (latest.sort === nextSort) {
         return;
       }
-      appStore.updateFilters({ sort: nextSort });
+      updateFiltersWithNavigation({ sort: nextSort });
       render();
     },
     onSearchSubmit: (nextSearch) => {
@@ -211,15 +245,15 @@ function bindFilters() {
       if (latest.search === nextSearch) {
         return;
       }
-      appStore.updateFilters({ search: nextSearch });
+      updateFiltersWithNavigation({ search: nextSearch }, { push: true });
       render();
     },
     onCategoryReset: () => {
       const { filters: latest } = appStore.getState();
-      if (!latest.category1 && !latest.category2) {
+      if (!latest.category1 && !latest.category2 && !latest.search && latest.limit === DEFAULT_FILTERS.limit) {
         return;
       }
-      appStore.updateFilters({ category1: "", category2: "" });
+      updateFiltersWithNavigation({ category1: "", category2: "", search: "", limit: latest.limit });
       render();
     },
     onCategory1Change: (nextCategory1) => {
@@ -227,7 +261,7 @@ function bindFilters() {
       if (latest.category1 === nextCategory1 && !latest.category2) {
         return;
       }
-      appStore.updateFilters({ category1: nextCategory1, category2: "" });
+      updateFiltersWithNavigation({ category1: nextCategory1, category2: "" });
       render();
     },
     onCategory2Change: (nextCategory1, nextCategory2) => {
@@ -235,7 +269,7 @@ function bindFilters() {
       if (latest.category1 === nextCategory1 && latest.category2 === nextCategory2) {
         return;
       }
-      appStore.updateFilters({ category1: nextCategory1, category2: nextCategory2 });
+      updateFiltersWithNavigation({ category1: nextCategory1, category2: nextCategory2 });
       render();
     },
   });
@@ -257,14 +291,24 @@ async function render() {
 
     appStore.setProductDetail(null);
     unbindInfiniteScroll();
-    appStore.resetPagination();
+
+    const state = appStore.getState();
+    const existingProducts = Array.isArray(state.products) ? state.products : [];
+    const shouldReuseProducts = existingProducts.length > 0;
+
+    if (!shouldReuseProducts) {
+      appStore.resetPagination();
+    }
     appStore.setFetchingNextPage(false);
 
     const { filters } = appStore.getState();
 
     $root.innerHTML = HomePage({
-      loading: true,
+      loading: !shouldReuseProducts,
+      products: shouldReuseProducts ? existingProducts : [],
       filters,
+      categories: categoriesCache ?? {},
+      pagination: state.pagination,
     });
 
     const categoriesPromise = loadCategories().catch((error) => {
@@ -316,7 +360,6 @@ async function render() {
     }
   } else if (pathname.startsWith("/product/")) {
     const previousProducts = appStore.getState().products.slice();
-    appStore.clearProducts();
     appStore.resetPagination();
     appStore.setFetchingNextPage(false);
     unbindInfiniteScroll();
@@ -333,10 +376,7 @@ async function render() {
     bindCartIcon();
     bindDetailPageEvents();
   } else {
-    // fallback: 홈으로 이동
-    history.replaceState({}, "", buildHomeUrlFromFilters(appStore.getState().filters));
-    render();
-    return;
+    $root.innerHTML = NotFoundPage();
   }
 }
 
@@ -347,9 +387,7 @@ document.addEventListener("click", (event) => {
     event.stopPropagation();
     const nextCategory1 = (category2Breadcrumb.dataset.breadcrumbCategory1 ?? "").trim();
     const nextCategory2 = (category2Breadcrumb.dataset.breadcrumbCategory2 ?? "").trim();
-    appStore.updateFilters({ category1: nextCategory1, category2: nextCategory2 });
-    const filtersAfterUpdate = appStore.getState().filters;
-    history.pushState({}, "", buildHomeUrlFromFilters(filtersAfterUpdate));
+    updateFiltersWithNavigation({ category1: nextCategory1, category2: nextCategory2 });
     render();
     return;
   }
@@ -359,9 +397,7 @@ document.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     const nextCategory1 = (category1Breadcrumb.dataset.breadcrumbCategory1 ?? "").trim();
-    appStore.updateFilters({ category1: nextCategory1, category2: "" });
-    const filtersAfterUpdate = appStore.getState().filters;
-    history.pushState({}, "", buildHomeUrlFromFilters(filtersAfterUpdate));
+    updateFiltersWithNavigation({ category1: nextCategory1, category2: "" });
     render();
     return;
   }
