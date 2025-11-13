@@ -7,8 +7,7 @@ export const Header = () => {
         <h1 class="text-xl font-bold text-gray-900">
           <a href="/" data-link="">쇼핑몰</a>
         </h1>
-        <div class="flex items-center space-x-2">
-          <!-- 장바구니 아이콘 -->
+        <div class="flex items-center space-x-2" data-cart-icon>
           ${CartIcon()}
         </div>
       </div>

@@ -1,3 +1,5 @@
+import { cartState } from "../App";
+import { CartIcon } from "../components/cart/CartIcon";
 import { CartModal } from "../components/cart/CartModal";
 
 /**
@@ -46,4 +48,34 @@ export function hideCartModal() {
 
   // body 스크롤 복원
   document.body.style.overflow = "";
+}
+
+// cartState 변경 감지 및 CartIcon 업데이트
+let cartStateUnsubscribe = null;
+
+export function setupCartIconSubscription() {
+  // 기존 구독 해제
+  if (cartStateUnsubscribe) {
+    cartStateUnsubscribe();
+  }
+
+  // cartState 변경 시 CartIcon 업데이트
+  cartStateUnsubscribe = cartState.subscribe(() => {
+    const container = document.querySelector("[data-cart-icon]");
+    if (container) {
+      container.innerHTML = CartIcon();
+      // 이벤트 리스너 다시 연결
+      attachCartIconClickEvent();
+    }
+  });
+}
+
+export function attachCartIconClickEvent() {
+  const cartIcon = document.querySelector("#cart-icon-btn");
+  if (cartIcon && !cartIcon.dataset.listenerAttached) {
+    cartIcon.dataset.listenerAttached = "true";
+    cartIcon.addEventListener("click", () => {
+      showCartModal();
+    });
+  }
 }

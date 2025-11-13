@@ -15,6 +15,10 @@ const state = createStore({
   sort: "price_asc",
 });
 
+export const cartState = createStore({
+  items: [],
+});
+
 export const router = createRouter(
   [
     {

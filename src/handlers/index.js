@@ -1,7 +1,7 @@
-import { router } from "../App";
+import { cartState, router } from "../App";
 import { setUpInfiniteScroll } from "./infiniteScroll";
 import { showToast } from "./toast";
-import { showCartModal } from "./cart";
+import { attachCartIconClickEvent, setupCartIconSubscription } from "./cart";
 
 function itemLimitSelectEventListener() {
   const itemLimitSelector = document.querySelector("#limit-select");
@@ -151,21 +151,13 @@ function clickAddToCart() {
       console.log(`상품 ${productId}번이 장바구니에 추가되었습니다.`);
 
       // TODO 장바구니 스토어에 추가
+      cartState.setState({
+        items: [...cartState.getState().items, { productId, quantity: 1 }],
+      });
 
       // Toast 표시
       showToast();
     });
-  });
-}
-
-function clickCartIcon() {
-  const cartIcon = document.querySelector("#cart-icon-btn");
-
-  if (!cartIcon || cartIcon.dataset.listenerAttached) return;
-
-  cartIcon.dataset.listenerAttached = "true";
-  cartIcon.addEventListener("click", () => {
-    showCartModal();
   });
 }
 
@@ -177,7 +169,8 @@ export function attachHomePageEventListeners() {
   clickCategory2EventListener();
   clickBreadcrumbBtn();
   clickProductItem();
-  clickCartIcon();
+  attachCartIconClickEvent();
+  setupCartIconSubscription();
   setUpInfiniteScroll();
   clickAddToCart();
 }
@@ -228,5 +221,6 @@ export function attachDetailPageHandlers() {
   onClickIncreaseCounter();
   onClickDecreaseCounter();
   onClickAddToCart();
-  clickCartIcon();
+  attachCartIconClickEvent();
+  setupCartIconSubscription();
 }
