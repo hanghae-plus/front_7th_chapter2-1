@@ -1,5 +1,6 @@
 import { Component } from "@/core/Component";
 import { Router } from "@/core/Router.js";
+import CartModal from "@/components/common/CartModal";
 
 const ProductCard = Component({
   template: (context) => {
@@ -33,10 +34,29 @@ const ProductCard = Component({
       </div>
     `;
   },
-  setEvent: ({ addEvent, selector, props }) => {
-    addEvent(selector, "click", () => {
-      const router = Router();
-      router.push(`/product/${props.product.productId}`);
+  setEvent: ({ addEvent, props }) => {
+    const router = Router();
+    const { title, image, lprice, productId } = props.product;
+
+    // 상품 이미지 클릭 - 상세 페이지 이동
+    addEvent(".product-image", "click", () => {
+      router.push(`/product/${productId}`);
+    });
+
+    // 상품 정보 클릭 - 상세 페이지 이동
+    addEvent(".product-info", "click", () => {
+      router.push(`/product/${productId}`);
+    });
+
+    // 장바구니 담기 버튼 클릭
+    addEvent(".add-to-cart-btn", "click", (e) => {
+      e.stopPropagation(); // 이벤트 버블링 방지
+      CartModal.addItem({
+        productId,
+        title,
+        image,
+        price: Number(lprice),
+      });
     });
   },
 });

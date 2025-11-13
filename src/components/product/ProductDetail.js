@@ -1,13 +1,19 @@
 import { Component } from "@/core/Component";
-import { Router } from "@/core/Router.js";
+import CartModal from "@/components/common/CartModal";
 
 const ProductDetail = Component({
+  initialState: () => ({
+    quantity: 1,
+  }),
+
   template: (context) => {
-    const { props } = context;
+    const { props, state } = context;
     const product = props.product;
     if (!product) {
       return "";
     }
+
+    const maxStock = product.stock || 999;
 
     return /* HTML */ `
       <div class="bg-white rounded-lg shadow-sm mb-6">
@@ -50,7 +56,7 @@ const ProductDetail = Component({
               <span class="text-2xl font-bold text-blue-600">${Number(product.lprice).toLocaleString()}원</span>
             </div>
             <!-- 재고 -->
-            <div class="text-sm text-gray-600 mb-4">재고 ${product.stock || 0}개</div>
+            <div class="text-sm text-gray-600 mb-4">재고 ${maxStock}개</div>
             <!-- 설명 -->
             <div class="text-sm text-gray-700 leading-relaxed mb-6">${product.description || product.title}</div>
           </div>
@@ -62,7 +68,7 @@ const ProductDetail = Component({
             <div class="flex items-center">
               <button
                 id="quantity-decrease"
-                class="w-8 h-8 flex items-center justify-center border border-gray-300 
+                class="w-8 h-8 flex items-center justify-center border border-gray-300
                    rounded-l-md bg-gray-50 hover:bg-gray-100"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,15 +78,15 @@ const ProductDetail = Component({
               <input
                 type="number"
                 id="quantity-input"
-                value="1"
+                value="${state.quantity}"
                 min="1"
-                max="${product.stock || 999}"
+                max="${maxStock}"
                 class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
                   focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
               <button
                 id="quantity-increase"
-                class="w-8 h-8 flex items-center justify-center border border-gray-300 
+                class="w-8 h-8 flex items-center justify-center border border-gray-300
                    rounded-r-md bg-gray-50 hover:bg-gray-100"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,11 +108,49 @@ const ProductDetail = Component({
       </div>
     `;
   },
-  setEvent: ({ addEvent }) => {
-    const router = Router();
-    // 홈으로 돌아가기 버튼
-    addEvent("#go-home-btn", "click", () => {
-      router.push("/");
+
+  setEvent: ({ addEvent, props, setState }) => {
+    const product = props.product;
+    if (!product) return;
+
+    const maxStock = product.stock || 999;
+
+    // 수량 감소
+    addEvent("#quantity-decrease", "click", () => {
+      setState((prevState) => ({
+        quantity: Math.max(1, prevState.quantity - 1),
+      }));
+    });
+
+    // 수량 증가
+    addEvent("#quantity-increase", "click", () => {
+      setState((prevState) => ({
+        quantity: Math.min(maxStock, prevState.quantity + 1),
+      }));
+    });
+
+    // 수량 직접 입력
+    addEvent("#quantity-input", "change", (e) => {
+      let value = parseInt(e.target.value) || 1;
+      value = Math.max(1, Math.min(maxStock, value));
+      setState({ quantity: value });
+    });
+
+    // 장바구니 담기
+    addEvent("#add-to-cart-btn", "click", () => {
+      // input에서 직접 최신 수량 가져오기 (클로저 문제 회피)
+      const quantityInput = document.querySelector("#quantity-input");
+      const currentQuantity = parseInt(quantityInput?.value) || 1;
+
+      CartModal.addItem({
+        productId: product.productId,
+        title: product.title,
+        image: product.image,
+        price: Number(product.lprice),
+        quantity: currentQuantity,
+      });
+
+      console.log("장바구니에 추가:", currentQuantity, "개");
     });
   },
 });
