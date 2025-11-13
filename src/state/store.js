@@ -106,13 +106,25 @@ export const store = createStore({
     },
 
     // 성공
-    setProduct(setState, product) {
+    setProduct(setState, product, getState) {
+      const currentState = getState();
       setState({
         detail: {
           product,
-          relatedProducts: [],
+          relatedProducts: currentState.detail.relatedProducts || [],
           loading: false,
           error: null,
+        },
+      });
+    },
+
+    // 관련 상품 설정
+    setRelatedProducts(setState, relatedProducts, getState) {
+      const currentState = getState();
+      setState({
+        detail: {
+          ...currentState.detail,
+          relatedProducts,
         },
       });
     },
