@@ -1,44 +1,32 @@
 import { getProduct } from "../api/productApi.js";
 import { ProductDetail } from "../components/ProductDetail.js";
-import { router } from "../router/index.js";
-
-// 상태 관리 객체
-const state = {
-  product: null,
-  loading: true,
-  productId: null,
-
-  update(newState) {
-    console.log("update", newState);
-    Object.assign(this, newState);
-    router.rerender();
-  },
-
-  async fetchProduct() {
-    this.loading = true;
-    router.rerender();
-
-    try {
-      const data = await getProduct(this.productId);
-      console.log(data);
-      this.update({
-        product: data,
-        loading: false,
-      });
-    } catch (error) {
-      console.error(error);
-      this.update({ loading: false });
-    }
-  },
-};
+import { useState, useEffect, setCurrentComponent } from "../utils/hooks.js";
 
 export const DetailPage = (params) => {
+  setCurrentComponent("DetailPage");
+
   const productId = params.id;
 
-  if (state.productId !== productId) {
-    state.productId = productId;
-    state.fetchProduct();
-  }
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  return ProductDetail({ loading: state.loading, product: state.product });
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+
+      try {
+        const data = await getProduct(productId);
+        console.log(data);
+        setProduct(data);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  return ProductDetail({ loading, product });
 };
