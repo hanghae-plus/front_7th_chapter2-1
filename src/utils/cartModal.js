@@ -1,5 +1,6 @@
 import { CartModal } from "../components/CartModal.js";
 import { store } from "../state/store.js";
+import { load, save } from "../core/storage.js";
 
 // 선택된 아이템 ID 목록 (모달 내 상태)
 let selectedIds = [];
@@ -16,11 +17,13 @@ export function openCartModal() {
     return;
   }
 
-  // 선택 상태 초기화
-  selectedIds = [];
-
   // 장바구니 상태 가져오기
   const cart = store.getState().cart;
+
+  // 선택 상태 복원 (localStorage에서)
+  const savedSelectedIds = load("cart_selected_ids") || [];
+  // 현재 장바구니에 있는 상품들의 ID만 유효한 선택으로 필터링
+  selectedIds = savedSelectedIds.filter((id) => cart.some((item) => item.id === id));
 
   // 모달 컨테이너 생성
   const modalContainer = document.createElement("div");
@@ -62,8 +65,8 @@ export function closeCartModal() {
       unsubscribe();
       unsubscribe = null;
     }
-    // 선택 상태 초기화
-    selectedIds = [];
+    // 선택 상태 localStorage에 저장 (새로고침 후에도 유지)
+    save("cart_selected_ids", selectedIds);
   }
 }
 
@@ -79,6 +82,9 @@ export function getSelectedIds() {
  */
 export function setSelectedIds(newSelectedIds) {
   selectedIds = newSelectedIds;
+  // localStorage에 저장
+  save("cart_selected_ids", selectedIds);
+
   const modalContainer = document.getElementById("cart-modal-container");
   if (modalContainer) {
     const cart = store.getState().cart;

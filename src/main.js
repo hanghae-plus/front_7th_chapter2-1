@@ -107,6 +107,7 @@ document.body.addEventListener("click", (e) => {
       const cart = store.getState().cart;
       if (cart.length > 0) {
         store.dispatch({ type: "clearCart" });
+        setSelectedIds([]); // 선택 상태도 초기화
         showToast("장바구니가 비워졌습니다", "info");
       }
       return;
@@ -161,6 +162,9 @@ document.body.addEventListener("click", (e) => {
     if ($removeBtn) {
       const productId = $removeBtn.dataset.productId;
       store.dispatch({ type: "removeFromCart", payload: productId });
+      // 선택 상태에서도 제거
+      const selectedIds = getSelectedIds();
+      setSelectedIds(selectedIds.filter((id) => id !== productId));
       showToast("상품이 삭제되었습니다", "info");
       return;
     }
