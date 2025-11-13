@@ -1,15 +1,17 @@
-const TOAST_ROOT_ID = "toast-root";
 let isToastVisible = false;
+const TOAST_CONTAINER_CLASS =
+  "toast-container fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center";
 
-const getToastRoot = () => {
-  let root = document.getElementById(TOAST_ROOT_ID);
-  if (!root) {
-    root = document.createElement("div");
-    root.id = TOAST_ROOT_ID;
-    root.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] flex justify-center";
-    document.body.appendChild(root);
+const getToastContainer = () => {
+  const appRootDiv = document.querySelector("#root > div ");
+  if (!appRootDiv) return null;
+  let container = appRootDiv.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = TOAST_CONTAINER_CLASS;
+    appRootDiv.appendChild(container);
   }
-  return root;
+  return container;
 };
 const ToastTemplate = ({ color, text }) => {
   return /*html*/ `
@@ -51,21 +53,16 @@ const getToastTemplateByType = (type) => {
 
 export const showToast = (type) => {
   if (isToastVisible) return;
-
-  const root = getToastRoot();
-  root.innerHTML = "";
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = getToastTemplateByType(type);
-  const toast = wrapper.firstElementChild;
-  root.appendChild(toast);
+  const container = getToastContainer();
+  if (!container) return;
+  container.innerHTML = getToastTemplateByType(type);
   isToastVisible = true;
 
   const close = () => {
-    toast.remove();
+    container.innerHTML = "";
     isToastVisible = false;
   };
-  toast.querySelector("#toast-close-btn")?.addEventListener("click", close);
-  setTimeout(() => {
-    close();
-  }, 2000);
+
+  container.querySelector("#toast-close-btn")?.addEventListener("click", close);
+  setTimeout(close, 2000);
 };

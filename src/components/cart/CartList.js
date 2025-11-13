@@ -55,9 +55,15 @@ const renderCartLayout = (cartProducts = []) => {
 </div>
 
 <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+  <div id="cart-selected-amount" class="flex justify-between items-center mb-3 text-sm" style="display:none">
+    <span class="text-gray-600">선택한 상품 (0개)</span>
+    <span class="font-medium">0원</span>
+  </div>
+
+
   <div class="flex justify-between items-center mb-4">
     <span class="text-lg font-bold text-gray-900">총 금액</span>
-    <span class="text-xl font-bold text-blue-600">${cartStore.getTotalAmount()}원</span>
+    <span class="text-xl font-bold text-blue-600">${Number(cartStore.getTotalAmount()).toLocaleString()}원</span>
   </div>
 
   <div class="space-y-2">
