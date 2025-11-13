@@ -207,7 +207,12 @@ document.body.addEventListener("click", (e) => {
 
   // 상품 목록으로 돌아가기
   if (e.target.closest(".go-to-product-list")) {
-    router.push("/");
+    // 히스토리가 있으면 뒤로가기, 없으면 홈으로
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      router.push("/");
+    }
     return;
   }
 
