@@ -1,6 +1,7 @@
 import Component from '@/core/component';
 import { navigate } from '@/core/router';
 import { addItem, cartStore } from '@/stores/cart';
+import { openToast, toastStore } from '@/stores/toast';
 
 export default class ProductItem extends Component {
   template() {
@@ -51,7 +52,7 @@ export default class ProductItem extends Component {
       const { title, image, lprice, productId } = this.props;
 
       cartStore.dispatch(addItem({ title, image, lprice, productId, quantity: 1, checked: false }));
-      // TODO: 장바구니에 추가되었습니다 토스트 알림 추가 필요
+      toastStore.dispatch(openToast({ type: 'success', message: '장바구니에 추가되었습니다' }));
     });
   }
 }

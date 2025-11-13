@@ -1,5 +1,6 @@
 import Component from '@/core/component';
 import { addItem, cartStore } from '@/stores/cart';
+import { openToast, toastStore } from '@/stores/toast';
 
 const MIN_QUANTITY = 1;
 const MAX_QUANTITY = 107;
@@ -89,7 +90,7 @@ export default class ProductOptions extends Component {
       const { title, image, lprice, productId } = this.props.product;
 
       cartStore.dispatch(addItem({ title, image, lprice, productId, quantity, checked: false }));
-      // TODO: 장바구니에 추가되었습니다 토스트 알림 추가 필요
+      toastStore.dispatch(openToast({ type: 'success', message: '장바구니에 추가되었습니다' }));
     });
   }
 }

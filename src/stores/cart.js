@@ -1,6 +1,6 @@
 import { createPersistentStore } from '@/core/storage';
 
-const STORAGE_KEY = 'shopping-cart';
+const STORAGE_KEY = 'shopping_cart';
 
 export const ADD_ITEM = 'ADD_ITEM';
 export const REMOVE_ITEM = 'REMOVE_ITEM';
@@ -13,7 +13,7 @@ export const TOGGLE_ALL_ITEMS = 'TOGGLE_ALL_ITEMS';
 const initState = { items: [] };
 
 export const cartStore = createPersistentStore(
-  (state = initState, action = {}) => {
+  (state = { ...initState }, action = {}) => {
     switch (action.type) {
       case ADD_ITEM: {
         const existingIndex = state.items.findIndex(
@@ -45,7 +45,7 @@ export const cartStore = createPersistentStore(
           items: state.items.filter(({ productId }) => productId !== action.payload),
         };
       case CLEAR_CART:
-        return { ...state, items: [] };
+        return { ...initState };
       case INCREASE_QUANTITY:
         return {
           ...state,

@@ -9,6 +9,7 @@ import {
   toggleItemCheck,
 } from '@/stores/cart';
 import { closeModal, modalStore } from '@/stores/modal';
+import { openToast, toastStore } from '@/stores/toast';
 
 export default class CartModal extends Component {
   template() {
@@ -312,15 +313,21 @@ export default class CartModal extends Component {
 
       cartStore.dispatch(increaseQuantity(productId));
     });
-    this.addEvent('click', '#cart-modal-clear-cart-btn', () => cartStore.dispatch(clearCart()));
+    this.addEvent('click', '#cart-modal-clear-cart-btn', () => {
+      cartStore.dispatch(clearCart());
+      toastStore.dispatch(openToast({ type: 'info', message: '장바구니가 비워졌습니다' }));
+    });
     this.addEvent('click', '#cart-modal-remove-selected-btn', () => {
       const { items } = cartStore.getState();
       const checkedItems = items.filter((item) => item.checked);
 
       checkedItems.forEach((item) => cartStore.dispatch(removeItem(item.productId)));
+      toastStore.dispatch(openToast({ type: 'info', message: '선택된 상품들이 삭제되었습니다' }));
     });
     this.addEvent('click', '#cart-modal-checkout-btn', () => {
-      console.log('구매 기능은 추후 구현 예정입니다 토스트 알림 추가 필요');
+      toastStore.dispatch(
+        openToast({ type: 'info', message: '구매 기능은 추후 구현 예정입니다.' })
+      );
     });
   }
 }

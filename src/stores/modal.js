@@ -5,12 +5,12 @@ export const CLOSE_MODAL = 'CLOSE_MODAL';
 
 const initState = { open: false };
 
-export const modalStore = createStore((state = initState, action = {}) => {
+export const modalStore = createStore((state = { ...initState }, action = {}) => {
   switch (action.type) {
     case OPEN_MODAL:
       return { ...state, open: true };
     case CLOSE_MODAL:
-      return { ...state, open: false };
+      return { ...initState };
     default:
       return state;
   }
