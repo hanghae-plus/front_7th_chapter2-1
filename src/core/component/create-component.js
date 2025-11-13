@@ -71,6 +71,7 @@ export default function createComponent({
   /** @type {Props} */
   let currentProps = props;
   const componentId = `${id}-${Math.random().toString(36).substring(2, 15)}`;
+  let isRendering = false; // 렌더링 상태 추적
 
   /**
    * @param {string} html
@@ -87,18 +88,23 @@ export default function createComponent({
 
   /** @type {RenderCallback} */
   const render = (_state) => {
+    isRendering = true;
     const targetElement = document.querySelector(`[data-component="${componentId}"]`);
-    console.log("[Render] targetElement", { targetElement });
-    if (!targetElement) return;
+    if (!targetElement) {
+      isRendering = false;
+      return;
+    }
     const childrenHTML = children.map((child) => child.outerHTML).join("");
     const wrapperElement = parseAndGetWrapperElement(templateFn(currentProps, _state, childrenHTML));
-    console.log({ targetElement, wrapperElement }, wrapperElement instanceof HTMLElement);
     targetElement.replaceWith(wrapperElement);
+
+    // 다음 이벤트 루프에서 렌더링 완료
+    setTimeout(() => {
+      isRendering = false;
+    }, 0);
   };
 
   const { getState, setState } = createStateMap(initialState, render);
-
-  console.log("[Create Component] window.__componentEventHandlers", componentId);
 
   if (!window.__componentEventHandlers) {
     window.__componentEventHandlers = new Map();
@@ -120,6 +126,7 @@ export default function createComponent({
 
           const handlers = window.__componentEventHandlers.get(componentId);
           if (handlers?.[eventName]) {
+            event.stopPropagation(); // 이벤트 전파 막기
             handlers[eventName](event);
           }
         },
@@ -133,7 +140,10 @@ export default function createComponent({
     Object.fromEntries(
       Object.entries(eventHandlers).map(([eventName, handler]) => [
         eventName,
-        (/** @type {Event} */ event) => handler(getState, setState, event),
+        (/** @type {Event} */ event) => {
+          if (isRendering) return;
+          handler(getState, setState, event);
+        },
       ]),
     ),
   );
