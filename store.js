@@ -9,7 +9,7 @@ const getInitialState = () => {
   }
 
   const params = new URLSearchParams(window.location.search);
-  const savedCart = localStorage.getItem("cartList");
+  const savedCart = localStorage.getItem("shopping_cart");
 
   return {
     search: params.get("search") ?? "",
@@ -42,9 +42,9 @@ export const store = {
   setState(newState) {
     this.state = { ...this.state, ...newState };
 
-    // cartList localStorage 저장
+    // shopping_cart localStorage 저장
     if (newState.cartList) {
-      localStorage.setItem("cartList", JSON.stringify(this.state.cartList));
+      localStorage.setItem("shopping_cart", JSON.stringify(this.state.cartList));
     }
 
     this.listeners.forEach((fn) => fn(this.state));
