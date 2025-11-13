@@ -12,7 +12,7 @@ let unsubscribe = null;
  */
 export function openCartModal() {
   // 이미 열려있으면 무시
-  if (document.getElementById("cart-modal")) {
+  if (document.getElementById("cart-modal-container")) {
     return;
   }
 
@@ -24,19 +24,22 @@ export function openCartModal() {
 
   // 모달 컨테이너 생성
   const modalContainer = document.createElement("div");
-  modalContainer.id = "cart-modal";
+  modalContainer.id = "cart-modal-container";
   modalContainer.className = "fixed inset-0 z-50 bg-black bg-opacity-50";
   modalContainer.innerHTML = CartModal({ cart, selectedIds });
 
-  // body에 추가
-  document.body.appendChild(modalContainer);
+  // #root에 추가 (기존 내용 유지)
+  const root = document.getElementById("root");
+  if (root) {
+    root.appendChild(modalContainer);
+  }
 
   // body 스크롤 방지
   document.body.style.overflow = "hidden";
 
   // store 구독 - 장바구니 변경 시 모달 자동 업데이트
   unsubscribe = store.subscribe(() => {
-    const modalContainer = document.getElementById("cart-modal");
+    const modalContainer = document.getElementById("cart-modal-container");
     if (modalContainer) {
       const cart = store.getState().cart;
       modalContainer.innerHTML = CartModal({ cart, selectedIds });
@@ -48,9 +51,10 @@ export function openCartModal() {
  * 장바구니 모달 닫기
  */
 export function closeCartModal() {
-  const modalContainer = document.getElementById("cart-modal");
+  const modalContainer = document.getElementById("cart-modal-container");
   if (modalContainer) {
     modalContainer.remove();
+
     // body 스크롤 복원
     document.body.style.overflow = "";
     // store 구독 해제
@@ -75,7 +79,7 @@ export function getSelectedIds() {
  */
 export function setSelectedIds(newSelectedIds) {
   selectedIds = newSelectedIds;
-  const modalContainer = document.getElementById("cart-modal");
+  const modalContainer = document.getElementById("cart-modal-container");
   if (modalContainer) {
     const cart = store.getState().cart;
     modalContainer.innerHTML = CartModal({ cart, selectedIds });

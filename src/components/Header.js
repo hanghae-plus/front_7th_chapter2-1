@@ -20,9 +20,8 @@ export const Header = ({ cartCount = 0 }) => {
               ${cartCount > 0
                 ? /* HTML */ `<span
                     class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                  >
-                    ${cartCount}
-                  </span>`
+                    >${cartCount}</span
+                  >`
                 : ""}
             </button>
           </div>

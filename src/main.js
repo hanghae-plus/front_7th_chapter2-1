@@ -29,6 +29,32 @@ const render = () => {
   const $root = document.querySelector("#root");
   const newComponent = route.component;
 
+  // 모달이 열려있으면 전체 렌더링 스킵 (모달이 사라지는 것 방지)
+  // 단, 장바구니 개수는 업데이트
+  if (document.getElementById("cart-modal-container")) {
+    const cart = store.getState().cart;
+    const $cartBadge = document.querySelector("#cart-icon-btn span");
+    if ($cartBadge) {
+      if (cart.length > 0) {
+        $cartBadge.textContent = cart.length;
+      } else {
+        // 장바구니가 비었으면 뱃지 제거
+        $cartBadge.remove();
+      }
+    } else if (cart.length > 0) {
+      // 뱃지가 없는데 장바구니에 상품이 있으면 뱃지 추가
+      const $cartBtn = document.getElementById("cart-icon-btn");
+      if ($cartBtn) {
+        const badge = document.createElement("span");
+        badge.className =
+          "absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center";
+        badge.textContent = cart.length;
+        $cartBtn.appendChild(badge);
+      }
+    }
+    return;
+  }
+
   // 다른 컴포넌트로 전환 시에만 unmount 호출
   if (currentComponent && currentComponent !== newComponent) {
     currentComponent.unmount();
@@ -65,13 +91,13 @@ document.body.addEventListener("click", (e) => {
   }
 
   // 장바구니 모달 배경 클릭 - 닫기
-  if (e.target.id === "cart-modal-backdrop") {
+  if (e.target.classList.contains("cart-modal-overlay")) {
     closeCartModal();
     return;
   }
 
   // 장바구니 모달 내 기능들
-  const $cartModal = document.getElementById("cart-modal");
+  const $cartModal = document.getElementById("cart-modal-container");
   if ($cartModal) {
     // 전체 비우기
     const $clearCartBtn = e.target.closest("#cart-modal-clear-cart-btn");
@@ -321,7 +347,7 @@ document.body.addEventListener("keydown", (e) => {
 // 필터/정렬 및 체크박스 기능
 document.body.addEventListener("change", (e) => {
   // 장바구니 모달 체크박스
-  const $cartModal = document.getElementById("cart-modal");
+  const $cartModal = document.getElementById("cart-modal-container");
   if ($cartModal) {
     // 전체 선택 체크박스
     const $selectAllCheckbox = e.target.closest("#cart-modal-select-all-checkbox");
