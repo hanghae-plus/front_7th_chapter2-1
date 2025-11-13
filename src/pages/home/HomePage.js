@@ -45,12 +45,10 @@ export class HomePage extends Component {
       const handleRender = () => this.render();
 
       cartStore.subscribe(handleRender);
-      searchParamsStore.subscribe(handleRender);
       searchParamsStore.subscribe(handleSearchParamsChange);
 
       return () => {
         cartStore.unsubscribe(handleRender);
-        searchParamsStore.unsubscribe(handleRender);
         searchParamsStore.unsubscribe(handleSearchParamsChange);
         this.observer?.disconnect();
       };
