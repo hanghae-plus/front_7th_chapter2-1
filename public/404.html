@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages SPA 라우팅을 위한 리다이렉트
+      // 현재 경로를 index.html로 전달
+      const path = window.location.pathname;
+      const basePath = "/front_7th_chapter2-1";
+
+      // 전체 URL을 그대로 index.html로 리다이렉트
+      window.location.replace(
+        basePath + "/?redirect=" + encodeURIComponent(path + window.location.search + window.location.hash),
+      );
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
