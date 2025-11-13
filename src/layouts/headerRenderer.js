@@ -1,4 +1,5 @@
 import { cartStore } from "../Store/cart.js";
+import { cartModalControl } from "../utils/cartEventListeners.js";
 
 /**
  * 헤더 렌더링
@@ -44,16 +45,8 @@ export function renderHeader() {
     </header>
   `;
 
-  // 장바구니 모달 열기
-  const cartModal = document.querySelector(".cart-modal");
-  const cartIconBtn = document.getElementById("cart-icon-btn");
-  if (cartIconBtn) {
-    cartIconBtn.addEventListener("click", () => {
-      if (cartModal) {
-        document.querySelector(".cart-modal").classList.remove("hidden");
-      }
-    });
-  }
+  // 헤더가 다시 렌더링될 때마다 모달 컨트롤 이벤트를 다시 부착
+  cartModalControl();
 }
 
 // cartStore 구독: 장바구니 상태 변경 시 헤더를 다시 렌더링하여 아이템 개수를 업데이트
