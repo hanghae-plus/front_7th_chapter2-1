@@ -80,15 +80,15 @@ const renderCartModal = () => {
   });
 
   // 기존 모달이 있다면 제거
-  const existingModal = document.querySelector('.cart-modal');
-  if (existingModal) {
-    existingModal.remove();
+  const $existingModal = document.querySelector('.cart-modal');
+  if ($existingModal) {
+    $existingModal.remove();
   }
 
   // footer 요소를 찾아서 그 앞에 모달 추가 (main의 형제 요소로)
-  const footer = document.querySelector('footer');
-  if (footer) {
-    footer.insertAdjacentHTML('beforebegin', modalHTML);
+  const $footer = document.querySelector('footer');
+  if ($footer) {
+    $footer.insertAdjacentHTML('beforebegin', modalHTML);
   }
 
   // body 스크롤 방지
@@ -97,9 +97,9 @@ const renderCartModal = () => {
 
 // 장바구니 모달 닫기
 const closeCartModal = () => {
-  const modal = document.querySelector('.cart-modal');
-  if (modal) {
-    modal.remove();
+  const $modal = document.querySelector('.cart-modal');
+  if ($modal) {
+    $modal.remove();
     // body 스크롤 복원
     document.body.style.overflow = '';
   }
@@ -107,17 +107,17 @@ const closeCartModal = () => {
 
 // 장바구니 모달 새로고침 (데이터 변경 후 UI 업데이트)
 const refreshCartModal = () => {
-  const modal = document.querySelector('.cart-modal');
-  if (modal) {
+  const $modal = document.querySelector('.cart-modal');
+  if ($modal) {
     renderCartModal();
   }
 };
 
 // 헤더 업데이트 (장바구니 배지 업데이트)
 const updateHeader = () => {
-  const header = document.querySelector('header');
-  if (header) {
-    header.outerHTML = Header();
+  const $header = document.querySelector('header');
+  if ($header) {
+    $header.outerHTML = Header();
   }
 };
 
@@ -349,6 +349,56 @@ document.body.addEventListener('click', (e) => {
     return;
   }
 
+  // 상품 상세 페이지 - 수량 증가
+  if ($target.closest('#quantity-increase')) {
+    e.stopPropagation();
+    const $input = document.querySelector('#quantity-input');
+    const currentValue = parseInt($input.value) || 1;
+    const maxValue = parseInt($input.max) || 999;
+
+    if (currentValue < maxValue) {
+      $input.value = currentValue + 1;
+    }
+    return;
+  }
+
+  // 상품 상세 페이지 - 수량 감소
+  if ($target.closest('#quantity-decrease')) {
+    e.stopPropagation();
+    const $input = document.querySelector('#quantity-input');
+    const currentValue = parseInt($input.value) || 1;
+    const minValue = parseInt($input.min) || 1;
+
+    if (currentValue > minValue) {
+      $input.value = currentValue - 1;
+    }
+    return;
+  }
+
+  // 상품 상세 페이지 - 장바구니 담기
+  if ($target.closest('#add-to-cart-btn')) {
+    e.stopPropagation();
+    const button = $target.closest('#add-to-cart-btn');
+    const $input = document.querySelector('#quantity-input');
+    const quantity = parseInt($input.value) || 1;
+
+    const product = {
+      productId: button.dataset.productId,
+      title: button.dataset.productTitle,
+      image: button.dataset.productImage,
+      lprice: button.dataset.productPrice,
+    };
+
+    addToCart(product, quantity);
+    updateHeader();
+    showToast('장바구니에 추가되었습니다.', 'success');
+
+    // 수량 입력 필드 초기화
+    $input.value = 1;
+
+    return;
+  }
+
   if ($target.closest('.add-to-cart-btn')) {
     e.stopPropagation();
     const button = $target.closest('.add-to-cart-btn');
@@ -379,8 +429,8 @@ window.addEventListener('popstate', render);
 // ESC 키로 모달 닫기
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    const modal = document.querySelector('.cart-modal');
-    if (modal) {
+    const $modal = document.querySelector('.cart-modal');
+    if ($modal) {
       closeCartModal();
     }
   }

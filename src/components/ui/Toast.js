@@ -69,18 +69,18 @@ const Toast = ({ type = 'success', message }) => {
 };
 
 export const showToast = (message, type = 'success', duration = 3000) => {
-  let toastContainer = document.querySelector('.toast-container');
-  if (!toastContainer) {
-    toastContainer = document.createElement('div');
-    toastContainer.className =
+  let $toastContainer = document.querySelector('.toast-container');
+  if (!$toastContainer) {
+    $toastContainer = document.createElement('div');
+    $toastContainer.className =
       'toast-container fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center';
 
     // footer 앞에 추가 (modal overlay의 형제로)
-    const footer = document.querySelector('footer');
-    if (footer) {
-      footer.insertAdjacentElement('beforebegin', toastContainer);
+    const $footer = document.querySelector('footer');
+    if ($footer) {
+      $footer.insertAdjacentElement('beforebegin', $toastContainer);
     } else {
-      document.body.appendChild(toastContainer);
+      document.body.appendChild($toastContainer);
     }
   }
 
@@ -88,7 +88,7 @@ export const showToast = (message, type = 'success', duration = 3000) => {
   toastElement.innerHTML = Toast({ type, message });
   const toast = toastElement.firstElementChild;
 
-  toastContainer.appendChild(toast);
+  $toastContainer.appendChild(toast);
 
   requestAnimationFrame(() => {
     toast.style.opacity = '0';
@@ -102,8 +102,8 @@ export const showToast = (message, type = 'success', duration = 3000) => {
     toast.style.opacity = '0';
     setTimeout(() => {
       toast.remove();
-      if (toastContainer.children.length === 0) {
-        toastContainer.remove();
+      if ($toastContainer.children.length === 0) {
+        $toastContainer.remove();
       }
     }, 300);
   };

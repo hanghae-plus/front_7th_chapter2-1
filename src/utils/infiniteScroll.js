@@ -20,8 +20,8 @@ const loadMoreProducts = async () => {
   infiniteScrollState.isLoading = true;
 
   // 로딩 UI 표시
-  const loadingEl = document.querySelector('#infinite-scroll-loading');
-  if (loadingEl) loadingEl.style.display = 'block';
+  const $loadingEl = document.querySelector('#infinite-scroll-loading');
+  if ($loadingEl) $loadingEl.style.display = 'block';
 
   try {
     const nextPage = infiniteScrollState.currentPage + 1;
@@ -55,19 +55,19 @@ const loadMoreProducts = async () => {
   } finally {
     infiniteScrollState.isLoading = false;
     // 로딩 UI 숨김
-    const loadingEl = document.querySelector('#infinite-scroll-loading');
-    if (loadingEl) loadingEl.style.display = 'none';
+    const $loadingEl = document.querySelector('#infinite-scroll-loading');
+    if ($loadingEl) $loadingEl.style.display = 'none';
   }
 };
 
 // DOM에 상품 추가
 const appendProducts = (newProducts) => {
-  const grid = document.querySelector('#products-grid');
-  if (!grid) return;
+  const $grid = document.querySelector('#products-grid');
+  if (!$grid) return;
 
   newProducts.forEach((product) => {
     const productHTML = ProductListItem(product);
-    grid.insertAdjacentHTML('beforeend', productHTML);
+    $grid.insertAdjacentHTML('beforeend', productHTML);
   });
 };
 
@@ -81,11 +81,11 @@ const updateUrlCurrentPage = (page) => {
 
 // 모든 상품 로드 완료 메시지 표시
 const showEndMessage = () => {
-  const endEl = document.querySelector('#infinite-scroll-end');
-  const triggerEl = document.querySelector('#infinite-scroll-trigger');
+  const $endEl = document.querySelector('#infinite-scroll-end');
+  const $triggerEl = document.querySelector('#infinite-scroll-trigger');
 
-  if (endEl) endEl.style.display = 'block';
-  if (triggerEl) triggerEl.style.display = 'none';
+  if ($endEl) $endEl.style.display = 'block';
+  if ($triggerEl) $triggerEl.style.display = 'none';
 };
 
 // Intersection Observer 초기화
@@ -101,8 +101,8 @@ export const initInfiniteScroll = (filters = {}) => {
   infiniteScrollState.isInitialLoad = true;
 
   // 센티널 요소 찾기
-  const sentinel = document.querySelector('#infinite-scroll-trigger');
-  if (!sentinel) {
+  const $sentinel = document.querySelector('#infinite-scroll-trigger');
+  if (!$sentinel) {
     console.warn('무한 스크롤 트리거 요소를 찾을 수 없습니다');
     return;
   }
@@ -134,7 +134,7 @@ export const initInfiniteScroll = (filters = {}) => {
     },
   );
 
-  observer.observe(sentinel);
+  observer.observe($sentinel);
   infiniteScrollState.observer = observer;
 };
 
