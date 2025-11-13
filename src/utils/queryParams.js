@@ -11,7 +11,8 @@ export function getQueryParams() {
 }
 
 export function updateQueryParams(newParams) {
-  const BASE_URL = import.meta.env.BASE_URL || "/";
+  // BASE_PATH 정규화 (끝의 / 제거)
+  const BASE_PATH = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
   const params = new URLSearchParams(window.location.search);
   Object.entries(newParams).forEach(([key, value]) => {
     if (value) {
@@ -23,10 +24,10 @@ export function updateQueryParams(newParams) {
 
   // BASE_PATH를 제외한 경로 가져오기
   let pathname = window.location.pathname;
-  if (BASE_URL !== "/" && pathname.startsWith(BASE_URL)) {
-    pathname = pathname.slice(BASE_URL.length) || "/";
+  if (BASE_PATH !== "" && pathname.startsWith(BASE_PATH)) {
+    pathname = pathname.slice(BASE_PATH.length) || "/";
   }
 
-  const newUrl = `${BASE_URL === "/" ? pathname : BASE_URL.replace(/\/$/, "") + pathname}?${params.toString()}`;
+  const newUrl = `${BASE_PATH === "" ? pathname : BASE_PATH + pathname}?${params.toString()}`;
   window.history.pushState({}, "", newUrl);
 }

@@ -4,14 +4,16 @@ export const createRouter = () => {
   let notFoundHandler = null;
 
   // BASE_PATH 가져오기 (Vite에서 설정한 base)
-  const BASE_PATH = import.meta.env.BASE_URL || "/";
+  // 끝의 / 제거하여 정규화
+  const BASE_PATH = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
   // pathname에서 BASE_PATH 제거
   const getRouterPath = (pathname) => {
-    if (BASE_PATH === "/" || !pathname.startsWith(BASE_PATH)) {
+    if (BASE_PATH === "" || !pathname.startsWith(BASE_PATH)) {
       return pathname;
     }
-    return pathname.slice(BASE_PATH.length) || "/";
+    const path = pathname.slice(BASE_PATH.length);
+    return path || "/";
   };
 
   // URL과 라우트 매칭
@@ -68,7 +70,7 @@ export const createRouter = () => {
     // 페이지 이동
     push: (path) => {
       // BASE_PATH를 포함한 전체 경로로 변환
-      const fullPath = BASE_PATH === "/" ? path : BASE_PATH.replace(/\/$/, "") + path;
+      const fullPath = BASE_PATH === "" ? path : BASE_PATH + path;
       window.history.pushState(null, "", fullPath);
       handleRouteChange();
     },
