@@ -55,6 +55,7 @@ export const showToast = ({ type = "info", message = "", duration = DEFAULT_DURA
   messageWrapper.textContent = message;
 
   const closeButton = document.createElement("button");
+  closeButton.id = "toast-close-btn";
   closeButton.className = "flex-shrink-0 ml-2 text-white hover:text-gray-200 transition";
   closeButton.setAttribute("type", "button");
   closeButton.setAttribute("aria-label", "토스트 닫기");

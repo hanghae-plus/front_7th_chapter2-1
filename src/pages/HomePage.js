@@ -7,6 +7,7 @@ import { showToast } from "../lib/toast.js";
 
 import { cartStore } from "../store/cartStore.js";
 import { ModalShell } from "../components/modal/ModalShell.js";
+import { Loading } from "../components/product/Loading.js";
 const DEFAULT_LIMIT = 20;
 let cachedCategories = null;
 
@@ -55,6 +56,7 @@ const buildPageView = (state) => {
         ${error ? `<div class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">${error}</div>` : ""}
         <div data-product-list>
           ${ProductList({ products, pagination, loading })}
+          ${runtime.isLoadingMore ? Loading() : ""}
         </div>
       `,
     })}
@@ -76,7 +78,7 @@ const mountHomePage = () => {
     if (event.target.closest(".add-to-cart-btn")) return;
     const card = event.target.closest(".product-card");
     if (!card) return;
-    window.navigate(`/products/${card.dataset.productId}`);
+    window.navigate(`/product/${card.dataset.productId}`);
   };
 
   const handleCategoryClick = (event) => {
@@ -229,6 +231,15 @@ const mountHomePage = () => {
       modal.classList.add("hidden");
       runtime.isCartModalOpen = false;
     }
+  };
+
+  const handleKeydown = (event) => {
+    if (event.key !== "Escape") return;
+    if (!runtime.isCartModalOpen) return;
+    const modal = document.querySelector(".cart-modal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    runtime.isCartModalOpen = false;
   };
 
   // ✅ 장바구니 체크박스 상태를 반영한다
@@ -482,6 +493,7 @@ const mountHomePage = () => {
   root.addEventListener("click", handleClearCart);
   root.addEventListener("click", handleRemoveSelectedCartItems);
   root.addEventListener("click", handleCheckoutClick);
+  document.addEventListener("keydown", handleKeydown);
 
   runtime.reobserveSentinel = () => {
     window.requestAnimationFrame(() => observeSentinel());
@@ -507,6 +519,7 @@ const mountHomePage = () => {
     root.removeEventListener("click", handleClearCart);
     root.removeEventListener("click", handleRemoveSelectedCartItems);
     root.removeEventListener("click", handleCheckoutClick);
+    document.removeEventListener("keydown", handleKeydown);
     observer.disconnect();
     runtime.reobserveSentinel = null;
     if (runtime.unMount === unMount) runtime.unMount = null;

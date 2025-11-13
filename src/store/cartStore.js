@@ -1,6 +1,24 @@
-const STORAGE_KEY = "app-cart-items";
+const STORAGE_KEY = "shopping_cart";
 
 const isBrowser = typeof window !== "undefined";
+
+const sanitizeQuantity = (quantity) => {
+  const normalized = Number(quantity);
+  if (!Number.isFinite(normalized) || normalized <= 0) return 1;
+  return Math.floor(normalized);
+};
+
+const normalizeCartItem = (item) => {
+  if (!item || typeof item !== "object" || !item.productId) return null;
+  return {
+    productId: item.productId,
+    title: item.title ?? "",
+    image: item.image ?? "",
+    price: Number(item.price ?? item.lprice) || 0,
+    quantity: sanitizeQuantity(item.quantity ?? 1),
+    checked: typeof item.checked === "boolean" ? item.checked : true,
+  };
+};
 
 const loadInitialState = () => {
   if (!isBrowser) return [];
@@ -38,23 +56,6 @@ const notifySubscribers = () => {
   });
 };
 
-const sanitizeQuantity = (quantity) => {
-  const normalized = Number(quantity);
-  if (!Number.isFinite(normalized) || normalized <= 0) return 1;
-  return Math.floor(normalized);
-};
-
-const normalizeCartItem = (item) => {
-  if (!item || typeof item !== "object" || !item.productId) return null;
-  return {
-    productId: item.productId,
-    title: item.title ?? "",
-    image: item.image ?? "",
-    price: Number(item.price ?? item.lprice) || 0,
-    quantity: sanitizeQuantity(item.quantity ?? 1),
-    checked: typeof item.checked === "boolean" ? item.checked : true,
-  };
-};
 const mapProductToCartItem = (product, quantity) => ({
   productId: product.productId,
   title: product.title,

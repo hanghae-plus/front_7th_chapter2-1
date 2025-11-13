@@ -107,7 +107,7 @@ const mountDetailPage = () => {
     if (!item) return;
     const productId = item.dataset.productId;
     if (productId) {
-      navigate(`/products/${productId}`);
+      navigate(`/product/${productId}`);
     }
   };
 
@@ -460,6 +460,15 @@ const mountDetailPage = () => {
     }
   };
 
+  const handleKeydown = (event) => {
+    if (event.key !== "Escape") return;
+    if (!runtime.isCartModalOpen) return;
+    const modal = document.querySelector(".cart-modal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    runtime.isCartModalOpen = false;
+  };
+
   $root.addEventListener("click", handleProductCardClick);
   $root.addEventListener("click", handleCategoryClick);
   $root.addEventListener("click", handleGoToProductListClick);
@@ -473,6 +482,7 @@ const mountDetailPage = () => {
   $root.addEventListener("click", handleClearCart);
   $root.addEventListener("click", handleRemoveSelectedCartItems);
   $root.addEventListener("click", handleCheckoutClick);
+  document.addEventListener("keydown", handleKeydown);
   if (runtime.isCartModalOpen) {
     const modal = document.querySelector(".cart-modal");
     if (modal) modal.classList.remove("hidden");
@@ -491,6 +501,7 @@ const mountDetailPage = () => {
     $root.removeEventListener("click", handleClearCart);
     $root.removeEventListener("click", handleRemoveSelectedCartItems);
     $root.removeEventListener("click", handleCheckoutClick);
+    document.removeEventListener("keydown", handleKeydown);
     const modal = document.querySelector(".cart-modal");
     if (modal && !runtime.isCartModalOpen) modal.classList.add("hidden");
     runtime.cartUnsubscribe?.();
