@@ -1,10 +1,16 @@
 import { getCategories, getProduct, getProducts } from "./api/productApi.js";
+import { Cart } from "./components/Cart.js";
 import { renderCartBadge } from "./components/Header.js";
 import { AddToCartToast, showToast } from "./components/Toast.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { filters } from "./store/filters.js";
-import { addCartItemToLocalStorage } from "./utils/storage.js";
+import {
+  addCartItemToLocalStorage,
+  getCartItemsFromLocalStorage,
+  updateCartItemSelectedStatus,
+  updateCartSelectAllStatus,
+} from "./utils/storage.js";
 
 let categories = [];
 
@@ -29,6 +35,25 @@ const init = async () => {
   filters.subscribe(render);
   eventHandlers();
   renderCartBadge();
+  renderCart();
+};
+
+// Cart를 렌더링하는 함수
+const renderCart = () => {
+  const cartContainer = document.querySelector(".cart-modal-container");
+  if (!cartContainer) return;
+
+  // 현재 모달이 보이는 상태인지 확인
+  const cartModal = cartContainer.querySelector(".cart-modal");
+  const isVisible = cartModal && !cartModal.classList.contains("hidden");
+
+  // Cart 다시 렌더링
+  cartContainer.innerHTML = Cart();
+
+  // 이전 상태 유지
+  if (isVisible) {
+    cartContainer.querySelector(".cart-modal").classList.remove("hidden");
+  }
 };
 
 const render = async () => {
@@ -37,15 +62,6 @@ const render = async () => {
   if (window.location.pathname === "/") {
     const data = await getProducts(filters.getState());
     $root.innerHTML = HomePage({ ...data, categories, isLoading: false });
-
-    // 상품 카드 클릭 이벤트 핸들러 -> 상세 페이지로 이동
-    document.addEventListener("click", (event) => {
-      if (event.target.closest(".product-card")) {
-        const productId = event.target.closest(".product-card").dataset.productId;
-        history.pushState("", "", `/product/${productId}`);
-        render();
-      }
-    });
   } else {
     const productId = window.location.pathname.split("/").pop();
     $root.innerHTML = DetailPage({ isLoading: true });
@@ -53,11 +69,23 @@ const render = async () => {
     $root.innerHTML = DetailPage({ ...data, isLoading: false });
   }
 
+  eventHandlers();
+  renderCartBadge();
+  renderCart();
+
   window.addEventListener("popstate", render);
 };
 
 const eventHandlers = () => {
   document.addEventListener("click", async (event) => {
+    // 상품 카드 클릭 이벤트 핸들러 -> 상세 페이지로 이동
+    // if (document.querySelector(".product-card") && !event.target.closest(".add-to-cart-btn")) {
+    //   event.stopPropagation();
+    //   const productId = event.target.closest(".product-card").dataset.productId;
+    //   history.pushState("", "", `/product/${productId}`);
+    //   render();
+    // }
+
     // breadcrumb 전체 버튼 클릭 시 필터 초기화
     if (event.target.closest("button[data-breadcrumb='reset']")) {
       filters.setState({ category1: "", category2: "" });
@@ -86,6 +114,10 @@ const eventHandlers = () => {
     // 장바구니 버튼 클릭 이벤트 핸들러
     if (event.target.closest("#cart-icon-btn")) {
       const cartModal = document.querySelector(".cart-modal");
+      if (!cartModal) {
+        console.error("❌ .cart-modal을 찾을 수 없습니다!");
+        return;
+      }
       cartModal.classList.remove("hidden");
     }
 
@@ -103,11 +135,36 @@ const eventHandlers = () => {
 
     // 아이템 중 장바구니 담기 눌렀을 때 로컬 스토리지에 추가
     if (event.target.closest(".add-to-cart-btn")) {
+      event.preventDefault();
+      event.stopPropagation();
       const productId = event.target.closest(".add-to-cart-btn").dataset.productId;
       const product = await getProduct(productId);
       addCartItemToLocalStorage(productId, product);
+      renderCart();
       renderCartBadge();
       showToast(AddToCartToast());
+    }
+
+    // 장바구니 전체선택 체크박스 클릭
+    if (event.target.id === "cart-modal-select-all-checkbox") {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const selectAll = event.target.checked;
+      updateCartSelectAllStatus(selectAll);
+      renderCart();
+    }
+
+    // 장바구니 체크박스 클릭
+    if (event.target.classList.contains("cart-item-checkbox")) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const cartItems = getCartItemsFromLocalStorage();
+      const cartItem = cartItems.find((item) => item.id === event.target.dataset.productId);
+      cartItem.selected = !cartItem.selected;
+      updateCartItemSelectedStatus(cartItem.id, cartItem.selected);
+      renderCart();
     }
   });
 
