@@ -3,7 +3,8 @@ import { Search } from "../components/search/Serach.js";
 import { PageLayout } from "./PageLayout.js";
 import { loadHomePageData as loadHomePageDataFromLoader } from "../utils/dataLoaders.js";
 import { createComponent } from "../core/component.js";
-import { attachHomePageEventListeners } from "../handlers/index.js";
+import { setupHomePageDelegation } from "../handlers/homePageHandlers.js";
+import { setupCommonDelegation } from "../handlers/commonHandlers.js";
 
 const template = ({
   loading = true,
@@ -50,6 +51,9 @@ export const HomePage = () => {
   return createComponent({
     template,
     setup: loadData,
-    mounted: attachHomePageEventListeners,
+    mounted: () => {
+      setupHomePageDelegation();
+      setupCommonDelegation();
+    },
   });
 };

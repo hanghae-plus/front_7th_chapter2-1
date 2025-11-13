@@ -6,7 +6,8 @@ import { DetailInfo } from "../components/products/productDetail/DetailInfo";
 import { RelatedItems } from "../components/products/productDetail/RelatedItems";
 import { loadDetailPageData } from "../utils/dataLoaders.js";
 import { createComponent } from "../core/component.js";
-import { attachDetailPageHandlers } from "../handlers/index.js";
+import { setupDetailPageDelegation } from "../handlers/detailPageHandlers.js";
+import { setupCommonDelegation } from "../handlers/commonHandlers.js";
 
 // loading prop에 따라 UI 분기
 const template = ({ loading = true, product = null }) => {
@@ -54,6 +55,9 @@ export const DetailPage = () => {
   return createComponent({
     template,
     setup: loadData,
-    mounted: attachDetailPageHandlers,
+    mounted: () => {
+      setupDetailPageDelegation();
+      setupCommonDelegation();
+    },
   });
 };

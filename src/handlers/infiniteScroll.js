@@ -1,6 +1,5 @@
 import { getProducts } from "../api/productApi.js";
 import { ProductItem } from "../components/products/productList/ProductItem.js";
-import { clickProductItem, clickAddToCart } from "./index.js";
 
 let infiniteScrollObserver = null;
 let isLoading = false;
@@ -57,13 +56,10 @@ export function setUpInfiniteScroll() {
             });
 
             // 상품 목록에 추가 (전체 리렌더링 없이 추가만)
+            // 이벤트 위임 방식이므로 새로 추가된 상품에도 자동으로 이벤트가 적용됨
             if (productsGrid && productsData.products && productsData.products.length > 0) {
               const newProductsHTML = productsData.products.map((product) => ProductItem({ product })).join("");
               productsGrid.insertAdjacentHTML("beforeend", newProductsHTML);
-
-              // 새로 추가된 상품에 이벤트 핸들러 연결 (기존 핸들러 함수 재사용)
-              clickProductItem();
-              clickAddToCart();
             }
 
             // URL 업데이트 (히스토리만, 페이지 리로드 없이)

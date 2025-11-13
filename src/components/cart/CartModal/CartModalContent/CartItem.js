@@ -7,7 +7,7 @@ export const CartItem = ({ item }) => {
               <!-- 선택 체크박스 -->
         <label class="flex items-center mr-3">
                 <input type="checkbox" class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded 
-              focus:ring-blue-500" data-product-id="${productId}">
+              focus:ring-blue-500" data-action="cart-item-checkbox" data-product-id="${productId}">
               </label>
               <!-- 상품 이미지 -->
               <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden mr-3 flex-shrink-0">
@@ -24,7 +24,7 @@ export const CartItem = ({ item }) => {
                 <!-- 수량 조절 -->
                 <div class="flex items-center mt-2">
                   <button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center 
-               border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100" data-product-id="${productId}">
+               border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100" data-action="cart-quantity-decrease" data-product-id="${productId}">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                     </svg>
@@ -32,7 +32,7 @@ export const CartItem = ({ item }) => {
                   <input type="number" value="${quantity}" min="1" class="quantity-input w-12 h-7 text-center text-sm border-t border-b 
               border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" disabled="" data-product-id="${productId}">
                   <button class="quantity-increase-btn w-7 h-7 flex items-center justify-center 
-               border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100" data-product-id="${productId}">
+               border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100" data-action="cart-quantity-increase" data-product-id="${productId}">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -44,7 +44,7 @@ export const CartItem = ({ item }) => {
                 <p class="text-sm font-medium text-gray-900">
                   ${totalPrice.toLocaleString()}원
                 </p>
-                <button class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800" data-product-id="${productId}">
+                <button class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800" data-action="cart-item-remove" data-product-id="${productId}">
                   삭제
                 </button>
               </div>

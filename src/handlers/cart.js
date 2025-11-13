@@ -3,118 +3,117 @@ import { CartIcon } from "../components/cart/CartIcon";
 import { CartModal } from "../components/cart/CartModal";
 import { CartModalContent } from "../components/cart/CartModal/CartModalContent/CartModalContent";
 import { CartModalAction } from "../components/cart/CartModal/CartModalAction/CartModalAction";
+import { setupEventDelegation } from "./utils/eventDelegation.js";
+import {
+  increaseCartQuantity,
+  decreaseCartQuantity,
+  removeFromCart,
+  removeSelectedFromCart,
+  clearCart,
+} from "./actions/cartActions.js";
 
 let modalUnsubscribe = null;
+let modalCleanupFunctions = [];
 
 /**
- * CartModal 내부 이벤트 핸들러 연결
+ * CartModal 이벤트 위임 설정
  */
-function attachCartModalEventHandlers() {
-  // 수량 증가 버튼
-  const increaseButtons = document.querySelectorAll(".quantity-increase-btn");
-  increaseButtons.forEach((button) => {
-    if (button.dataset.listenerAttached) return;
-    button.dataset.listenerAttached = "true";
-    button.addEventListener("click", () => {
-      const productId = button.dataset.productId;
-      const currentItems = cartState.getState().items;
-      cartState.setState({
-        items: currentItems.map((item) =>
-          item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item,
-        ),
-      });
-    });
-  });
+function setupCartModalDelegation() {
+  // 기존 리스너 제거
+  modalCleanupFunctions.forEach((cleanup) => cleanup());
+  modalCleanupFunctions = [];
 
-  // 수량 감소 버튼
-  const decreaseButtons = document.querySelectorAll(".quantity-decrease-btn");
-  decreaseButtons.forEach((button) => {
-    if (button.dataset.listenerAttached) return;
-    button.dataset.listenerAttached = "true";
-    button.addEventListener("click", () => {
-      const productId = button.dataset.productId;
-      const currentItems = cartState.getState().items;
-      cartState.setState({
-        items: currentItems
-          .map((item) => (item.productId === productId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))
-          .filter((item) => item.quantity > 0), // 수량이 0이면 제거
-      });
-    });
-  });
+  const modal = document.querySelector(".cart-modal");
+  if (!modal) return;
 
-  // 아이템 삭제 버튼
-  const removeButtons = document.querySelectorAll(".cart-item-remove-btn");
-  removeButtons.forEach((button) => {
-    if (button.dataset.listenerAttached) return;
-    button.dataset.listenerAttached = "true";
-    button.addEventListener("click", () => {
-      const productId = button.dataset.productId;
-      const currentItems = cartState.getState().items;
-      cartState.setState({
-        items: currentItems.filter((item) => item.productId !== productId),
-      });
-    });
-  });
-
-  // 선택 삭제 버튼
-  const removeSelectedBtn = document.getElementById("cart-modal-remove-selected-btn");
-  if (removeSelectedBtn && !removeSelectedBtn.dataset.listenerAttached) {
-    removeSelectedBtn.dataset.listenerAttached = "true";
-    removeSelectedBtn.addEventListener("click", () => {
+  // Click 이벤트 위임
+  const clickHandlers = {
+    // 수량 증가
+    "cart-quantity-increase": (event, element) => {
+      const productId = element.dataset.productId;
+      if (productId) {
+        increaseCartQuantity(productId);
+      }
+    },
+    // 수량 감소
+    "cart-quantity-decrease": (event, element) => {
+      const productId = element.dataset.productId;
+      if (productId) {
+        decreaseCartQuantity(productId);
+      }
+    },
+    // 아이템 삭제
+    "cart-item-remove": (event, element) => {
+      const productId = element.dataset.productId;
+      if (productId) {
+        removeFromCart(productId);
+      }
+    },
+    // 선택 삭제
+    "cart-remove-selected": () => {
       const checkedCheckboxes = document.querySelectorAll(".cart-item-checkbox:checked");
       const selectedProductIds = Array.from(checkedCheckboxes).map((checkbox) => checkbox.dataset.productId);
-      const currentItems = cartState.getState().items;
-      cartState.setState({
-        items: currentItems.filter((item) => !selectedProductIds.includes(item.productId)),
-      });
-    });
-  }
-
-  // 전체 비우기 버튼
-  const clearCartBtn = document.getElementById("cart-modal-clear-cart-btn");
-  if (clearCartBtn && !clearCartBtn.dataset.listenerAttached) {
-    clearCartBtn.dataset.listenerAttached = "true";
-    clearCartBtn.addEventListener("click", () => {
-      cartState.setState({ items: [] });
-    });
-  }
-
-  // 구매하기 버튼
-  const checkoutBtn = document.getElementById("cart-modal-checkout-btn");
-  if (checkoutBtn && !checkoutBtn.dataset.listenerAttached) {
-    checkoutBtn.dataset.listenerAttached = "true";
-    checkoutBtn.addEventListener("click", () => {
+      removeSelectedFromCart(selectedProductIds);
+    },
+    // 전체 비우기
+    "cart-clear": () => {
+      clearCart();
+    },
+    // 구매하기
+    "cart-checkout": () => {
       // TODO: 구매하기 로직 구현
       console.log("구매하기 클릭");
-    });
-  }
+    },
+    // 모달 닫기
+    "cart-modal-close": () => {
+      hideCartModal();
+    },
+  };
 
-  // 전체 선택 체크박스
-  const selectAllCheckbox = document.getElementById("cart-modal-select-all-checkbox");
-  if (selectAllCheckbox && !selectAllCheckbox.dataset.listenerAttached) {
-    selectAllCheckbox.dataset.listenerAttached = "true";
-    selectAllCheckbox.addEventListener("change", (e) => {
+  // Change 이벤트 위임 (체크박스)
+  const changeHandlers = {
+    // 전체 선택 체크박스
+    "cart-select-all": (event, element) => {
       const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
       itemCheckboxes.forEach((checkbox) => {
-        checkbox.checked = e.target.checked;
+        checkbox.checked = element.checked;
       });
-    });
-  }
-
-  // 개별 체크박스 변경 시 전체 선택 체크박스 상태 업데이트
-  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
-  itemCheckboxes.forEach((checkbox) => {
-    if (checkbox.dataset.listenerAttached) return;
-    checkbox.dataset.listenerAttached = "true";
-    checkbox.addEventListener("change", () => {
+    },
+    // 개별 체크박스
+    "cart-item-checkbox": () => {
       const allCheckboxes = document.querySelectorAll(".cart-item-checkbox");
       const checkedCount = document.querySelectorAll(".cart-item-checkbox:checked").length;
       const selectAllCheckbox = document.getElementById("cart-modal-select-all-checkbox");
       if (selectAllCheckbox) {
         selectAllCheckbox.checked = checkedCount === allCheckboxes.length && allCheckboxes.length > 0;
       }
-    });
-  });
+    },
+  };
+
+  // 이벤트 위임 설정 (모달 내부에서만)
+  modalCleanupFunctions.push(setupEventDelegation("click", clickHandlers, modal));
+  modalCleanupFunctions.push(setupEventDelegation("change", changeHandlers, modal));
+
+  // 배경 클릭 시 닫기
+  const overlay = modal.querySelector(".cart-modal-overlay");
+  if (overlay) {
+    const overlayHandler = (event) => {
+      if (event.target === overlay) {
+        hideCartModal();
+      }
+    };
+    overlay.addEventListener("click", overlayHandler);
+    modalCleanupFunctions.push(() => overlay.removeEventListener("click", overlayHandler));
+  }
+
+  // ESC 키로 닫기
+  const escapeHandler = (event) => {
+    if (event.key === "Escape") {
+      hideCartModal();
+    }
+  };
+  document.addEventListener("keydown", escapeHandler);
+  modalCleanupFunctions.push(() => document.removeEventListener("keydown", escapeHandler));
 }
 
 /**
@@ -130,36 +129,8 @@ function renderCartModalContent() {
     ${items.length > 0 ? CartModalAction({ items }) : ""}
   `;
 
-  // innerHTML로 교체되면서 이벤트 핸들러가 제거되므로 플래그 초기화 후 다시 연결
-  // 모든 이벤트 리스너 플래그 제거
-  const allButtons = contentContainer.querySelectorAll("[data-listener-attached]");
-  allButtons.forEach((btn) => {
-    delete btn.dataset.listenerAttached;
-  });
-  const selectAllCheckbox = document.getElementById("cart-modal-select-all-checkbox");
-  if (selectAllCheckbox) {
-    delete selectAllCheckbox.dataset.listenerAttached;
-  }
-  const clearCartBtn = document.getElementById("cart-modal-clear-cart-btn");
-  if (clearCartBtn) {
-    delete clearCartBtn.dataset.listenerAttached;
-  }
-  const removeSelectedBtn = document.getElementById("cart-modal-remove-selected-btn");
-  if (removeSelectedBtn) {
-    delete removeSelectedBtn.dataset.listenerAttached;
-  }
-  const checkoutBtn = document.getElementById("cart-modal-checkout-btn");
-  if (checkoutBtn) {
-    delete checkoutBtn.dataset.listenerAttached;
-  }
-  // 개별 체크박스 플래그도 초기화
-  const itemCheckboxes = contentContainer.querySelectorAll(".cart-item-checkbox");
-  itemCheckboxes.forEach((checkbox) => {
-    delete checkbox.dataset.listenerAttached;
-  });
-
-  // 이벤트 핸들러 다시 연결
-  attachCartModalEventHandlers();
+  // 이벤트 위임 다시 설정 (이벤트 위임은 자동으로 새 요소에 적용됨)
+  setupCartModalDelegation();
 }
 
 /**
@@ -202,29 +173,8 @@ export function showCartModal() {
  * 모달 이벤트 설정
  */
 function setupModalEvents() {
-  // 모달 내부 이벤트 핸들러 연결
-  attachCartModalEventHandlers();
-
-  // 닫기 버튼 이벤트
-  const closeBtn = document.getElementById("cart-modal-close-btn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", hideCartModal);
-  }
-
-  // 배경 클릭 시 닫기
-  const overlay = document.querySelector(".cart-modal-overlay");
-  if (overlay) {
-    overlay.addEventListener("click", hideCartModal);
-  }
-
-  // ESC 키로 닫기
-  const handleEscape = (e) => {
-    if (e.key === "Escape") {
-      hideCartModal();
-      document.removeEventListener("keydown", handleEscape);
-    }
-  };
-  document.addEventListener("keydown", handleEscape);
+  // 모달 이벤트 위임 설정
+  setupCartModalDelegation();
 
   // body 스크롤 막기
   document.body.style.overflow = "hidden";
@@ -239,8 +189,6 @@ function setupModalEvents() {
     const container = document.querySelector("[data-cart-icon]");
     if (container) {
       container.innerHTML = CartIcon();
-      // 이벤트 리스너 다시 연결
-      attachCartIconClickEvent();
     }
   });
 }
@@ -254,6 +202,10 @@ export function hideCartModal() {
     modalUnsubscribe();
     modalUnsubscribe = null;
   }
+
+  // 이벤트 리스너 제거
+  modalCleanupFunctions.forEach((cleanup) => cleanup());
+  modalCleanupFunctions = [];
 
   // 모달 제거
   const modal = document.querySelector(".cart-modal");
@@ -279,18 +231,6 @@ export function setupCartIconSubscription() {
     const container = document.querySelector("[data-cart-icon]");
     if (container) {
       container.innerHTML = CartIcon();
-      // 이벤트 리스너 다시 연결
-      attachCartIconClickEvent();
     }
   });
-}
-
-export function attachCartIconClickEvent() {
-  const cartIcon = document.querySelector("#cart-icon-btn");
-  if (cartIcon && !cartIcon.dataset.listenerAttached) {
-    cartIcon.dataset.listenerAttached = "true";
-    cartIcon.addEventListener("click", () => {
-      showCartModal();
-    });
-  }
 }

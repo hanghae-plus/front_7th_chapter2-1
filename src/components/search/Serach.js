@@ -1,7 +1,7 @@
 export const SearchBar = ({ search = "" }) => {
   return /*HTML*/ ` <div class="mb-4">
         <div class="relative">
-          <input type="text" id="search-input" placeholder="상품명을 검색해보세요..." value="${search}" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
+          <input type="text" id="search-input" data-action="filter-search" placeholder="상품명을 검색해보세요..." value="${search}" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,7 +17,7 @@ export const ItemCountSelector = ({ limit }) => {
   return /*HTML*/ `<!-- 페이지당 상품 수 -->
           <div class="flex items-center gap-2">
           <label class="text-sm text-gray-600">개수:</label>
-          <select id="limit-select"
+          <select id="limit-select" data-action="filter-limit"
                   class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
             <option value="10" ${limit == 10 ? "selected" : ""}>
               10개
@@ -39,7 +39,7 @@ export const SortSelector = ({ sort }) => {
   return /*HTML*/ `<!-- 정렬 -->
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600">정렬:</label>
-              <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
+              <select id="sort-select" data-action="filter-sort" class="text-sm border border-gray-300 rounded px-2 py-1
                          focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
               <option value="price_asc" ${sort == "price_asc" ? "selected" : ""}>가격 낮은순</option>
               <option value="price_desc" ${sort == "price_desc" ? "selected" : ""}>가격 높은순</option>
@@ -70,7 +70,7 @@ export const CategoryBreadcrumb = ({ category1 = "", category2 = "" }) => {
 
       return `
         ${index > 0 ? '<span class="text-xs text-gray-500">&gt;</span>' : ""}
-        <button data-breadcrumb="${crumb.action}" ${dataAttrs} class="${buttonClass}">
+        <button data-action="breadcrumb" data-breadcrumb="${crumb.action}" ${dataAttrs} class="${buttonClass}">
           ${crumb.label}
         </button>
       `;
@@ -83,7 +83,7 @@ export const FirstDepthCategory = ({ category1 }) => {
     ${category1
       .map(
         (category) => `
-      <button data-category1="${category}" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+      <button data-action="filter-category1" data-category1="${category}" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
         ${category}
       </button>
     `,
@@ -104,7 +104,7 @@ export const SecondDepthCategory = ({ category2List = [], selectedCategory2 = ""
           : "category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50";
 
         return `
-      <button data-category2="${category}" class="${buttonClass}">
+      <button data-action="filter-category2" data-category2="${category}" class="${buttonClass}">
         ${category}
       </button>
     `;
