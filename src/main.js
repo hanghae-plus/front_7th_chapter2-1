@@ -82,6 +82,23 @@ document.body.addEventListener("keydown", (e) => {
   }
 });
 
+// 필터/정렬 기능
+document.body.addEventListener("change", (e) => {
+  // 페이지당 상품 수 변경
+  const $limitSelect = e.target.closest("#limit-select");
+  if ($limitSelect) {
+    router.updateQuery({ limit: $limitSelect.value });
+    return;
+  }
+
+  // 정렬 변경
+  const $sortSelect = e.target.closest("#sort-select");
+  if ($sortSelect) {
+    router.updateQuery({ sort: $sortSelect.value });
+    return;
+  }
+});
+
 // 애플리케이션 시작
 const main = async () => {
   router.push(location.pathname + location.search);

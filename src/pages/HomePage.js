@@ -51,8 +51,9 @@ export const Homepage = withLifecycle(
 
   // 렌더링 함수
   () => {
-    const { products, loading, filters, pagination } = store.getState().home;
+    const { products, loading, pagination } = store.getState().home;
     const { categories } = store.getState();
+    const filters = router.getCurrentRoute().query;
 
     return PageLayout({
       children: /* HTML */ ` ${SearchForm({ filters, categories })} ${ProductList({ loading, products, pagination })} `,

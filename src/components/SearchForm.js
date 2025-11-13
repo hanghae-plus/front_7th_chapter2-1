@@ -1,6 +1,8 @@
 export const SearchForm = ({ filters = {}, categories = {} }) => {
   const searchValue = filters.search || "";
   const category1Keys = Object.keys(categories);
+  const currentLimit = filters.limit || "20";
+  const currentSort = filters.sort || "price_asc";
 
   return /* HTML */ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -64,10 +66,10 @@ export const SearchForm = ({ filters = {}, categories = {} }) => {
               id="limit-select"
               class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="10">10개</option>
-              <option value="20" selected="">20개</option>
-              <option value="50">50개</option>
-              <option value="100">100개</option>
+              <option value="10" ${currentLimit === "10" ? "selected" : ""}>10개</option>
+              <option value="20" ${currentLimit === "20" ? "selected" : ""}>20개</option>
+              <option value="50" ${currentLimit === "50" ? "selected" : ""}>50개</option>
+              <option value="100" ${currentLimit === "100" ? "selected" : ""}>100개</option>
             </select>
           </div>
           <!-- 정렬 -->
@@ -78,10 +80,10 @@ export const SearchForm = ({ filters = {}, categories = {} }) => {
               class="text-sm border border-gray-300 rounded px-2 py-1
                      focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="price_asc" selected="">가격 낮은순</option>
-              <option value="price_desc">가격 높은순</option>
-              <option value="name_asc">이름순</option>
-              <option value="name_desc">이름 역순</option>
+              <option value="price_asc" ${currentSort === "price_asc" ? "selected" : ""}>가격 낮은순</option>
+              <option value="price_desc" ${currentSort === "price_desc" ? "selected" : ""}>가격 높은순</option>
+              <option value="name_asc" ${currentSort === "name_asc" ? "selected" : ""}>이름순</option>
+              <option value="name_desc" ${currentSort === "name_desc" ? "selected" : ""}>이름 역순</option>
             </select>
           </div>
         </div>
