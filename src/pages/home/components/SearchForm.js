@@ -1,7 +1,6 @@
 import { getCategories } from '@/api/productApi';
 import Component from '@/core/component';
 
-// TODO: 컴포넌트 분리 필요
 const DEFAULT_LIMIT = 20;
 const LIMIT_OPTIONS = [
   { value: 10, label: '10개' },
@@ -21,7 +20,6 @@ export default class SearchForm extends Component {
   setup() {
     const params = new URLSearchParams(location.search);
 
-    // TODO: 로딩 상태 처리 필요
     this.state = {
       categories: null,
       search: params.get('search') || '',
@@ -29,23 +27,32 @@ export default class SearchForm extends Component {
       category2: params.get('category2'),
       limit: params.get('limit') ? Number(params.get('limit')) : DEFAULT_LIMIT,
       sort: params.get('sort') || DEFAULT_SORT,
+      loading: true,
+      error: null,
     };
     this.fetchCategories();
   }
 
-  // TODO: API 에러 처리 필요
   async fetchCategories() {
-    const data = await getCategories();
-    const categories = Object.entries(data || {}).map(([name, children]) => ({
-      name,
-      sub: Object.keys(children || {}),
-    }));
+    try {
+      this.setState({ loading: true, error: null });
+      const data = await getCategories();
+      const categories = Object.entries(data || {}).map(([name, children]) => ({
+        name,
+        sub: Object.keys(children || {}),
+      }));
 
-    this.setState({ categories });
+      this.setState({ categories, loading: false, error: null });
+    } catch (error) {
+      this.setState({
+        loading: false,
+        error: error?.message || 'Failed to fetch',
+      });
+    }
   }
 
   template() {
-    const { categories, search, category1, category2, limit, sort } = this.state;
+    const { categories, search, category1, category2, limit, sort, loading, error } = this.state;
 
     return /* HTML */ `
       <!-- 검색 및 필터 -->
@@ -106,52 +113,87 @@ export default class SearchForm extends Component {
                 : ''}
             </div>
             <!-- 1depth 카테고리 -->
-            ${categories
-              ? !category1
-                ? /* HTML */ `<div class="flex flex-wrap gap-2">
-                    ${categories
-                      .map(
-                        ({ name }) => /* HTML */ `
-                          <button
-                            data-category1="${name}"
-                            class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                          >
-                            ${name}
-                          </button>
-                        `
-                      )
-                      .join('')}
-                  </div>`
-                : ''
-              : /* HTML */ `<div class="flex flex-wrap gap-2">
-                  <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
-                </div>`}
-            <!-- 2depth 카테고리 -->
-            ${categories && category1
-              ? /* HTML */ `
-                  <div class="space-y-2">
-                    <div class="flex flex-wrap gap-2">
-                      ${categories
-                        .find(({ name }) => name === category1)
-                        .sub.map(
-                          (subName) => /* HTML */ `
-                            <button
-                              data-category1="${category1}"
-                              data-category2="${subName}"
-                              class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors ${category2 ===
-                              subName
-                                ? 'bg-blue-100 border-blue-300 text-blue-800'
-                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}"
-                            >
-                              ${subName}
-                            </button>
-                          `
-                        )
-                        .join('')}
-                    </div>
+            ${loading
+              ? /* HTML */ `<div class="flex flex-wrap gap-2">
+                  <div class="text-sm text-gray-500 italic flex items-center gap-2">
+                    <svg
+                      class="animate-spin h-4 w-4 text-gray-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    카테고리 로딩 중...
                   </div>
-                `
-              : ''}
+                </div>`
+              : error
+                ? /* HTML */ `<div class="flex flex-wrap gap-2">
+                    <div class="text-sm text-red-600 flex items-center gap-2">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        ></path>
+                      </svg>
+                      ${error}
+                    </div>
+                  </div>`
+                : categories
+                  ? !category1
+                    ? /* HTML */ `<div class="flex flex-wrap gap-2">
+                        ${categories
+                          .map(
+                            ({ name }) => /* HTML */ `
+                              <button
+                                data-category1="${name}"
+                                class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                              >
+                                ${name}
+                              </button>
+                            `
+                          )
+                          .join('')}
+                      </div>`
+                    : /* HTML */ `
+                        <!-- 2depth 카테고리 -->
+                        <div class="space-y-2">
+                          <div class="flex flex-wrap gap-2">
+                            ${categories
+                              .find(({ name }) => name === category1)
+                              .sub.map(
+                                (subName) => /* HTML */ `
+                                  <button
+                                    data-category1="${category1}"
+                                    data-category2="${subName}"
+                                    class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors ${category2 ===
+                                    subName
+                                      ? 'bg-blue-100 border-blue-300 text-blue-800'
+                                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}"
+                                  >
+                                    ${subName}
+                                  </button>
+                                `
+                              )
+                              .join('')}
+                          </div>
+                        </div>
+                      `
+                  : ''}
           </div>
           <!-- 기존 필터들 -->
           <div class="flex gap-2 items-center justify-between">
