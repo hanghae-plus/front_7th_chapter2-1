@@ -198,9 +198,9 @@ import { TOAST_MESSAGE_MAP } from "../constants/toast-constant.js";
 const ProductDetail = createComponent({
   id: "product-detail",
   props: { productDetailResponse: null, productDetailListResponse: null },
-  initialState: {
+  initialState: () => ({
     count: 1,
-  },
+  }),
   eventHandlers: {
     "quantity-decrease": (props, getter, setter) => {
       if (getter("count") <= 1) return;
