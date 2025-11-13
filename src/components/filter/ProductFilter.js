@@ -2,6 +2,7 @@ import { getCategories } from "../../api/productApi";
 import { renderProducts } from "../../utils/productRenderer";
 import { getCurrentFilters, updateFilters } from "../../utils/filterState";
 import { initSearchInput } from "../../utils/searchHandler";
+import { resetInfiniteScrollState } from "../../utils/infiniteScrollState.js";
 
 export const ProductFilter = () => {
   // 카테고리 데이터를 전역으로 저장
@@ -83,6 +84,9 @@ export const ProductFilter = () => {
 
   // category1 클릭 핸들러
   const handleClickCategory1 = (category) => {
+    // 무한 스크롤 상태 초기화
+    resetInfiniteScrollState();
+
     // category1 설정, category2 초기화
     const updatedFilters = updateFilters({ category1: category, category2: "" });
 
@@ -100,6 +104,9 @@ export const ProductFilter = () => {
   const handleClickCategory2 = (category) => {
     const currentFilters = getCurrentFilters();
 
+    // 무한 스크롤 상태 초기화
+    resetInfiniteScrollState();
+
     // category2만 업데이트 (category1 유지)
     const updatedFilters = updateFilters({ category2: category });
 
@@ -115,6 +122,9 @@ export const ProductFilter = () => {
 
   // 전체 리셋 핸들러
   const handleResetAll = () => {
+    // 무한 스크롤 상태 초기화
+    resetInfiniteScrollState();
+
     // 카테고리 필터 초기화
     const updatedFilters = updateFilters({ category1: "", category2: "" });
 
@@ -132,6 +142,9 @@ export const ProductFilter = () => {
   const handleBackToCategory1 = () => {
     const currentFilters = getCurrentFilters();
 
+    // 무한 스크롤 상태 초기화
+    resetInfiniteScrollState();
+
     // category2 초기화
     const updatedFilters = updateFilters({ category2: "" });
 
@@ -146,11 +159,17 @@ export const ProductFilter = () => {
   };
 
   const handleClickLimit = (limit) => {
+    // 무한 스크롤 상태 초기화
+    resetInfiniteScrollState();
+
     const updatedFilters = updateFilters({ limit: parseInt(limit) });
     renderProducts({ params: updatedFilters });
   };
 
   const handleClickSort = (sort) => {
+    // 무한 스크롤 상태 초기화
+    resetInfiniteScrollState();
+
     const updatedFilters = updateFilters({ sort });
     renderProducts({ params: updatedFilters });
   };
