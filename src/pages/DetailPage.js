@@ -18,6 +18,12 @@ const runtime = {
   unMount: null, // 컴포넌트 언마운트 핸들러
   setProductQty: null, // 수량 설정 핸들러
   productQty: 1, // 수량 상태
+  setSelectProductList: null, // 장바구니 상태 설정 핸들러
+  selectProductList: null, // 장바구니 상태
+  cartUnsubscribe: null, // 장바구니 구독 해제 함수
+  isCartSubscribed: false, // 장바구니 구독 여부
+  cartSyncHandler: null, // 장바구니 동기화 핸들러
+  isCartModalOpen: false, // 모달 열림 상태
 };
 
 const buildPageView = (state) => {
@@ -147,14 +153,265 @@ const mountDetailPage = () => {
     if (!button) return;
     const product = runtime.mainProductState?.product;
     if (!product) return;
-    const quantity = runtime.productQty ?? 1;
+    const quantityInput = document.querySelector("#quantity-input");
+    const rawInputValue = Number.parseInt(quantityInput?.value ?? runtime.productQty ?? 1, 10);
+    const ensuredMin = Number.isFinite(rawInputValue) && rawInputValue > 0 ? rawInputValue : 1;
+    const maxStock = runtime.mainProductState?.product?.stock ?? null;
+    const nextQuantity = Number.isFinite(maxStock) && maxStock > 0 ? Math.min(ensuredMin, maxStock) : ensuredMin;
+
+    if (quantityInput) quantityInput.value = String(nextQuantity);
+    runtime.productQty = nextQuantity;
+    runtime.setProductQty?.(nextQuantity);
+
+    const quantity = nextQuantity;
+    runtime.setSelectProductList?.((prev) => {
+      const baseList = Array.isArray(prev) ? prev : [];
+      const targetIndex = baseList.findIndex((item) => item.productId === product.productId);
+      let nextList;
+      if (targetIndex >= 0) {
+        nextList = baseList.map((item, index) => {
+          if (index !== targetIndex) return item;
+          const currentQuantity = Number(item.quantity ?? 0);
+          return {
+            ...item,
+            quantity: currentQuantity + quantity,
+          };
+        });
+      } else {
+        nextList = [
+          ...baseList,
+          {
+            productId: product.productId,
+            title: product.title,
+            image: product.image,
+            price: Number(product.lprice) || 0,
+            quantity,
+            checked: false,
+          },
+        ];
+      }
+      runtime.selectProductList = nextList;
+      return nextList;
+    });
     cartStore.addItem(product, quantity);
     runtime.setProductQty?.(1);
   };
 
+  const handleAddToCartFromList = (event) => {
+    const addButton = event.target.closest(".add-to-cart-btn");
+    if (!addButton) return;
+    event.preventDefault();
+    const card = addButton.closest(".product-card");
+    if (!card) return;
+
+    const productId = addButton.dataset.productId ?? card.dataset.productId;
+    if (!productId) return;
+
+    const titleElement = card.querySelector(".product-info h3");
+    const priceElement = card.querySelector(".product-info + p") ?? card.querySelector(".product-info p:last-child");
+    const imageElement = card.querySelector("img");
+
+    const title = titleElement?.textContent?.trim() ?? "";
+    const priceText = priceElement?.textContent?.replace(/[^0-9]/g, "") ?? "0";
+    const image = imageElement?.getAttribute("src") ?? "";
+
+    const price = Number(priceText) || 0;
+
+    runtime.setSelectProductList?.((prev) => {
+      const baseList = Array.isArray(prev) ? prev : [];
+      const targetIndex = baseList.findIndex((item) => item.productId === productId);
+      let nextList;
+      if (targetIndex >= 0) {
+        nextList = baseList.map((item, index) => {
+          if (index !== targetIndex) return item;
+          const currentQuantity = Number(item.quantity ?? 0);
+          return {
+            ...item,
+            quantity: currentQuantity + 1,
+          };
+        });
+      } else {
+        nextList = [
+          ...baseList,
+          {
+            productId,
+            title,
+            image,
+            price,
+            quantity: 1,
+            checked: false,
+          },
+        ];
+      }
+      runtime.selectProductList = nextList;
+      return nextList;
+    });
+
+    cartStore.addItem(
+      {
+        productId,
+        title,
+        image,
+        lprice: price,
+      },
+      1,
+    );
+  };
+
+  const handleCartModalCheckboxChange = (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.closest(".cart-modal")) return;
+    if (!target.matches("input[type='checkbox']")) return;
+
+    if (target.id === "cart-modal-select-all-checkbox") {
+      const shouldChecked = Boolean(target.checked);
+      runtime.setSelectProductList?.((prev) => {
+        const baseList = Array.isArray(prev) ? prev : [];
+        let hasChanged = false;
+        const updatedList = baseList.map((item) => {
+          if (Boolean(item.checked) === shouldChecked) return item;
+          hasChanged = true;
+          return { ...item, checked: shouldChecked };
+        });
+        if (hasChanged) {
+          runtime.selectProductList = updatedList;
+          return updatedList;
+        }
+        return baseList;
+      });
+      cartStore.setAllChecked(shouldChecked);
+      return;
+    }
+
+    const checkbox = target.closest(".cart-item-checkbox");
+    if (!checkbox) return;
+    const { productId } = checkbox.dataset ?? {};
+    if (!productId) return;
+    const shouldChecked = Boolean(target.checked);
+
+    let hasChanged = false;
+    runtime.setSelectProductList?.((prev) => {
+      const baseList = Array.isArray(prev) ? prev : [];
+      const updatedList = baseList.map((item) => {
+        if (item.productId !== productId) return item;
+        if (Boolean(item.checked) === shouldChecked) return item;
+        hasChanged = true;
+        return { ...item, checked: shouldChecked };
+      });
+      if (hasChanged) {
+        runtime.selectProductList = updatedList;
+        return updatedList;
+      }
+      return baseList;
+    });
+
+    if (hasChanged) {
+      cartStore.updateItemChecked(productId, shouldChecked);
+    }
+  };
+
+  const handleRemoveCartItem = (event) => {
+    const removeButton = event.target.closest(".cart-item-remove-btn");
+    if (!removeButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { productId } = removeButton.dataset ?? {};
+    if (!productId) return;
+
+    runtime.setSelectProductList?.((prev) => {
+      if (!Array.isArray(prev)) {
+        runtime.selectProductList = [];
+        return [];
+      }
+      const nextList = prev.filter((item) => item.productId !== productId);
+      runtime.selectProductList = nextList;
+      return nextList;
+    });
+    cartStore.removeItem(productId);
+  };
+
+  const handleCartItemQuantityClick = (event) => {
+    const increaseButton = event.target.closest(".quantity-increase-btn");
+    const decreaseButton = event.target.closest(".quantity-decrease-btn");
+    const targetButton = increaseButton ?? decreaseButton;
+    if (!targetButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { productId } = targetButton.dataset ?? {};
+    if (!productId) return;
+    const delta = increaseButton ? 1 : -1;
+
+    let nextQuantity = null;
+    let hasChanged = false;
+    runtime.setSelectProductList?.((prev) => {
+      const baseList = Array.isArray(prev) ? prev : [];
+      const updatedList = baseList.map((item) => {
+        if (item.productId !== productId) return item;
+        const currentQuantity = Number(item.quantity ?? 1);
+        const computedQuantity = Math.max(1, currentQuantity + delta);
+        nextQuantity = computedQuantity;
+        if (computedQuantity === currentQuantity) return item;
+        hasChanged = true;
+        return { ...item, quantity: computedQuantity };
+      });
+      if (hasChanged) {
+        runtime.selectProductList = updatedList;
+        return updatedList;
+      }
+      return baseList;
+    });
+
+    if (hasChanged && nextQuantity !== null) {
+      cartStore.updateItemQuantity(productId, nextQuantity);
+    }
+  };
+
+  const handleClearCart = (event) => {
+    const clearButton = event.target.closest("#cart-modal-clear-cart-btn");
+    if (!clearButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    runtime.setSelectProductList?.([]);
+    runtime.selectProductList = [];
+    cartStore.clear();
+  };
+
+  const handleRemoveSelectedCartItems = (event) => {
+    const removeSelectedButton = event.target.closest("#cart-modal-remove-selected-btn");
+    if (!removeSelectedButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const currentCartItems = runtime.selectProductList ?? [];
+    const remainingItems = currentCartItems.filter((item) => !item.checked);
+    const removedItems = currentCartItems.filter((item) => item.checked);
+
+    runtime.setSelectProductList?.(remainingItems);
+    runtime.selectProductList = remainingItems;
+
+    removedItems.forEach((item) => cartStore.removeItem(item.productId));
+    cartStore.setAllChecked(false);
+  };
+
   const handleCartModal = (event) => {
     // 장바구니 모달 열기
-    if (event.target.closest(".cart-item-remove-btn")) return;
+    if (
+      event.target.closest(".cart-item-remove-btn") ||
+      event.target.closest("#cart-modal-clear-cart-btn") ||
+      event.target.closest("#cart-modal-remove-selected-btn") ||
+      event.target.closest(".quantity-increase-btn") ||
+      event.target.closest(".quantity-decrease-btn") ||
+      event.target.closest(".cart-item-checkbox")
+    )
+      return;
     const modal = document.querySelector(".cart-modal");
     if (!modal) return;
 
@@ -180,6 +437,16 @@ const mountDetailPage = () => {
   $root.addEventListener("click", handelQuantityClick);
   $root.addEventListener("click", handleAddToCartClick);
   $root.addEventListener("click", handleCartModal);
+  $root.addEventListener("click", handleAddToCartFromList);
+  $root.addEventListener("change", handleCartModalCheckboxChange);
+  $root.addEventListener("click", handleRemoveCartItem);
+  $root.addEventListener("click", handleCartItemQuantityClick);
+  $root.addEventListener("click", handleClearCart);
+  $root.addEventListener("click", handleRemoveSelectedCartItems);
+  if (runtime.isCartModalOpen) {
+    const modal = document.querySelector(".cart-modal");
+    if (modal) modal.classList.remove("hidden");
+  }
   const unMount = () => {
     $root.removeEventListener("click", handleProductCardClick);
     $root.removeEventListener("click", handleCategoryClick);
@@ -187,6 +454,17 @@ const mountDetailPage = () => {
     $root.removeEventListener("click", handelQuantityClick);
     $root.removeEventListener("click", handleAddToCartClick);
     $root.removeEventListener("click", handleCartModal);
+    $root.removeEventListener("click", handleAddToCartFromList);
+    $root.removeEventListener("change", handleCartModalCheckboxChange);
+    $root.removeEventListener("click", handleRemoveCartItem);
+    $root.removeEventListener("click", handleCartItemQuantityClick);
+    $root.removeEventListener("click", handleClearCart);
+    $root.removeEventListener("click", handleRemoveSelectedCartItems);
+    const modal = document.querySelector(".cart-modal");
+    if (modal && !runtime.isCartModalOpen) modal.classList.add("hidden");
+    runtime.cartUnsubscribe?.();
+    runtime.cartUnsubscribe = null;
+    runtime.isCartSubscribed = false;
     if (runtime.unMount === unMount) runtime.unMount = null;
   };
 
@@ -209,11 +487,14 @@ export const DetailPageComponent = (context = {}) => {
   });
 
   const [productQty, setProductQty] = useState(1);
+  const [selectProductList, setSelectProductList] = useState(cartStore.getState());
 
   runtime.setMainProductState = setMainProductState;
   runtime.mainProductState = mainProductState;
   runtime.setProductQty = setProductQty;
   runtime.productQty = productQty;
+  runtime.setSelectProductList = setSelectProductList;
+  runtime.selectProductList = selectProductList;
 
   if (!runtime.isFetching && mainProductState.loading) {
     runtime.isFetching = true;
@@ -222,7 +503,45 @@ export const DetailPageComponent = (context = {}) => {
     });
   }
 
-  const selectProductList = cartStore.getState();
+  if (!runtime.isCartSubscribed) {
+    runtime.cartSyncHandler ??= (nextCartItems) => {
+      if (!Array.isArray(nextCartItems)) {
+        runtime.setSelectProductList?.([]);
+        return;
+      }
+
+      const prevItems = runtime.selectProductList ?? [];
+      const isSameLength = prevItems.length === nextCartItems.length;
+      let isShallowEqual = isSameLength;
+
+      if (isSameLength) {
+        for (let index = 0; index < nextCartItems.length; index += 1) {
+          const currentItem = nextCartItems[index];
+          const prevItem = prevItems[index];
+          if (
+            !prevItem ||
+            prevItem.productId !== currentItem.productId ||
+            prevItem.quantity !== currentItem.quantity ||
+            Boolean(prevItem.checked) !== Boolean(currentItem.checked)
+          ) {
+            isShallowEqual = false;
+            break;
+          }
+        }
+      }
+
+      if (isShallowEqual) return;
+
+      const snapshot = nextCartItems.map((item) => ({
+        ...item,
+        checked: Boolean(item.checked),
+      }));
+      runtime.setSelectProductList?.(snapshot);
+    };
+    runtime.cartUnsubscribe = cartStore.subscribe(runtime.cartSyncHandler);
+    runtime.isCartSubscribed = true;
+  }
+
   const props = {
     ...mainProductState,
     productQty,
