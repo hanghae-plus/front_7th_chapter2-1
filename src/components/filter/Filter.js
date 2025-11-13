@@ -1,4 +1,4 @@
-import { Category, Count, Search, Sort } from "@/components/filter/index.js";
+import { Category, Limit, Search, Sort } from "@/components/filter/index.js";
 
 export const Filter = () => {
   return html`
@@ -13,7 +13,7 @@ export const Filter = () => {
         <!-- 기존 필터들 -->
         <div class="flex gap-2 items-center justify-between">
           <!-- 페이지당 상품 수 -->
-          ${Count()}
+          ${Limit()}
           <!-- 정렬 -->
           ${Sort()}
         </div>

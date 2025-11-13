@@ -2,10 +2,10 @@ import { store } from "@/store/store.js";
 import { Breadcrumb } from "./Breadcrumb";
 
 export const Category = () => {
-  const { categories, filters, isFetching } = store.state;
+  const { categories, filters } = store.state;
 
   const category = () => {
-    if (isFetching) {
+    if (Object.keys(categories).length === 0) {
       return html`
         <!-- 1depth 카테고리 -->
         <div class="flex flex-wrap gap-2">

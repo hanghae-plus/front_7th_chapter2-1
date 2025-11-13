@@ -12,6 +12,14 @@ export const store = new Store({
   currentPage: "/",
   isFetching: true,
   categories: {},
+  pagination: {
+    // hasNext: true,
+    // hasPrev: false,
+    // limit: 20,
+    // page: 1,
+    total: 340,
+    // totalPages: 17,
+  },
   filters: {
     limit: 20,
     search: "",
@@ -31,6 +39,11 @@ export const actions = {
   // 상품 상세 설정
   setProduct(product) {
     store.setState({ product });
+  },
+
+  // 페이지네이션 설정
+  setPagination(pagination) {
+    store.setState({ pagination });
   },
 
   // 카테고리 선택
@@ -86,7 +99,7 @@ export const dispatch = {
     actions.setIsFetching(true);
 
     try {
-      const { products, filters } = await getProducts({ ...store.state.filters, ...params });
+      const { products, filters, pagination } = await getProducts({ ...store.state.filters, ...params });
       if (!Object.keys(store.state.categories).length) {
         // 필터 바뀔 일 없어서 1번만 호출
         const data = await getCategories(params);
@@ -94,6 +107,7 @@ export const dispatch = {
       }
       actions.setProducts(products);
       actions.setFilters(filters);
+      actions.setPagination(pagination);
     } catch (error) {
       console.error("Failed to fetch products", error);
       throw error;

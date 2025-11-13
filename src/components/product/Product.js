@@ -3,7 +3,7 @@ import { RelatedProduct } from "./RelatedProduct.js";
 
 export const Product = () => {
   const {
-    product: { title, description, image, lprice, productId, rating, reviewCount, stock },
+    product: { title, description, image, lprice, productId, rating, reviewCount, stock, brand, maker },
   } = store.state;
 
   return html`
@@ -16,7 +16,7 @@ export const Product = () => {
         </div>
         <!-- 상품 정보 -->
         <div>
-          <p class="text-sm text-gray-600 mb-1"></p>
+          <p class="text-sm text-gray-600 mb-1">${brand || maker}</p>
           <h1 class="text-xl font-bold text-gray-900 mb-3">${title}</h1>
           <!-- 평점 및 리뷰 -->
           <div class="flex items-center mb-3">
@@ -51,7 +51,7 @@ export const Product = () => {
           </div>
           <!-- 가격 -->
           <div class="mb-4">
-            <span class="text-2xl font-bold text-blue-600">${lprice}원</span>
+            <span class="text-2xl font-bold text-blue-600">${Number(lprice).toLocaleString()}원</span>
           </div>
           <!-- 재고 -->
           <div class="text-sm text-gray-600 mb-4">재고 ${stock}개</div>

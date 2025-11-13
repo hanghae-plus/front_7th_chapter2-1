@@ -22,22 +22,38 @@ export function ProductListPage(router) {
     container.innerHTML = `${Filter()}${ProductList()}`;
   }
 
+  function update(state) {
+    const container = document.querySelector("main");
+    if (!container) {
+      return;
+    }
+
+    const selects = container.querySelectorAll("select");
+    selects.forEach((select) => {
+      const key = select.id.split("-")[0];
+      const value = state.filters[key];
+      if (value) {
+        Array.from(select.options).find((option) => option.value === String(value)).selected = true;
+      }
+    });
+  }
+
   function handleClick(e) {
     const target = e.target;
     const { category1, category2, breadcrumb } = target.dataset;
 
     if (category1) {
-      actions.setFilters({ category1 });
+      // actions.setFilters({ category1 });
       dispatch.fetchProducts({ category1 });
     }
 
     if (category2) {
-      actions.setFilters({ category2 });
+      // actions.setFilters({ category2 });
       dispatch.fetchProducts({ category2 });
     }
 
     if (breadcrumb) {
-      actions.setFilters({ category1: "", category2: "" });
+      // actions.setFilters({ category1: "", category2: "" });
       dispatch.fetchProducts({ category1: "", category2: "" });
     }
 
@@ -66,7 +82,6 @@ export function ProductListPage(router) {
 
   const handleChange = (e) => {
     if (!e.target.matches("#limit-select")) return;
-    document.querySelector("#limit-select").value = e.target.value;
     actions.setFilters({ limit: Number(e.target.value) });
     dispatch.fetchProducts({ limit: Number(e.target.value) });
   };
@@ -75,18 +90,18 @@ export function ProductListPage(router) {
     console.log(e.target.value);
     if (!e.target.matches("#search-input")) return;
     if (e.key !== "Enter") return;
-    actions.setFilters({ search: e.target.value });
+    // actions.setFilters({ search: e.target.value });
     dispatch.fetchProducts({ search: e.target.value });
   };
 
   function mount() {
     unsubscribe = store.subscribe((state) => {
       render(state);
+      update(state);
     });
 
-    dispatch.fetchProducts();
-
     render(store.state);
+    dispatch.fetchProducts();
     const container = document.querySelector("main");
     container?.addEventListener("click", handleClick);
     container?.addEventListener("keydown", handleKeydown);
