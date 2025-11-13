@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:hash": "vite --open ./index.hash.html",
-    "build": "vite build",
+    "build": "vite build && ncp dist/index.html dist/404.html",
     "lint:fix": "eslint --fix",
     "prettier:write": "prettier --write ./src",
     "preview": "vite preview",
@@ -16,7 +16,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "npx playwright show-report",
     "test:generate": "playwright codegen localhost:5173",
-    "prepare": "husky"
+    "prepare": "husky",
+    "predeploy": "pnpm build",
+    "deploy": "gh-pages -d dist"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -40,7 +42,9 @@
     "jsdom": "^25.0.1",
     "lint-staged": "^15.2.11",
     "msw": "^2.10.2",
+    "ncp": "^2.0.0",
     "prettier": "^3.4.2",
+    "prettier-plugin-embed": "^0.5.0",
     "vite": "npm:rolldown-vite@latest",
     "vitest": "latest"
   },
@@ -48,5 +52,8 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "dependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
