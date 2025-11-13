@@ -52,8 +52,8 @@ function NotFound() {
         </svg>
 
         <a
-          href="${BASE_URL}"
-          data-link
+          href="${BASE_URL}/"
+          data-link="${BASE_URL}/"
           class="inline-block px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >홈으로</a
         >
