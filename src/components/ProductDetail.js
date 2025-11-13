@@ -1,3 +1,5 @@
+import { formatNumber } from "../utils/formatter.js";
+
 /**
  * @typedef {import('../types.js').ProductDetailProps} ProductDetailProps
  */
@@ -87,7 +89,7 @@ export default function ProductDetail({ productDetailResponse, productDetailList
             </div>
             <!-- 가격 -->
             <div class="mb-4">
-              <span class="text-2xl font-bold text-blue-600">${lprice}원</span>
+              <span class="text-2xl font-bold text-blue-600">${formatNumber(lprice)}원</span>
             </div>
             <!-- 재고 -->
             <div class="text-sm text-gray-600 mb-4">재고 107개</div>
@@ -177,7 +179,7 @@ export default function ProductDetail({ productDetailResponse, productDetailList
                       />
                     </div>
                     <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${product.title}</h3>
-                    <p class="text-sm font-bold text-blue-600">${product.lprice}원</p>
+                    <p class="text-sm font-bold text-blue-600">${formatNumber(product.lprice)}원</p>
                   </div>
                 `,
               )

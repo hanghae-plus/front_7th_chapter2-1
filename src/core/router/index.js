@@ -72,7 +72,6 @@ export default class Router {
   static #renderFromLocation() {
     const abs = window.location.pathname;
     const rel = Router.#relative(abs);
-    console.log("[Router] Relative path", abs, rel);
     const route = Router.#match(rel);
 
     if (!route) {
@@ -83,8 +82,6 @@ export default class Router {
       }
       return;
     }
-
-    console.log("[Router] Rendering from location", abs, rel, route);
     Router.#render(route, rel);
   }
 
