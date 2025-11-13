@@ -72,14 +72,11 @@ export const HomePage = () => {
     console.log("Effect!");
     // 로딩 중이거나 추가 로딩 중이면 observer 설정 안 함
     if (loading || isLoadingMore) return;
-    console.log("1");
 
     // 더 이상 불러올 페이지가 없으면 observer 설정 안 함
     const hasMore = pagination.page < pagination.total;
-    console.log("hasMore", hasMore, pagination);
 
     if (!hasMore) return;
-    console.log("2");
 
     // DOM이 완전히 렌더링될 때까지 대기
     const setupObserver = () => {
@@ -129,17 +126,13 @@ export const HomePage = () => {
 
       return observer;
     };
-    console.log("3");
 
     // setTimeout을 사용하여 DOM 렌더링 후 observer 설정
     const timeoutId = setTimeout(() => {
       const observer = setupObserver();
-      console.log("4");
 
       // cleanup 함수에서 사용할 수 있도록 저장
       if (observer) {
-        console.log("5");
-
         return () => {
           const sentinel = document.querySelector("#infinite-scroll-trigger");
           if (sentinel) {
