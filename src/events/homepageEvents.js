@@ -153,6 +153,10 @@ const handleHomepageClick = (router) => (event) => {
       return;
     }
 
+    // 상품 상세 페이지로 이동하기 전에 현재 필터 상태를 sessionStorage에 저장
+    const currentFilters = Object.fromEntries(new URLSearchParams(window.location.search));
+    sessionStorage.setItem("previousHomepageFilters", JSON.stringify(currentFilters));
+
     router.push(`/products/${productId}`);
   }
 };
