@@ -51,7 +51,7 @@ const ProductItem = ({ title, productId, image, lprice, brand }) => {
 };
 
 export const ProductList = ({ loading, products, pagination, isLoadingMore }) => {
-  const hasMore = pagination.current < pagination.totalPages;
+  const hasMore = pagination.hasNext;
 
   return `<div class="mb-6">
       <div>
@@ -86,12 +86,16 @@ export const ProductList = ({ loading, products, pagination, isLoadingMore }) =>
           `
           : ""
       }
-      ${`
+      ${
+        hasMore
+          ? `
         <!-- Intersection Observer 센티널 -->
         <div id="infinite-scroll-trigger" class="h-20 flex items-center justify-center">
           <div class="text-sm text-gray-400">스크롤하여 더 보기...</div>
         </div>
-        `}
+        `
+          : ""
+      }
       ${
         !loading && !isLoadingMore && !hasMore && products.length > 0
           ? `

@@ -77,12 +77,12 @@ export const HomePage = () => {
 
   // ✅ useEffect: Intersection Observer로 인피니티 스크롤 구현
   useEffect(() => {
-    console.log("Effect!");
+    console.log("pagination!", pagination);
     // 로딩 중이거나 추가 로딩 중이면 observer 설정 안 함
     if (loading || isLoadingMore) return;
 
     // 더 이상 불러올 페이지가 없으면 observer 설정 안 함
-    const hasMore = pagination.page < pagination.total;
+    const hasMore = pagination.hasNext;
 
     if (!hasMore) return;
 
