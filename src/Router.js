@@ -14,7 +14,10 @@ class RouterClass {
    * 경로 이동 (pushState)
    */
   push(path) {
-    history.pushState("", "", path);
+    // base path를 포함한 전체 경로로 변환
+    const basePath = import.meta.env.BASE_URL;
+    const fullPath = path.startsWith("/") ? `${basePath}${path.slice(1)}` : `${basePath}${path}`;
+    history.pushState("", "", fullPath);
     if (this.renderCallback) {
       this.renderCallback();
     }
@@ -118,7 +121,10 @@ class RouterClass {
    * 상품 ID 추출 (상세 페이지에서)
    */
   getProductIdFromPath() {
-    return location.pathname.split("/").pop();
+    // base path를 제거한 상대 경로에서 상품 ID 추출
+    const basePath = import.meta.env.BASE_URL;
+    const relativePath = location.pathname.replace(basePath, "/");
+    return relativePath.split("/").pop();
   }
 }
 

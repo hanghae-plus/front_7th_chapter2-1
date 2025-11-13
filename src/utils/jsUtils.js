@@ -53,23 +53,37 @@ export const isSearchInputFocused = () => {
 };
 
 /**
+ * base path를 제거하여 상대 경로로 변환
+ * @param {string} pathname - 전체 경로
+ * @returns {string} base path가 제거된 상대 경로
+ */
+export const getRelativePath = (pathname) => {
+  const basePath = import.meta.env.BASE_URL;
+  // base path 제거하고 마지막 슬래시 제거, 빈 문자열이면 "/" 반환
+  const relativePath = pathname.replace(basePath, "/").replace(/\/$/, "") || "/";
+  return relativePath;
+};
+
+/**
  * 유효한 경로인지 확인
- * @param {string} pathname - 확인할 경로
+ * @param {string} pathname - 확인할 경로 (전체 경로 또는 상대 경로)
  * @returns {boolean} 유효한 경로면 true
  */
 export const isValidPath = (pathname) => {
+  // base path 제거하여 상대 경로로 변환
+  const relativePath = getRelativePath(pathname);
+
   // 홈 페이지
-  if (pathname === "/") {
+  if (relativePath === "/") {
     return true;
   }
-  
+
   // 상품 상세 페이지: /product/:id 형식
   const productDetailPattern = /^\/product\/[^/]+$/;
-  if (productDetailPattern.test(pathname)) {
+  if (productDetailPattern.test(relativePath)) {
     return true;
   }
-  
+
   // 그 외는 모두 404
   return false;
 };
-

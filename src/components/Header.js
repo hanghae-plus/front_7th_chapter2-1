@@ -1,5 +1,8 @@
+import { getRelativePath } from "../utils/jsUtils.js";
+
 export const Header = () => {
-  const isDetailPage = location.pathname.startsWith("/product/");
+  const relativePath = getRelativePath(location.pathname);
+  const isDetailPage = relativePath.startsWith("/product/");
   const title = isDetailPage ? "상품 상세" : "쇼핑몰";
 
   return /* html */ `
@@ -20,7 +23,7 @@ export const Header = () => {
                 `
                     : /* html */ `
                   <h1 class="text-xl font-bold text-gray-900">
-                    <a href="/" data-link="">${title}</a>
+                    <a href="${import.meta.env.BASE_URL}" data-link="">${title}</a>
                   </h1>
                 `
                 }

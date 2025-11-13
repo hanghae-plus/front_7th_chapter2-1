@@ -4,7 +4,7 @@ import { _404Page } from "./pages/404Page.js";
 import { getProducts, getProduct, getCategories } from "./api/productApi";
 import { setupInfiniteScroll } from "./utils/infiniteScroll";
 import { renderToRoot, renderTo } from "./utils/render";
-import { restoreSearchFocus, isSearchInputFocused, getUrlParams, isValidPath } from "./utils/jsUtils";
+import { restoreSearchFocus, isSearchInputFocused, getUrlParams, isValidPath, getRelativePath } from "./utils/jsUtils";
 import { Router } from "./Router";
 import { SearchForm, ProductList } from "./components/index.js";
 import { handleClick, handleChange, handleKeyDown } from "./handlers/eventHandlers.js";
@@ -131,7 +131,8 @@ const renderDetailPage = async () => {
 // 메인 렌더링 함수
 async function render(isInitial = false) {
   const pathname = location.pathname;
-  const isHomePage = pathname === "/";
+  const relativePath = getRelativePath(pathname);
+  const isHomePage = relativePath === "/";
   const wasHomePage = document.querySelector(".search-form") !== null;
   const needsFullRender = isInitial || isHomePage !== wasHomePage;
 
