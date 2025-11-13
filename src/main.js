@@ -5,10 +5,9 @@ import CartModal from "./component/CartModal";
 import stateStore from "./store/stateStore";
 import { removeAllFromCart, removeFromCart, getCart, editCartQuantity } from "./module/cartModule.js";
 import toastModule from "./module/toastModule.js";
+import NotFoundPage from "./page/NotFoundPage.js";
 
 const basePath = import.meta.env.BASE_URL;
-const pathName = window.location.pathname;
-const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -29,26 +28,33 @@ async function main() {
 
   const renderHome = async () => await HomePage(render, { showToast });
   const renderProduct = async () => await ProductPage(render, { showToast });
+  const renderNotFound = async () => render(NotFoundPage());
 
-  const routeRender = async () => {
-    if (relativePath === "/") {
-      // 상대경로로 바꿔줌
+  const handleRoute = () => {
+    const pathName = window.location.pathname;
+    const currentPath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+
+    if (currentPath === "/") {
       renderHome();
-    }
-
-    if (relativePath.includes("/product")) {
-      // 상대경로로 바꿔줌
+    } else if (currentPath.includes("/product")) {
       renderProduct();
+    } else {
+      renderNotFound();
     }
   };
 
-  routeRender();
+  window.addEventListener("popstate", handleRoute);
+  handleRoute();
 
-  const showCartModal = () =>
+  const showCartModal = () => {
+    // 이미 열려있으면 열지 않음
+    if (document.querySelector(".cart-modal")) return;
     $root.insertAdjacentHTML("beforeend", CartModal({ checkedCartItems: checkedCartItems.get() }));
+  };
 
   const hideCartModal = () => {
-    document.querySelector(".cart-modal").remove();
+    const modal = document.querySelector(".cart-modal");
+    if (modal) modal.remove();
   };
 
   const renderCartModal = () => {
@@ -65,24 +71,30 @@ async function main() {
   addEventListener("click", (e) => {
     // 카트 열기
     if (e.target.closest("#cart-icon-btn")) {
-      console.log("카트열기");
       showCartModal();
     }
 
-    // 카트 닫기
+    // 카트 닫기 - X 버튼
     if (e.target.closest("#cart-modal-close-btn")) {
+      hideCartModal();
+    }
+
+    // 카트 닫기 - 배경 클릭 (오버레이 또는 모달 바깥 영역 직접 클릭)
+    if (e.target.classList.contains("cart-modal-overlay") || e.target.classList.contains("cart-modal")) {
       hideCartModal();
     }
 
     // 카트 수량 증가
     if (e.target.closest(".quantity-increase-btn")) {
-      editCartQuantity(e.target.dataset.productId, "increase");
+      const btn = e.target.closest(".quantity-increase-btn");
+      editCartQuantity(btn.dataset.productId, "increase");
       renderCartModal();
     }
 
     // 카트 수량 감소
     if (e.target.closest(".quantity-decrease-btn")) {
-      editCartQuantity(e.target.dataset.productId, "decrease");
+      const btn = e.target.closest(".quantity-decrease-btn");
+      editCartQuantity(btn.dataset.productId, "decrease");
       renderCartModal();
     }
 
@@ -91,6 +103,7 @@ async function main() {
       removeAllFromCart();
       checkedCartItems.set([]);
       showToast({ message: "장바구니가 비워졌습니다", type: "info" });
+      handleRoute();
       renderCartModal();
     }
 
@@ -101,15 +114,24 @@ async function main() {
       });
       checkedCartItems.set([]);
       showToast({ message: "선택한 상품들이 삭제되었습니다", type: "info" });
+      handleRoute();
       renderCartModal();
     }
 
     // 단일 상품 삭제
     if (e.target.closest(".cart-item-remove-btn")) {
-      removeFromCart(e.target.dataset.productId);
-      checkedCartItems.set(checkedCartItems.get().filter((id) => id !== e.target.dataset.productId));
+      const btn = e.target.closest(".cart-item-remove-btn");
+      removeFromCart(btn.dataset.productId);
+      checkedCartItems.set(checkedCartItems.get().filter((id) => id !== btn.dataset.productId));
       showToast({ message: "선택한 상품이 삭제되었습니다", type: "info" });
+      handleRoute();
       renderCartModal();
+    }
+
+    // 상품 목록으로 돌아가기
+    if (e.target.closest(".go-to-product-list")) {
+      history.pushState(null, "", basePath);
+      window.dispatchEvent(new PopStateEvent("popstate"));
     }
   });
 

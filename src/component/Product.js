@@ -16,7 +16,7 @@ const Product = ({ product, quantity }) => {
   <!-- 상품 이미지 -->
   <div class="p-4">
     <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-      <img src=${product.image} alt="PVC 투명 젤리 쇼핑백 1호 와인 답례품 구디백 비닐 손잡이 미니 간식 선물포장" class="w-full h-full object-cover product-detail-image">
+      <img src="${product.image}" alt="PVC 투명 젤리 쇼핑백 1호 와인 답례품 구디백 비닐 손잡이 미니 간식 선물포장" class="w-full h-full object-cover product-detail-image">
     </div>
     <!-- 상품 정보 -->
     <div>
@@ -53,7 +53,7 @@ const Product = ({ product, quantity }) => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
           </svg>
         </button>
-        <input type="number" id="quantity-input" value=${quantity} min="1" max="107" class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
+        <input type="number" id="quantity-input" value="${quantity}" min="1" max="107" class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
           focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
         <button id="quantity-increase" class="w-8 h-8 flex items-center justify-center border border-gray-300
            rounded-r-md bg-gray-50 hover:bg-gray-100">

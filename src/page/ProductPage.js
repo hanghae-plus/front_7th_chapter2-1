@@ -22,7 +22,7 @@ const ProductPage = async (render, { showToast }) => {
   const relatedProducts = new State({ products: [] });
   const quantity = new State(1);
 
-  const pageRender = () =>
+  const pageRender = () => {
     isLoading.get()
       ? render(Loading)
       : render(/*html*/ `
@@ -38,6 +38,52 @@ const ProductPage = async (render, { showToast }) => {
     </div>
     ${RelatedList({ relatedProducts: relatedProducts.get().products })}
 `);
+  };
+
+  addEventListener("click", (e) => {
+    // 장바구니 담기
+    if (e.target.closest("#add-to-cart-btn")) {
+      addToCart(product.get(), quantity.get());
+      showToast({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
+    }
+
+    //수량 증가/감소
+    if (e.target.closest("#quantity-decrease")) {
+      quantity.get() > 1 && quantity.set(quantity.get() - 1, pageRender);
+    }
+    if (e.target.closest("#quantity-increase")) {
+      quantity.set(quantity.get() + 1, pageRender);
+    }
+
+    if (e.target.closest(".related-product-card")) {
+      const productId = e.target.closest(".related-product-card").dataset.productId;
+      const newUrl = `${import.meta.env.BASE_URL}product/${productId}`;
+      history.pushState(null, "", newUrl);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+
+    // 브레드크럼 카테고리 클릭
+    if (e.target.dataset.category1 && !e.target.dataset.category2) {
+      const category1 = e.target.dataset.category1;
+      const newUrl = `${import.meta.env.BASE_URL}?category1=${encodeURIComponent(category1)}`;
+      history.pushState(null, "", newUrl);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+
+    if (e.target.dataset.category2) {
+      const category1 = product.get().category1;
+      const category2 = e.target.dataset.category2;
+      const newUrl = `${import.meta.env.BASE_URL}?category1=${encodeURIComponent(category1)}&category2=${encodeURIComponent(category2)}`;
+      history.pushState(null, "", newUrl);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  });
+
+  addEventListener("change", (e) => {
+    if (e.target.closest("#quantity-input")) {
+      quantity.set(Number(e.target.value), pageRender);
+    }
+  });
 
   const getProductData = async () => {
     isLoading.set(true, pageRender);
@@ -58,35 +104,7 @@ const ProductPage = async (render, { showToast }) => {
     relatedProducts.set(filteredRelatedProductsData, pageRender);
   };
 
-  await getProductData();
-  await getRelatedProducts();
-
-  addEventListener("click", (e) => {
-    // 장바구니 담기
-    if (e.target.closest("#add-to-cart-btn")) {
-      addToCart(product.get(), quantity.get());
-      showToast({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
-    }
-
-    //수량 증가/감소
-    if (e.target.closest("#quantity-decrease")) {
-      quantity.get() > 1 && quantity.set(quantity.get() - 1, pageRender);
-    }
-    if (e.target.closest("#quantity-increase")) {
-      quantity.set(quantity.get() + 1, pageRender);
-    }
-
-    if (e.target.closest(".related-product-card")) {
-      const productId = e.target.closest(".related-product-card").dataset.productId;
-      window.location.href = `${import.meta.env.BASE_URL}product/${productId}`;
-    }
-  });
-
-  addEventListener("change", (e) => {
-    if (e.target.closest("#quantity-input")) {
-      quantity.set(Number(e.target.value), pageRender);
-    }
-  });
+  Promise.all([getProductData(), getRelatedProducts()]);
 };
 
 export default ProductPage;

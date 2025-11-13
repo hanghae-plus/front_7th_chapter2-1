@@ -7,6 +7,11 @@ const urlParamsModule = () => {
     window.history.replaceState({}, "", `${url.pathname}?${params}`);
   };
 
+  const deleteParams = (key) => {
+    params.delete(key);
+    window.history.replaceState({}, "", `${url.pathname}?${params}`);
+  };
+
   const getParams = (key) => {
     return params.get(key);
   };
@@ -15,7 +20,7 @@ const urlParamsModule = () => {
     return Object.fromEntries(params.entries());
   };
 
-  return { setParams, getParams, getAllParams };
+  return { setParams, getParams, getAllParams, deleteParams };
 };
 
 export default urlParamsModule;
