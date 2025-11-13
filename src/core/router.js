@@ -4,10 +4,22 @@ import { createObserver } from "./observer.js";
 
 const observer = createObserver();
 
+// base URL 제거 헬퍼 함수
+const getPathWithoutBase = () => {
+  const base = import.meta.env.BASE_URL || "/";
+  const pathname = window.location.pathname;
+
+  // base가 '/'가 아닌 경우 제거
+  if (base !== "/" && pathname.startsWith(base)) {
+    return pathname.slice(base.length - 1) || "/";
+  }
+  return pathname;
+};
+
 // router 초기화
 export const router = {
   routes: {},
-  currentPath: window.location.pathname,
+  currentPath: getPathWithoutBase(),
   currentPage: null, // 현재 활성화된 페이지 추적
   subscribe: observer.subscribe,
   notify: observer.notify,
@@ -16,7 +28,7 @@ export const router = {
     this.routes = routes;
 
     window.addEventListener("popstate", () => {
-      this.currentPath = window.location.pathname;
+      this.currentPath = getPathWithoutBase();
       this.handleRouteChange();
     });
 
@@ -25,8 +37,10 @@ export const router = {
   },
 
   navigate(path) {
-    history.pushState(null, null, path);
-    this.currentPath = path;
+    const base = import.meta.env.BASE_URL || "/";
+    const fullPath = base === "/" ? path : base.slice(0, -1) + path;
+    history.pushState(null, null, fullPath);
+    this.currentPath = path; // currentPath는 base 없는 경로로 유지
     this.handleRouteChange();
   },
 
