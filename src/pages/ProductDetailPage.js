@@ -21,10 +21,11 @@ export const 상세페이지_로딩 = /* HTML */ `
  */
 export default function ProductDetailPage({ loading, productDetailResponse, productDetailListResponse, cart = [] }) {
   if (loading) {
-    return PageLayout({ children: 상세페이지_로딩, isDetailPage: true });
+    return PageLayout.mount({ children: 상세페이지_로딩, isDetailPage: true, cart });
   }
-  return PageLayout({
-    children: ProductDetail({ productDetailResponse, productDetailListResponse }),
+  return PageLayout.mount({
+    // children: ProductDetail({ productDetailResponse, productDetailListResponse }),
+    children: ProductDetail.mount({ productDetailResponse, productDetailListResponse }).outerHTML,
     isDetailPage: true,
     cart,
   });

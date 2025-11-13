@@ -103,7 +103,11 @@
 
 /**
  * @typedef {Object} CartItem
- * @property {string} productId
+ * @property {string} id
+ * @property {string} image
+ * @property {number} price
+ * @property {boolean} selected
+ * @property {string} title
  * @property {number} count
  */
 

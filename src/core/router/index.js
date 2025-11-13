@@ -77,7 +77,7 @@ export default class Router {
     if (!route) {
       if (Router.routes.notFound) {
         if (Router.container) {
-          Router.container.innerHTML = Router.routes.notFound.render({});
+          Router.container.replaceChildren(Router.routes.notFound.render({}));
         }
       }
       return;
@@ -95,10 +95,10 @@ export default class Router {
     try {
       const params = extractParams(route.path, path);
       const props = await route.loader(params);
-      Router.container.innerHTML = route.render(props);
+      Router.container.replaceChildren(route.render(props));
     } catch (err) {
       console.error(err);
-      Router.container.innerHTML = Router.routes.notFound.render({});
+      Router.container.replaceChildren(Router.routes.notFound.render({}));
     }
   }
 

@@ -124,34 +124,36 @@ const appStore = {
   },
   // Actions
   /**
-   * @param {string} productId
+   * @param {Omit<CartItem, 'count'>} cartItem
    * @param {number} [count=1]
    */
-  addToCart: (productId, count = 1) => {
-    console.log("[Store - Action] addToCart", { BEFORE: appState.cart });
-    const existingCartItem = appState.cart.find((item) => item.productId === productId);
+  addToCart: (cartItem, count = 1) => {
+    console.log("[Store - Action] addToCart", { BEFORE: appState.cart, count, cartItem });
+    const existingCartItem = appState.cart.find((item) => item.id === cartItem.id);
     if (existingCartItem) {
       existingCartItem.count += count;
+      console.log("[Store - Action] addToCart - 2", existingCartItem.count);
     } else {
-      appState.cart = [...appState.cart, { productId, count }];
+      appState.cart = [...appState.cart, { ...cartItem, count }];
+      console.log("[Store - Action] addToCart - 3", appState.cart);
     }
   },
   addCartItemCountByProductId: (/** @type {string} */ productId) => {
     console.log("[Store - Action] addCartItemCountByProductId", {
       BEFORE: appState.cart,
-      AFTER: appState.cart.find((item) => item.productId === productId)?.count,
+      AFTER: appState.cart.find((item) => item.id === productId)?.count,
     });
     appState.cart = appState.cart.map((item) =>
-      item.productId === productId ? { ...item, count: Math.min(item.count + 1, 999) } : item,
+      item.id === productId ? { ...item, count: Math.min(item.count + 1, 999) } : item,
     );
   },
   subtractCartItemCountByProductId: (/** @type {string} */ productId) => {
     console.log("[Store - Action] subtractCartItemCountByProductId", {
       BEFORE: appState.cart,
-      AFTER: appState.cart.find((item) => item.productId === productId)?.count,
+      AFTER: appState.cart.find((item) => item.id === productId)?.count,
     });
     appState.cart = appState.cart.map((item) =>
-      item.productId === productId ? { ...item, count: Math.max(item.count - 1, 1) } : item,
+      item.id === productId ? { ...item, count: Math.max(item.count - 1, 1) } : item,
     );
   },
   addCartItemCount: () => {
@@ -171,17 +173,17 @@ const appStore = {
   removeSelectedCartItems: () => {
     console.log("[Store - Action] removeSelectedCartItems", {
       BEFORE: appState.cart,
-      AFTER: appState.cart.filter((item) => !appState.selectedCartIds.includes(item.productId)),
+      AFTER: appState.cart.filter((item) => !appState.selectedCartIds.includes(item.id)),
     });
-    appState.cart = appState.cart.filter((item) => !appState.selectedCartIds.includes(item.productId));
+    appState.cart = appState.cart.filter((item) => !appState.selectedCartIds.includes(item.id));
     appState.selectedCartIds = [];
   },
   removeCartItemByProductId: (/** @type {string} */ productId) => {
     console.log("[Store - Action] removeCartItemByProductId", {
       BEFORE: appState.cart,
-      AFTER: appState.cart.filter((item) => item.productId !== productId),
+      AFTER: appState.cart.filter((item) => item.id !== productId),
     });
-    appState.cart = appState.cart.filter((item) => item.productId !== productId);
+    appState.cart = appState.cart.filter((item) => item.id !== productId);
   },
   removeAllCartItems: () => {
     console.log("[Store - Action] removeAllCartItems", {
