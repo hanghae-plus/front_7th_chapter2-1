@@ -75,7 +75,7 @@ export class Component {
 
         // return 값이 있다면 cleanup 함수로 저장
         effect.cleanup = typeof maybeCleanup === "function" ? maybeCleanup : null;
-        effect.prevDeps = deps;
+        effect.prevDeps = [...deps];
       }
     });
   }
