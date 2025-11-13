@@ -30,10 +30,6 @@ export const updateURL = (filters) => {
   Object.keys(filters).forEach((key) => {
     const value = filters[key];
     if (value !== "" && value !== null && value !== undefined) {
-      // limit과 sort는 기본값이 아닐 때만 추가
-      if (key === "limit" && value === 20) return;
-      if (key === "sort" && value === "price_asc") return;
-
       params.set(key, value);
     }
   });
