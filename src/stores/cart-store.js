@@ -1,27 +1,15 @@
 import { LocalStorage } from "../utils/local-storage";
+import { Observer } from "../core/Observer";
 
 const CART_STORAGE_KEY = "shopping_cart";
 
-class CartStore {
+class CartStore extends Observer {
   constructor() {
-    this.observers = [];
+    super();
     this.cartItems = [];
     this.selectedItemIds = [];
 
     this.init();
-  }
-
-  // TODO: Observer 상속
-  subscribe(observer) {
-    this.observers.push(observer);
-  }
-
-  unsubscribe(observer) {
-    this.observers = this.observers.filter((obs) => obs !== observer);
-  }
-
-  notify() {
-    this.observers.forEach((observer) => observer(this.cartItems));
   }
 
   init() {
@@ -55,7 +43,7 @@ class CartStore {
     }
 
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   addQuantity(productId) {
@@ -65,7 +53,7 @@ class CartStore {
 
     item.quantity += 1;
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   minusQuantity(productId) {
@@ -76,7 +64,7 @@ class CartStore {
 
     item.quantity -= 1;
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   toggleSelectItem(productId) {
@@ -89,7 +77,7 @@ class CartStore {
     console.log("2", this.selectedItemIds);
 
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   toggleSelectAll() {
@@ -99,28 +87,28 @@ class CartStore {
       this.selectedItemIds = this.cartItems.map((item) => item.productId);
     }
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   removeItem(productId) {
     this.cartItems = this.cartItems.filter((item) => item.productId !== productId);
     this.selectedItemIds = this.selectedItemIds.filter((id) => id !== productId);
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   removeSelectedItems() {
     this.cartItems = this.cartItems.filter((item) => !this.selectedItemIds.includes(item.productId));
     this.selectedItemIds = [];
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   clearCart() {
     this.cartItems = [];
     this.selectedItemIds = [];
     this.saveToStorage();
-    this.notify();
+    this.notify(this.cartItems);
   }
 
   getTotalCount() {

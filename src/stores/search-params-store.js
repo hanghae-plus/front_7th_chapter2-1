@@ -1,21 +1,8 @@
-class SearchParamsStore {
+import { Observer } from "../core/Observer";
+
+class SearchParamsStore extends Observer {
   constructor() {
-    this.subscribers = [];
-  }
-
-  subscribe(callback) {
-    this.subscribers.push(callback);
-    return () => {
-      this.subscribers = this.subscribers.filter((cb) => cb !== callback);
-    };
-  }
-
-  unsubscribe(callback) {
-    this.subscribers = this.subscribers.filter((cb) => cb !== callback);
-  }
-
-  _notify() {
-    this.subscribers.forEach((callback) => callback());
+    super();
   }
 
   get(key) {
@@ -48,19 +35,19 @@ class SearchParamsStore {
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.pushState({}, "", newUrl);
 
-    this._notify(); // 모든 구독자에게 알림
+    this.notify();
   }
 
   delete(key) {
     const params = new URLSearchParams(window.location.search);
     params.delete(key);
     window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
-    this._notify();
+    this.notify();
   }
 
   reset() {
     window.history.pushState({}, "", window.location.pathname);
-    this._notify();
+    this.notify();
   }
 }
 
