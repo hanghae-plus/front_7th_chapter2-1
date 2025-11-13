@@ -1,26 +1,36 @@
 <!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>상품 쇼핑몰</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/src/styles.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: "#3b82f6",
-            secondary: "#6b7280"
-          }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>상품 쇼핑몰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3b82f6",
+              secondary: "#6b7280",
+            },
+          },
+        },
+      };
+
+      // GitHub Pages SPA 라우팅: 404.html에서 리다이렉트된 경로 복원
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get("redirect");
+        if (redirect) {
+          // redirect 파라미터를 제거하고 원래 경로로 이동
+          history.replaceState(null, "", redirect);
         }
-      }
-    };
-  </script>
-</head>
-<body class="bg-gray-50">
-<div id="root"></div>
-<script type="module" src="/src/main.js"></script>
-</body>
+      })();
+    </script>
+  </head>
+  <body class="bg-gray-50">
+    <div id="root"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
