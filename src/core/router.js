@@ -1,9 +1,22 @@
 import { getProducts, getCategories, getProduct } from "../api/productApi.js";
 
+// 페이지별 누적 상품 저장
+let accumulatedProducts = [];
+let lastFilterState = null;
+
 // 페이지별 데이터 로딩 함수
-async function loadPageData(currentPath, params, state) {
+async function loadPageData(currentPath, params, state, isInfiniteScroll = false) {
   // HomePage 데이터 로드
   if (currentPath === "/") {
+    // 필터 변경 감지 (검색어, 카테고리, 정렬, limit 변경 시 초기화)
+    const currentFilterState = `${state.search}-${state.category1}-${state.category2}-${state.sort}-${state.limit}`;
+    const filterChanged = lastFilterState !== currentFilterState;
+
+    if (filterChanged || !isInfiniteScroll) {
+      accumulatedProducts = [];
+      lastFilterState = currentFilterState;
+    }
+
     const [productsData, categories] = await Promise.all([
       getProducts({
         limit: state.limit,
@@ -15,8 +28,16 @@ async function loadPageData(currentPath, params, state) {
       }),
       getCategories(),
     ]);
+
+    // 무한 스크롤일 때는 기존 상품에 추가
+    if (isInfiniteScroll && state.current > 1) {
+      accumulatedProducts = [...accumulatedProducts, ...productsData.products];
+    } else {
+      accumulatedProducts = productsData.products;
+    }
+
     return {
-      products: productsData.products,
+      products: accumulatedProducts,
       pagination: productsData.pagination,
       categories,
     };
@@ -59,6 +80,7 @@ function extractParams(routePath, currentPath) {
 export function createRouter(routes, state) {
   // base path 설정 (개발: /, 배포: /front_7th_chapter2-1/)
   const basePath = import.meta.env.BASE_URL || "/";
+  let isInfiniteScrolling = false;
 
   /**
    * base path 제거해서 실제 경로만 추출
@@ -75,7 +97,8 @@ export function createRouter(routes, state) {
     handleRoute(); // 첫 화면 렌더링
   };
 
-  const navigateTo = (path) => {
+  const navigateTo = (path, options = {}) => {
+    isInfiniteScrolling = options.isInfiniteScroll || false;
     // base path 포함해서 URL 변경
     const fullPath = basePath + path.replace(/^\//, "");
     window.history.pushState({}, "", fullPath);
@@ -108,8 +131,6 @@ export function createRouter(routes, state) {
     const matchedRoute =
       routes.find((r) => matchStaticRoute(r, currentPath)) || routes.find((r) => matchDynamicRoute(r, currentPath));
 
-    console.log("matchedRoute:", matchedRoute);
-
     const $root = document.querySelector("#root");
     if (!matchedRoute) {
       $root.innerHTML = `<h1>404 Not Found</h1>`;
@@ -119,12 +140,14 @@ export function createRouter(routes, state) {
     // params 처리 (동적일 경우만)
     const params = matchedRoute.path.includes(":") ? extractParams(matchedRoute.path, currentPath) : {};
 
-    // 로딩 UI 먼저 렌더링 (loading: true)
-    const loadingHTML = matchedRoute.element({ ...state.getState(), params, loading: true });
-    $root.innerHTML = loadingHTML;
+    // 무한 스크롤이 아닐 때만 로딩 UI 렌더링
+    if (!isInfiniteScrolling) {
+      const loadingHTML = matchedRoute.element({ ...state.getState(), params, loading: true });
+      $root.innerHTML = loadingHTML;
+    }
 
     // 데이터 로드
-    const pageData = await loadPageData(currentPath, params, state.getState());
+    const pageData = await loadPageData(currentPath, params, state.getState(), isInfiniteScrolling);
 
     // 실제 데이터로 렌더링 (loading: false)
     const html = matchedRoute.element({ ...state.getState(), params, loading: false, ...pageData });
@@ -134,6 +157,9 @@ export function createRouter(routes, state) {
     if (matchedRoute.attachHandlers) {
       matchedRoute.attachHandlers();
     }
+
+    // 무한 스크롤 플래그 리셋
+    isInfiniteScrolling = false;
   };
 
   return { initRouter, navigateTo };
