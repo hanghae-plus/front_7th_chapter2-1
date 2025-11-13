@@ -43,6 +43,7 @@ export function createComponent({ template, setup, mounted }) {
     }
 
     // 3. 실제 데이터 또는 에러 상태로 렌더링
+    // template 함수에 props와 pageData를 전달 (template이 state를 직접 읽을 수 있도록)
     const html = render({ ...props, ...pageData }, false, error);
     container.innerHTML = html;
 

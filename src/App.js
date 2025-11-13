@@ -4,17 +4,6 @@ import { DetailPage } from "./pages/DetailPage";
 import { HomePage } from "./pages/HomePage";
 import { getCartStateFromStorage, saveCartStateToStorage } from "./utils/storage";
 
-const state = createStore({
-  loading: true,
-  categories: {},
-  limit: 20,
-  search: "",
-  category1: "",
-  category2: "",
-  current: 1,
-  sort: "price_asc",
-});
-
 // localStorage에서 cartState 복원하여 초기화
 export const cartState = createStore(getCartStateFromStorage());
 
@@ -23,19 +12,16 @@ cartState.subscribe((state) => {
   saveCartStateToStorage(state);
 });
 
-export const router = createRouter(
-  [
-    {
-      path: "/",
-      element: HomePage,
-    },
-    {
-      path: "/product/:id",
-      element: DetailPage,
-    },
-  ],
-  state,
-);
+export const router = createRouter([
+  {
+    path: "/",
+    element: HomePage,
+  },
+  {
+    path: "/product/:id",
+    element: DetailPage,
+  },
+]);
 
 export const App = () => {
   router.initRouter();
