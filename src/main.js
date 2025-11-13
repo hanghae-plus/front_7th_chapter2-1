@@ -70,6 +70,59 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
+  // 장바구니 모달 내 기능들
+  const $cartModal = document.getElementById("cart-modal");
+  if ($cartModal) {
+    // 수량 증가
+    const $increaseBtn = e.target.closest(".quantity-increase-btn");
+    if ($increaseBtn) {
+      const productId = $increaseBtn.dataset.productId;
+      const cart = store.getState().cart;
+      const item = cart.find((item) => item.id === productId);
+      if (item) {
+        store.dispatch({
+          type: "updateQuantity",
+          payload: { productId, quantity: item.quantity + 1 },
+        });
+      }
+      return;
+    }
+
+    // 수량 감소
+    const $decreaseBtn = e.target.closest(".quantity-decrease-btn");
+    if ($decreaseBtn) {
+      const productId = $decreaseBtn.dataset.productId;
+      const cart = store.getState().cart;
+      const item = cart.find((item) => item.id === productId);
+      if (item && item.quantity > 1) {
+        store.dispatch({
+          type: "updateQuantity",
+          payload: { productId, quantity: item.quantity - 1 },
+        });
+      }
+      return;
+    }
+
+    // 개별 삭제
+    const $removeBtn = e.target.closest(".cart-item-remove-btn");
+    if ($removeBtn) {
+      const productId = $removeBtn.dataset.productId;
+      store.dispatch({ type: "removeFromCart", payload: productId });
+      showToast("상품이 삭제되었습니다", "info");
+      return;
+    }
+
+    // 상품 이미지/제목 클릭 - 상세 페이지로 이동
+    const $cartItemImage = e.target.closest(".cart-item-image");
+    const $cartItemTitle = e.target.closest(".cart-item-title");
+    if ($cartItemImage || $cartItemTitle) {
+      const productId = ($cartItemImage || $cartItemTitle).dataset.productId;
+      closeCartModal();
+      router.push(`/product/${productId}`);
+      return;
+    }
+  }
+
   // 장바구니 담기 버튼 (상품 카드 클릭보다 먼저 체크)
   const $addToCartBtn = e.target.closest(".add-to-cart-btn");
   if ($addToCartBtn) {
