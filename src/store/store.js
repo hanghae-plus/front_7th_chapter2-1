@@ -27,6 +27,8 @@ export const store = new Store({
     category2: "",
     sort: "price_asc",
   },
+  // 장바구니
+  isOpen: false,
 });
 
 // 액션 함수들 (상태 변경 로직)
@@ -49,6 +51,27 @@ export const actions = {
   // 카테고리 선택
   setFilters(filters) {
     store.setState({ filters: Object.assign({}, store.state.filters, filters) });
+  },
+
+  // 페이지 변경
+  setCurrentPage(page) {
+    store.setState({ currentPage: page });
+  },
+
+  // 카테고리 변경
+  setCategories(categories) {
+    store.setState({ categories });
+  },
+
+  // 로딩 상태 변경
+  setIsFetching(isFetching) {
+    store.setState({ isFetching });
+  },
+
+  // 장바구니
+  setIsOpen(isOpen) {
+    console.log("setIsOpen", isOpen);
+    store.setState({ isOpen });
   },
 
   // 장바구니에 상품 추가
@@ -74,21 +97,6 @@ export const actions = {
   removeFromCart(productId) {
     const updatedCart = store.state.cart.filter((item) => item.id !== productId);
     store.setState({ cart: updatedCart });
-  },
-
-  // 페이지 변경
-  setCurrentPage(page) {
-    store.setState({ currentPage: page });
-  },
-
-  // 카테고리 변경
-  setCategories(categories) {
-    store.setState({ categories });
-  },
-
-  // 로딩 상태 변경
-  setIsFetching(isFetching) {
-    store.setState({ isFetching });
   },
 };
 

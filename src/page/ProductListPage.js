@@ -17,8 +17,6 @@ export function ProductListPage(router) {
       return;
     }
 
-    // const { products, isFetching } = state;
-    // container.innerHTML = `${isFetching ? ProductListSkeleton() : products.map((product) => `${ProductItem(product)}`).join("")} `;
     container.innerHTML = `${Filter()}${ProductList()}`;
   }
 
@@ -61,33 +59,34 @@ export function ProductListPage(router) {
 
     if (target.closest(".product-card")) {
       const { productId } = target.closest(".product-card").dataset;
-      console.log("productId-->", target.closest(".product-card").dataset);
-      // actions.setFilters({ category1: "", category2: "" });
+      console.log(target.nodeName);
+      if (target.nodeName === "BUTTON") {
+        console.log("setIsOpen");
+        actions.setIsOpen(true);
+        return;
+      }
+
       router.push(`/product/${productId}`);
     }
-
-    // if (target.classList.contains("view-detail")) {
-    //   // 🔑 스토어 액션을 통해 라우팅
-    //   actions.goToProductDetail(productId);
-    // }
-
-    // if (target.classList.contains("add-to-cart")) {
-    //   const product = store.state.products.find((p) => p.id === productId);
-    //   actions.addToCart(product);
-
-    //   // 선택적: 장바구니 페이지로 이동
-    //   // actions.goToCart();
-    // }
   }
 
   const handleChange = (e) => {
-    if (!e.target.matches("#limit-select")) return;
-    actions.setFilters({ limit: Number(e.target.value) });
-    dispatch.fetchProducts({ limit: Number(e.target.value) });
+    if (!["limit-select", "sort-select"].includes(e.target.id)) return;
+    let filter = {};
+    switch (e.target.id) {
+      case "limit-select":
+        filter.limit = Number(e.target.value);
+        break;
+      case "sort-select":
+        filter.sort = e.target.value;
+        break;
+    }
+
+    actions.setFilters(filter);
+    dispatch.fetchProducts(filter);
   };
 
   const handleKeydown = (e) => {
-    console.log(e.target.value);
     if (!e.target.matches("#search-input")) return;
     if (e.key !== "Enter") return;
     // actions.setFilters({ search: e.target.value });

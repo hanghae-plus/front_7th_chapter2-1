@@ -2,15 +2,13 @@ import { store } from "@/store/store.js";
 
 export const RelatedProduct = () => {
   const {
-    product: { productId, category1, category2 },
+    product: { productId, category2 },
     products,
   } = store.state;
 
   const relatedProducts = products.filter(
     (product) => product.productId !== productId && product.category2 === category2,
   );
-
-  console.log(products, relatedProducts, category1, "2개까지 자를까");
 
   return html`
     <!-- TODO: 관련 상품 -> 상품 목록에서 가져오나 ? -->

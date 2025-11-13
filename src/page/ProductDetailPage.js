@@ -11,7 +11,7 @@ export function ProductDetailPage() {
   }
 
   function render() {
-    const container = document.querySelector("main"); // products-grid
+    const container = document.querySelector("main");
     if (!container) {
       document.innerHTML = "";
       return;
@@ -38,6 +38,10 @@ export function ProductDetailPage() {
 
     const productId = location.pathname.split("/").pop();
     dispatch.fetchProduct(productId);
+
+    if (!store.state.products.length) {
+      dispatch.fetchProducts();
+    }
 
     render(store.state);
     // const container = document.querySelector("main");
