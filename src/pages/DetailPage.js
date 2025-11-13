@@ -6,6 +6,19 @@ import { Footer } from "../components/Footer.js";
 import { showToast } from "../utils/toast.js";
 
 /**
+ * 뒤로가기 처리
+ */
+function handleBackButton() {
+  // 히스토리가 2개 이상이면 back() (앱 내부 탐색한 것)
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    // 히스토리가 1개면 직접 접근이므로 홈으로
+    router.push("/");
+  }
+}
+
+/**
  * 상품 상세 정보 로드
  */
 async function loadProductDetail(productId) {
@@ -48,11 +61,17 @@ export const DetailPage = withLifecycle(
       const { id } = router.getCurrentRoute().params;
       loadProductDetail(id);
 
-      // 재시도 버튼 이벤트 리스너
+      // 이벤트 리스너 등록
       document.addEventListener("click", (e) => {
+        // 재시도 버튼
         if (e.target.id === "detail-retry-btn") {
           const currentId = router.getCurrentRoute().params.id;
           loadProductDetail(currentId);
+        }
+
+        // 뒤로가기 버튼
+        if (e.target.closest("#detail-back-btn")) {
+          handleBackButton();
         }
       });
     },
@@ -83,7 +102,7 @@ export const DetailPage = withLifecycle(
           <div class="max-w-md mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
-                <button onclick="window.history.back()" class="p-2 text-gray-700 hover:text-gray-900 transition-colors">
+                <button id="detail-back-btn" class="p-2 text-gray-700 hover:text-gray-900 transition-colors">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                   </svg>
