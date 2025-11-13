@@ -79,7 +79,7 @@ export function h(
 
   if (typeof tag === "function") {
     return new CompnentElementNode(
-      String(props.key ?? ""),
+      String(props?.key ?? ""),
       tag,
       props,
       mapKeyToChildren(children),
@@ -90,7 +90,7 @@ export function h(
     tag,
     props,
     mapKeyToChildren(children),
-    String(props.key ?? ""),
+    String(props?.key ?? ""),
   );
 }
 
