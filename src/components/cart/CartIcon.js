@@ -1,7 +1,8 @@
 import { cartState } from "../../App";
 
 export const CartIcon = () => {
-  const cartCount = cartState.getState().items.length;
+  const items = cartState.getState().items;
+  const cartCount = Array.isArray(items) ? items.length : 0;
 
   return `          <button id="cart-icon-btn" class="relative p-2 text-gray-700 hover:text-gray-900 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
