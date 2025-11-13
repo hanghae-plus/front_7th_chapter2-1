@@ -132,13 +132,14 @@ const render = async () => {
     filters: { sort, search, category1, category2 },
   };
 
-  const queryParams = { limit, page, search, category1, category2, sort };
-
   if (window.location.pathname === `${import.meta.env.BASE_URL}`) {
     // 무한 스크롤을 위해 항상 1페이지부터 시작
     page = 1;
-    url.searchParams.set('current', '1');
+    url.searchParams.delete('current');
     window.history.replaceState(null, '', url);
+
+    // page 재설정 후 queryParams 생성
+    const queryParams = { limit, page, search, category1, category2, sort };
 
     // 로딩 상태 렌더링
     $root.innerHTML = HomePage({
