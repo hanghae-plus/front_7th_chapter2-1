@@ -138,6 +138,7 @@ async function main() {
       const value2 = event.target.dataset.category2;
       if (value1 === appState.listResponse.filters.category1 && value2 === appState.listResponse.filters.category2)
         return;
+      appStore.setListLoading(true);
       appState.listResponse.filters.category1 = value1;
       appState.listResponse.filters.category2 = value2;
       appState.listResponse.pagination.page = 1;
@@ -156,9 +157,11 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
+      appStore.setListLoading(false);
     } else if (event.target.dataset.breadcrumb === "reset") {
       console.log("[Click Event] breadcrumb - reset", event);
       if (appState.listResponse.filters.category1 === "" && appState.listResponse.filters.category2 === "") return;
+      appStore.setListLoading(true);
       appState.listResponse.filters.category1 = "";
       appState.listResponse.filters.category2 = "";
       appState.listResponse.pagination.page = 1;
@@ -177,10 +180,12 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
+      appStore.setListLoading(false);
     } else if (event.target.dataset.breadcrumb === "category1") {
       console.log("[Click Event] breadcrumb - category1", event);
       const value = event.target.dataset.category1;
       if (value === appState.listResponse.filters.category1 && appState.listResponse.filters.category2 === "") return;
+      appStore.setListLoading(true);
       appState.listResponse.filters.category1 = value;
       appState.listResponse.filters.category2 = "";
       appState.listResponse.pagination.page = 1;
@@ -199,6 +204,7 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
+      appStore.setListLoading(false);
     } else if (event.target.closest("#add-to-cart-btn")) {
       console.log("[Click Event] add-to-cart-btn", event);
       const productId = event.target.dataset.productId;
@@ -242,6 +248,7 @@ async function main() {
       if (value === appState.listResponse.pagination.limit) {
         return;
       }
+      appStore.setListLoading(true);
       appState.listResponse.pagination.limit = value;
       appState.listResponse.pagination.page = 1;
       appState.listResponse.pagination.hasNext = true;
@@ -259,10 +266,12 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
+      appStore.setListLoading(false);
     } else if (event.target.id === "sort-select") {
       console.log("[Change Event] sort-select", event);
       const value = event.target.value;
       if (value === appState.listResponse.filters.sort) return;
+      appStore.setListLoading(true);
       appState.listResponse.filters.sort = value;
       appState.listResponse.pagination.page = 1;
       appState.listResponse.pagination.hasNext = true;
@@ -280,6 +289,7 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
+      appStore.setListLoading(false);
     }
   });
 
@@ -294,6 +304,7 @@ async function main() {
 
       if (value === appState.listResponse.filters.search) return;
 
+      appStore.setListLoading(true);
       appState.listResponse.filters.search = value;
       appState.listResponse.pagination.page = 1;
       appState.listResponse.pagination.hasNext = true;
@@ -312,6 +323,7 @@ async function main() {
       $root.innerHTML = `
         ${homeRoute.render(props)}
       `;
+      appStore.setListLoading(false);
       console.log("[Keydown Event] search-input - Enter", value);
     }
   });
