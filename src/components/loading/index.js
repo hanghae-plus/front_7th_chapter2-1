@@ -1,2 +1,2 @@
-export * from '@/components/loading/ListLoadingSpinner.js';
-export * from '@/components/loading/DetailLoadingSpinner.js';
+export * from '@/components/loading/ListLoadingSpinner';
+export * from '@/components/loading/DetailLoadingSpinner';

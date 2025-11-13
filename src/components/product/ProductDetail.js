@@ -2,6 +2,7 @@ import {
   DetailLoadingSpinner,
   ProductDetailItem,
   Breadcrumb,
+  RelatedProductList,
 } from '@/components';
 
 export const ProductDetail = ({ loading, product }) => {
@@ -10,7 +11,8 @@ export const ProductDetail = ({ loading, product }) => {
       ? /* HTML */ `${DetailLoadingSpinner()}`
       : `
           ${Breadcrumb({ category1: product.category1, category2: product.category2 })}
-          ${ProductDetailItem(product)}   
+          ${ProductDetailItem(product)}
+          ${RelatedProductList({ products: product.relatedProducts })}
       `}
   `;
 };

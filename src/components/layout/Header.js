@@ -1,4 +1,4 @@
-import { getCartItemsLength } from '@/utils/cart';
+import { getCartItemsLength } from '@/utils';
 
 export const Header = ({ pageType = 'home' } = {}) => {
   const cartItemsCount = getCartItemsLength();

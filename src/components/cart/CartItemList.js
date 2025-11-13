@@ -1,4 +1,4 @@
-import { CartItem } from '@/components/cart/CartItem.js';
+import { CartItem } from '@/components';
 
 export const CartItemList = (items, checkedItems = new Set()) => {
   return /* HTML */ `

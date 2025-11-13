@@ -1,2 +1,2 @@
-export * from '@/components/ui/Rating.js';
-export * from '@/components/ui/Toast.js';
+export * from '@/components/ui/Rating';
+export * from '@/components/ui/Toast';

@@ -1,6 +1,4 @@
-import { CartHeader } from '@/components/cart/CartHeader.js';
-import { CartBody } from '@/components/cart/CartBody.js';
-import { CartFooter } from '@/components/cart/CartFooter.js';
+import { CartHeader, CartBody, CartFooter } from '@/components';
 
 export const CartModal = ({
   items = [],

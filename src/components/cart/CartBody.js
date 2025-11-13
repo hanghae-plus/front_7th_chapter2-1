@@ -1,6 +1,4 @@
-import { CartEmpty } from '@/components/cart/CartEmpty.js';
-import { CartSelectAll } from '@/components/cart/CartSelectAll.js';
-import { CartItemList } from '@/components/cart/CartItemList.js';
+import { CartEmpty, CartSelectAll, CartItemList } from '@/components';
 
 export const CartBody = (
   items,

@@ -4,8 +4,6 @@ import { HomePage } from '@/pages/HomePage';
 import {
   initInfiniteScroll,
   cleanupInfiniteScroll,
-} from '@/utils/infiniteScroll';
-import {
   addToCart,
   getCartData,
   updateCartQuantity,
@@ -15,10 +13,8 @@ import {
   toggleSelectAll,
   clearCart,
   getSelectedItems,
-} from '@/utils/cart';
-import { showToast } from '@/components';
-import { CartModal } from '@/components/cart';
-import { Header } from '@/components/layout/Header';
+} from '@/utils';
+import { showToast, CartModal, Header } from '@/components';
 
 //TODO: 캐싱 전략 고민
 //TODO: 라이프사이클 관리 고민
@@ -418,6 +414,15 @@ document.body.addEventListener('click', (e) => {
     updateHeader();
     showToast('장바구니에 추가되었습니다.', 'success');
 
+    return;
+  }
+
+  // 관련 상품 카드 클릭
+  if ($target.closest('.related-product-card')) {
+    const productId = $target.closest('.related-product-card').dataset
+      .productId;
+    push(`${import.meta.env.BASE_URL}product/${productId}`);
+    render();
     return;
   }
 
