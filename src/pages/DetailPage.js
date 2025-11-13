@@ -18,7 +18,7 @@ export const DetailPage = () => {
           </div>
         </div>
       `;
-    } else {
+    } else if (product) {
       $mainContentView.innerHTML = /* HTML */ `
         <!-- 브레드크럼 -->
         <nav class="mb-4">
@@ -47,7 +47,7 @@ export const DetailPage = () => {
             </div>
             <!-- 상품 정보 -->
             <div>
-              <p class="text-sm text-gray-600 mb-1">${product.brand || product.maker}</p>
+              <p class="text-sm text-gray-600 mb-1">${product.brand}</p>
               <h1 class="text-xl font-bold text-gray-900 mb-3">${product.title}</h1>
               <!-- 평점 및 리뷰 -->
               <div class="flex items-center mb-3">
