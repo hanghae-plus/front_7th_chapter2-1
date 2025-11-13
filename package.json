@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://hyeongwoo94.github.io/front_7th_chapter2-1",
   "scripts": {
     "dev": "vite",
     "dev:hash": "vite --open ./index.hash.html",
@@ -16,7 +17,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "npx playwright show-report",
     "test:generate": "playwright codegen localhost:5173",
-    "prepare": "husky"
+    "prepare": "husky",
+    "predeploy": "pnpm build",
+    "deploy": "gh-pages -d dist"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -30,11 +33,12 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/user-event": "^14.6.1",
-    "@vitest/coverage-v8": "latest",
-    "@vitest/ui": "^2.1.8",
+    "@vitest/coverage-v8": "^4.0.8",
+    "@vitest/ui": "^4.0.8",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
+    "gh-pages": "^6.3.0",
     "globals": "^15.13.0",
     "husky": "^9.1.7",
     "jsdom": "^25.0.1",
@@ -42,7 +46,7 @@
     "msw": "^2.10.2",
     "prettier": "^3.4.2",
     "vite": "npm:rolldown-vite@latest",
-    "vitest": "latest"
+    "vitest": "^4.0.8"
   },
   "msw": {
     "workerDirectory": [
