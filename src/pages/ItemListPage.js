@@ -1,3 +1,5 @@
+import { AddToCartBtn } from "../components/cart/addToCartBtn.js";
+
 const CategoryBreadcrumb = () => {
   return /*html*/ `
     <div class="flex items-center gap-2" id="category-breadcrumb">
@@ -314,10 +316,7 @@ export const ItemListPage = () => {
                 </p>
               </div>
               <!-- 장바구니 버튼 -->
-              <button class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
-                      hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${product.productId}">
-                장바구니 담기
-              </button>
+              ${AddToCartBtn(product, 1, "small")}
             </div>
           </div>
     `,

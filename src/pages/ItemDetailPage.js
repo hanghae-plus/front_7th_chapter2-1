@@ -1,4 +1,5 @@
 import { getProduct, getProducts } from "../api/productApi.js";
+import { AddToCartBtn } from "../components/cart/addToCartBtn.js";
 
 export const ItemDetailPage = () => {
   // 로딩 상태의 content
@@ -105,7 +106,7 @@ export const ItemDetailPage = () => {
   };
 
   // 수량 선택 및 액션 컴포넌트
-  const QuantitySelector = (product) => {
+  const QuantitySelector = (product, quantity = 1) => {
     return /*html*/ `
       <div class="border-t border-gray-200 p-4">
         <div class="flex items-center justify-between mb-4">
@@ -117,7 +118,7 @@ export const ItemDetailPage = () => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
               </svg>
             </button>
-            <input type="number" id="quantity-input" value="1" min="1" max="${product.stock || 1}" class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
+            <input type="number" id="quantity-input" value="${quantity}" min="1" max="${product.stock || 1}" class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
               focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
             <button id="quantity-increase" class="w-8 h-8 flex items-center justify-center border border-gray-300
                rounded-r-md bg-gray-50 hover:bg-gray-100">
@@ -128,10 +129,7 @@ export const ItemDetailPage = () => {
           </div>
         </div>
         <!-- 액션 버튼 -->
-        <button id="add-to-cart-btn" data-product-id="${product.productId}" class="w-full bg-blue-600 text-white py-3 px-4 rounded-md
-             hover:bg-blue-700 transition-colors font-medium">
-          장바구니 담기
-        </button>
+        ${AddToCartBtn(product, quantity, "default", "add-to-cart-btn")}
       </div>
     `;
   };
@@ -182,7 +180,7 @@ export const ItemDetailPage = () => {
             ${ProductInfo(product)}
           </div>
           <!-- 수량 선택 및 액션 -->
-          ${QuantitySelector(product)}
+          ${QuantitySelector(product, 1)}
         </div>
         <!-- 상품 목록으로 이동 -->
         ${BackToProductListButton()}
@@ -225,12 +223,17 @@ export const ItemDetailPage = () => {
         const quantityInput = document.getElementById("quantity-input");
         const quantityDecrease = document.getElementById("quantity-decrease");
         const quantityIncrease = document.getElementById("quantity-increase");
+        const addToCartBtn = document.querySelector("#add-to-cart-btn");
 
         const updateQuantity = (newQuantity) => {
           // 최소값과 최대값 제한
           quantity = Math.max(1, Math.min(newQuantity, maxStock));
           if (quantityInput) {
             quantityInput.value = quantity;
+          }
+          // 장바구니 담기 버튼의 data-quantity 속성 업데이트
+          if (addToCartBtn) {
+            addToCartBtn.setAttribute("data-quantity", quantity);
           }
         };
 
@@ -256,7 +259,27 @@ export const ItemDetailPage = () => {
             const value = parseInt(e.target.value) || 1;
             if (value >= 1 && value <= maxStock) {
               quantity = value;
+              // 장바구니 담기 버튼의 data-quantity 속성 업데이트
+              if (addToCartBtn) {
+                addToCartBtn.setAttribute("data-quantity", quantity);
+              }
             }
+          });
+        }
+
+        // 장바구니 담기 버튼 클릭 후 수량 리셋
+        if (addToCartBtn) {
+          addToCartBtn.addEventListener("click", () => {
+            // 장바구니 담기가 완료된 후 수량을 1로 리셋
+            setTimeout(() => {
+              quantity = 1;
+              if (quantityInput) {
+                quantityInput.value = 1;
+              }
+              if (addToCartBtn) {
+                addToCartBtn.setAttribute("data-quantity", 1);
+              }
+            }, 100); // addToCart 함수가 실행된 후 리셋
           });
         }
 

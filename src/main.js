@@ -1,6 +1,7 @@
 import { Layout } from "./components/common";
 import { ItemDetailPage } from "./pages";
-import { CartDialog, initCartDialog } from "./components/cart/CartDialog.js";
+import { CartDialog, initCartDialog, initCartStorage } from "./components/cart/CartDialog.js";
+import { initAddToCartButtons } from "./components/cart/addToCartBtn.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -12,6 +13,9 @@ const enableMocking = () =>
 function main() {
   const root = document.getElementById("root");
   if (!root) throw new Error("`#root` 요소를 찾을 수 없습니다.");
+
+  // localStorage 초기화
+  initCartStorage();
 
   // 페이지 렌더링
   const page = ItemDetailPage();
@@ -28,6 +32,9 @@ function main() {
 
   // CartDialog 초기화 (Header가 렌더링된 후)
   initCartDialog();
+
+  // 장바구니 담기 버튼 이벤트 리스너 등록
+  initAddToCartButtons();
 
   // 페이지 초기화 (카테고리 로딩 등)
   if (page.init) {
