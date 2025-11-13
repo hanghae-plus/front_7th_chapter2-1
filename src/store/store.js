@@ -58,6 +58,7 @@ export const createStore = () => {
   const setState = (newState) => {
     state = { ...state, ...newState };
     console.log(state);
+
     listeners.forEach((listener) => listener(state));
   };
 

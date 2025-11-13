@@ -10,6 +10,7 @@ export const initGlobalEventHandlers = () => {
   // document에 단 한 번만 이벤트 리스너 등록
   document.addEventListener("click", handleGlobalClick);
   document.addEventListener("change", handleGlobalChange);
+  document.addEventListener("keydown", handleGlobalKeyDown);
 };
 
 const handleRetryFetch = () => {
@@ -36,6 +37,16 @@ const handleGetProductFetch = (productId) => {
 
 const handleGlobalClick = (e) => {
   const target = e.target;
+
+  if (target.matches("#app-title")) {
+    console.log("first");
+    store.setState({
+      filters: { search: "", category1: "", category2: "", sort: "price_asc" },
+      pagination: { page: 1, limit: 20 },
+    });
+    router.navigate("/");
+    return;
+  }
 
   // 뒤로가기 버튼
   if (target.closest("#back-btn")) {
@@ -121,12 +132,14 @@ const addCartItem = (targetId) => {
     image,
     lprice,
     title,
-    quantity: 1,
+    quantity: (cart.list.get(targetId)?.quantity || 0) + cart.quantity,
     selected: false,
   });
 
-  store.setState({ cart: { ...cart, list: newList } });
-  store.setState({ toast: { isOpen: true, type: "success" } });
+  store.setState({
+    cart: { ...cart, quantity: 1, list: newList },
+    toast: { isOpen: true, type: "success" },
+  });
 };
 
 const handleGlobalChange = (e) => {
@@ -152,6 +165,17 @@ const handleGlobalChange = (e) => {
     store.setState({ filters: { ...filters, sort: target.value } });
     return;
   }
+
+  // 검색창 입력
+  if (target.matches("#search-input")) {
+    handleSearch(target.value);
+  }
+};
+
+const handleSearch = (value) => {
+  const filters = store.getState("filters");
+  if (filters.search === value) return;
+  store.setState({ filters: { ...filters, search: value } });
 };
 
 // input 이벤트는 별도로 관리
@@ -159,14 +183,19 @@ export const initInputHandlers = () => {
   document.addEventListener("input", handleGlobalInput);
 };
 
-const handleGlobalInput = (e) => {
+const handleGlobalKeyDown = (e) => {
   const target = e.target;
 
-  // 검색창 입력
+  // 검색창 엔터 입력
   if (target.matches("#search-input")) {
-    // debounce 처리
-    handleSearch(target.value);
+    if (e.key === "Enter") {
+      handleSearch(target.value);
+    }
   }
+};
+
+const handleGlobalInput = (e) => {
+  const target = e.target;
 
   // 수량 입력
   if (target.matches("#quantity-input")) {
@@ -178,10 +207,4 @@ const handleGlobalInput = (e) => {
     const newList = cart.list.set(productId, { ...cartItem, quantity });
     store.setState({ cart: { ...cart, list: newList } });
   }
-};
-
-const handleSearch = (value) => {
-  const filters = store.getState("filters");
-  if (filters.search === value) return;
-  store.setState({ filters: { ...filters, search: value } });
 };

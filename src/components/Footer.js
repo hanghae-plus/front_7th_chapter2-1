@@ -1,24 +1,6 @@
 import { useEffect } from "../hooks/useEffect.js";
 import { store } from "../store/store.js";
-import { getProducts } from "../api/productApi.js";
 import { router } from "../router/Router.js";
-
-const fetchNextPage = async () => {
-  const { products, pagination } = store.getState();
-
-  const { products: newProducts, pagination: newPagination } = await getProducts({
-    page: pagination.page + 1,
-    limit: pagination.limit,
-  });
-
-  store.setState({
-    products: [...products, ...newProducts],
-    pagination: {
-      ...pagination,
-      ...newPagination,
-    },
-  });
-};
 
 export const Footer = () => {
   useEffect(() => {
@@ -37,13 +19,17 @@ export const Footer = () => {
 
             const { isLoading, pagination } = store.getState();
 
+            // 로딩 중이거나 다음 페이지가 없으면 스킵
             if (isLoading || !pagination.hasNext) {
               return;
             }
 
-            store.setState({ isLoading: true });
-            fetchNextPage().then(() => {
-              store.setState({ isLoading: false });
+            // 페이지만 증가시키면 Home.js의 useEffect가 자동으로 데이터를 fetch함
+            store.setState({
+              pagination: {
+                ...pagination,
+                page: pagination.page + 1,
+              },
             });
           }
         });

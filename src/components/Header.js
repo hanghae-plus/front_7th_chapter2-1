@@ -19,7 +19,6 @@ export const Header = ({ path }) => {
 };
 
 export const Title = ({ isDetail = false }) => {
-  console.log(import.meta.env.BASE_URL);
   return isDetail
     ? /*html*/ `
     <div class="flex items-center space-x-3">
@@ -32,7 +31,7 @@ export const Title = ({ isDetail = false }) => {
   </div>
   `
     : /*html*/ `
-  <h1 class="text-xl font-bold text-gray-900">
+  <h1 id="app-title" class="text-xl font-bold text-gray-900">
     <a href="/" data-link="">쇼핑몰</a>
   </h1>
   `;

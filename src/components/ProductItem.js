@@ -21,7 +21,7 @@ export const ProductItem = () => {
           </h3>
           <p class="text-xs text-gray-500 mb-2"></p>
           <p class="text-lg font-bold text-gray-900">
-            ${product.lprice}
+            ${Number(product.lprice).toLocaleString("ko-KR")}원
           </p>
         </div>
         <!-- 장바구니 버튼 -->
