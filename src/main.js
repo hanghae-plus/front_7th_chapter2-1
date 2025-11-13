@@ -1,5 +1,5 @@
 import { Layout } from "./components/common";
-import { ItemListPage } from "./pages";
+import { ItemDetailPage } from "./pages";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -13,7 +13,7 @@ function main() {
   if (!root) throw new Error("`#root` 요소를 찾을 수 없습니다.");
 
   // 페이지 렌더링
-  const page = ItemListPage();
+  const page = ItemDetailPage();
   root.innerHTML = Layout(page.content, page.headerOptions);
 
   // 페이지 초기화 (카테고리 로딩 등)
