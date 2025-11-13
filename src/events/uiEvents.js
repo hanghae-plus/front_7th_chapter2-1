@@ -1,3 +1,5 @@
+import { renderToastContent } from "../components/Toast.js";
+
 const getCartModal = () => document.querySelector("#cart-modal");
 const getToastContainer = () => document.querySelector("#toast-container");
 
@@ -75,7 +77,7 @@ const handleUIKeydown = (event) => {
 
 let toastTimeout = null;
 
-const showToast = () => {
+const showToast = (type = "success", message = "") => {
   // 즉시 실행 (Toast는 PageLayout에 항상 있음)
   let toastContainer = getToastContainer();
 
@@ -91,19 +93,19 @@ const showToast = () => {
             console.error("Toast container not found in DOM");
             return;
           }
-          displayToast(toastContainer);
+          displayToast(toastContainer, type, message);
         }, 100);
         return;
       }
-      displayToast(toastContainer);
+      displayToast(toastContainer, type, message);
     });
     return;
   }
 
-  displayToast(toastContainer);
+  displayToast(toastContainer, type, message);
 };
 
-const displayToast = (toastContainer) => {
+const displayToast = (toastContainer, type = "success", message = "") => {
   if (!toastContainer) {
     return;
   }
@@ -114,13 +116,25 @@ const displayToast = (toastContainer) => {
     toastTimeout = null;
   }
 
-  // Toast 표시 - hidden 클래스 제거
-  toastContainer.classList.remove("hidden");
+  // Toast 내용 업데이트
+  const toastContent = toastContainer.querySelector("#toast-content");
+  if (toastContent) {
+    toastContent.innerHTML = renderToastContent(type, message);
 
-  // 3초 후 자동으로 숨김
-  toastTimeout = setTimeout(() => {
-    hideToast();
-  }, 3000);
+    // Toast 표시 - hidden 클래스 제거
+    toastContainer.classList.remove("hidden");
+
+    // 3초 후 자동으로 숨김
+    toastTimeout = setTimeout(() => {
+      hideToast();
+    }, 3000);
+  } else {
+    // Toast 내용이 없으면 기본적으로 표시만
+    toastContainer.classList.remove("hidden");
+    toastTimeout = setTimeout(() => {
+      hideToast();
+    }, 3000);
+  }
 };
 
 const hideToast = () => {
