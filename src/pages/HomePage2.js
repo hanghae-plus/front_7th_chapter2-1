@@ -1,15 +1,21 @@
 import { Component } from "../components/Component";
 import { ProductList } from "../components/ProductList";
 import { SearchForm } from "../components/SearchForm";
+import { CartUtil } from "../utils/cart";
 import { getQueryStringAdding, getQueryStringExcluding, getQueryStringValue } from "../utils/queryString";
 import { PageLayout } from "./PageLayout";
 
 export class HomePage2 extends Component {
   mount() {
     this.clickEventId = this.$container.addEventListener("click", (e) => {
-      // 카드 선택
-      const productCard = e.target.closest(".product-card");
-      if (productCard) {
+      // 카드
+      if (e.target.closest(".add-to-cart-btn")) {
+        const { loaderData } = this.props;
+        const productId = e.target.closest(".product-card").dataset.productId;
+        const product = loaderData.products.find((product) => product.productId === productId);
+        CartUtil.addCard(product);
+      } else if (e.target.closest(".product-card")) {
+        const productCard = e.target.closest(".product-card");
         const productId = productCard.dataset.productId;
         window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
       } else if (e.target.tagName === "A") {
