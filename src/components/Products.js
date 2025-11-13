@@ -10,9 +10,9 @@ const Products = (targetNode) => {
   let observerInstance = null;
 
   const registerStore = () => {
-    store.subscribe("isProductListLoading", render);
+    store.subscribe("isProductListLoading", onUpdate);
     store.setState("isProductListLoading", true);
-    store.subscribe("productsData", render);
+    store.subscribe("productsData", onUpdate);
     store.setState("productsData", null);
   };
 
@@ -80,19 +80,19 @@ const Products = (targetNode) => {
             </div>
           `}
     `;
+  };
 
-    // 기존 observer 정리
+  const onUpdate = () => {
+    render();
+    addEventListeners();
+
     if (observerInstance) {
       observerInstance.disconnect();
     }
 
-    // DOM이 다시 생성되었으므로 이벤트 리스너 재등록
-    if (!isProductListLoading && data) {
-      addEventListeners();
-    }
+    addEventListeners();
 
-    // 무한 스크롤 observer 설정
-    if (hasNextPage && !isProductListLoading) {
+    if (hasNextPage) {
       setupInfiniteScroll();
     }
   };
@@ -106,7 +106,7 @@ const Products = (targetNode) => {
 
       if (productCard) {
         const productId = productCard.dataset.productId;
-        router.push(`product/${productId}`);
+        router.push(`${import.meta.env.BASE_URL}product/${productId}`);
       }
     });
   };

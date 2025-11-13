@@ -37,6 +37,8 @@ class Router {
 
     const route = getRoute(path);
 
+    console.log(route);
+
     if (route) {
       const $root = document.getElementById("root");
       route.component($root);
@@ -44,12 +46,12 @@ class Router {
   }
 
   push(path) {
-    window.history.pushState({}, "", path);
+    window.history.pushState({}, "", `${path}`);
     this._handleRoute();
   }
 
   replace(path) {
-    window.history.replaceState({}, "", path);
+    window.history.replaceState({}, "", `${path}`);
     this._handleRoute();
   }
 
