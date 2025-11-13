@@ -2,7 +2,12 @@ import { store } from "../../store";
 import { RelatedProduct } from "./RelatedProduct";
 
 export const RelatedProductList = () => {
-  const relatedProducts = store.state.relatedProducts;
+  const relatedProducts = store.state.relatedProducts || [];
+
+  // 관련 상품이 없으면 렌더링하지 않음
+  if (!relatedProducts || relatedProducts.length === 0) {
+    return "";
+  }
 
   return `
   <!-- 관련 상품 -->

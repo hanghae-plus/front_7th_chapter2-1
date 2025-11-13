@@ -1,6 +1,5 @@
 import { store } from "../../store";
-
-const LIMIT_OPTIONS = [{ value: "10" }, { value: "20" }, { value: "50" }, { value: "100" }];
+import { LIMIT_OPTIONS } from "../constants/limitOptions.js";
 
 export const LimitSelect = () => {
   const { limit = "20" } = store.state;
@@ -11,7 +10,7 @@ export const LimitSelect = () => {
     <select id="limit-select"
       class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
       ${LIMIT_OPTIONS.map(
-        ({ value }) => `<option value="${value}"${limit === value ? " selected" : ""}>${value}개</option>`,
+        ({ value, label }) => `<option value="${value}"${limit === value ? " selected" : ""}>${label}</option>`,
       ).join("")}
     </select>
   </div>

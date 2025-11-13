@@ -1,7 +1,5 @@
 import { store } from "../../store";
-
-const escapeAttribute = (value) =>
-  value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+import { escapeAttribute } from "../utils/stringUtils.js";
 
 export const Search = () => {
   const { search = "" } = store.state;
