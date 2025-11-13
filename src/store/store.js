@@ -13,6 +13,7 @@ export const store = new Store({
   isFetching: true,
   categories: {},
   filters: {
+    limit: 20,
     search: "",
     category1: "",
     category2: "",

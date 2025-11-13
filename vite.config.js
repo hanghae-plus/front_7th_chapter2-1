@@ -7,5 +7,5 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-  base: "/front_7th_chapter2-1/",
+  base: "/front_7th_chapter2-1",
 });

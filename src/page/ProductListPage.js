@@ -38,7 +38,13 @@ export function ProductListPage(router) {
       actions.setFilters({ category1: "", category2: "" });
     }
 
-    console.log(target.closest(".product-card"), target.dataset);
+    console.log("breadcrumb-->", target.dataset);
+    // if (breadcrumb) {
+    //   actions.setFilters({ category1: "", category2: "" });
+    // }
+    if (target.closest("#limit-select")) {
+      // actions.setFilters({ limit: Number(document.querySelector("#limit-select").value) });
+    }
 
     if (target.closest(".product-card")) {
       const { productId } = target.closest(".product-card").dataset;
