@@ -15,6 +15,20 @@ export class DetailPage2 extends Component {
       const productCard = e.target.closest(".related-product-card");
       const productId = productCard.dataset.productId;
       window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
+    } else if (e.target.closest("#quantity-increase")) {
+      const $quantity = this.$container.querySelector("#quantity-input");
+      const currentValue = Number($quantity.value);
+      const maxValue = Number($quantity.max);
+      if (currentValue < maxValue) {
+        $quantity.value = currentValue + 1;
+      }
+    } else if (e.target.closest("#quantity-decrease")) {
+      const $quantity = this.$container.querySelector("#quantity-input");
+      const currentValue = Number($quantity.value);
+      const minValue = Number($quantity.min);
+      if (currentValue > minValue) {
+        $quantity.value = currentValue - 1;
+      }
     }
   }
 
