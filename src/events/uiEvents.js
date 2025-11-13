@@ -55,8 +55,19 @@ const handleUIClick = (event) => {
   }
 };
 
+const handleUIKeydown = (event) => {
+  // ESC 키로 모달 닫기
+  if (event.key === "Escape" || event.key === "Esc") {
+    const cartModal = getCartModal();
+    if (cartModal && !cartModal.classList.contains("hidden")) {
+      hideCartModal();
+    }
+  }
+};
+
 export const registerUIEvents = () => {
   document.body.addEventListener("click", handleUIClick);
+  document.addEventListener("keydown", handleUIKeydown);
 };
 
 export { showCartModal, hideCartModal };
