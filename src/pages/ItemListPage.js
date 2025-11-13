@@ -310,7 +310,7 @@ export const ItemListPage = () => {
                 </h3>
                 <p class="text-xs text-gray-500 mb-2">${product.mallName || ""}</p>
                 <p class="text-lg font-bold text-gray-900">
-                  ${product.lprice?.toLocaleString() || product.price?.toLocaleString() || 0}원
+                  ${Number(product.lprice || product.price || 0).toLocaleString()}원
                 </p>
               </div>
               <!-- 장바구니 버튼 -->
