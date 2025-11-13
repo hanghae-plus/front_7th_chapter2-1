@@ -1,8 +1,10 @@
+import { Component } from "../components/Component";
 import { PageLayout } from "./PageLayout";
 
-export const NotFoundPage = () => {
-  return PageLayout({
-    children: `
+export class NotFoundPage extends Component {
+  template() {
+    return PageLayout({
+      children: `
       <div class="text-center my-4 py-20 shadow-md p-6 bg-white rounded-lg">
       <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -34,5 +36,6 @@ export const NotFoundPage = () => {
       <a href="${import.meta.env.BASE_URL}" data-link class="inline-block px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">홈으로</a>
     </div>
   `,
-  });
-};
+    });
+  }
+}

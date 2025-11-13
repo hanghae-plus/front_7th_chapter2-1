@@ -1,11 +1,53 @@
+import { Component } from "../components/Component";
 import { StarRating } from "../components/StarRating";
+import { CartUtil } from "../utils/cart";
 import { PageLayout } from "./PageLayout";
 
-export const DetailPage = ({ loading, product, relatedProducts }) => {
-  return PageLayout({
-    children: loading ? LoadingIndicator : LoadedDetailPage({ product, relatedProducts }),
-  });
-};
+export class DetailPage extends Component {
+  cache = {};
+
+  handleClick(e) {
+    if (e.target.closest("#add-to-cart-btn")) {
+      const { loaderData } = this.props;
+      const product = loaderData.product;
+      CartUtil.addCard(product);
+    } else if (e.target.closest(".related-product-card")) {
+      const productCard = e.target.closest(".related-product-card");
+      const productId = productCard.dataset.productId;
+      window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
+    } else if (e.target.closest("#quantity-increase")) {
+      const $quantity = this.$container.querySelector("#quantity-input");
+      const currentValue = Number($quantity.value);
+      const maxValue = Number($quantity.max);
+      if (currentValue < maxValue) {
+        $quantity.value = currentValue + 1;
+      }
+    } else if (e.target.closest("#quantity-decrease")) {
+      const $quantity = this.$container.querySelector("#quantity-input");
+      const currentValue = Number($quantity.value);
+      const minValue = Number($quantity.min);
+      if (currentValue > minValue) {
+        $quantity.value = currentValue - 1;
+      }
+    }
+  }
+
+  mount() {
+    this.$container.addEventListener("click", this.handleClick.bind(this));
+  }
+
+  unmount() {
+    this.$container.removeEventListener("click", this.handleClick.bind(this));
+  }
+
+  template() {
+    const { loaderData, isPending: loading } = this.props;
+    const props = loaderData;
+    return PageLayout({
+      children: loading ? LoadingIndicator : LoadedDetailPage({ ...props, loading }),
+    });
+  }
+}
 
 const LoadingIndicator = `
 <div class="py-20 bg-gray-50 flex items-center justify-center">
@@ -49,7 +91,7 @@ const RelatedProductCard = (product) => {
   `;
 };
 
-export const LoadedDetailPage = ({ product, relatedProducts }) => `
+export const LoadedDetailPage = ({ product, relatedProducts, loading }) => `
   <!-- 브레드크럼 -->
   ${BreadCrumbNavigation(product)}
   <!-- 상품 상세 정보 -->
@@ -147,7 +189,7 @@ export const LoadedDetailPage = ({ product, relatedProducts }) => `
   </div>
   <!-- 관련 상품 -->
   ${
-    relatedProducts.length > 0
+    !loading && (relatedProducts?.length ?? []) > 0
       ? `<div class="bg-white rounded-lg shadow-sm">
               <div class="p-4 border-b border-gray-200">
                 <h2 class="text-lg font-bold text-gray-900">관련 상품</h2>

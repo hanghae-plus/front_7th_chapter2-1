@@ -1,9 +1,9 @@
 import { getCategories, getProduct, getProducts } from "./api/productApi.js";
-import { DetailPage2 } from "./pages/DetailPage2.js";
-import { HomePage2 } from "./pages/HomePage2.js";
+import { DetailPage } from "./pages/DetailPage.js";
+import { HomePage } from "./pages/HomePage.js";
 import { CartUtil } from "./utils/cart.js";
 import { LocalStorageUtil } from "./utils/localstorage.js";
-import { Router2 } from "./utils/Router2.js";
+import { Router } from "./utils/Router.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -19,7 +19,7 @@ const BASE_URL = import.meta.env.BASE_URL;
 
 // V2
 const $root = document.querySelector("#root");
-const router = new Router2($root);
+const router = new Router($root);
 window.router2Instance = router;
 window.BASE_URL = import.meta.env.BASE_URL;
 
@@ -39,7 +39,7 @@ router.addRoute({
     }
     return { ...data, categories };
   },
-  component: HomePage2,
+  component: HomePage,
 });
 
 router.addRoute({
@@ -55,7 +55,7 @@ router.addRoute({
     }
     return { product, relatedProducts };
   },
-  component: DetailPage2,
+  component: DetailPage,
 });
 
 const updateCartItemCount = () => {
