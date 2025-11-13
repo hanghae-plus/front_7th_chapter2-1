@@ -5,6 +5,7 @@ import { getProducts, getCategories } from "../api/productApi.js";
 import { PageLayout } from "./PageLayout.js";
 import { SearchForm, ProductList } from "../components/index.js";
 import { setupInfiniteScroll, teardownInfiniteScroll } from "../utils/infiniteScroll.js";
+import { showToast } from "../utils/toast.js";
 
 // 무한 스크롤 상태
 let isLoadingMore = false;
@@ -32,6 +33,7 @@ async function loadProducts() {
     hasMoreProducts = pagination.hasNext || false;
   } catch (error) {
     store.dispatch({ type: "errorProducts", payload: error });
+    showToast("상품을 불러올 수 없습니다", "error");
   }
 }
 
@@ -39,12 +41,16 @@ async function loadProducts() {
  * 다음 페이지 상품 로드 (무한 스크롤)
  */
 async function loadMoreProducts() {
-  if (isLoadingMore || !hasMoreProducts) return;
+  // 에러 상태거나 이미 로딩 중이거나 더 이상 상품이 없으면 중단
+  let currentState = store.getState();
+  if (currentState.home.error || currentState.home.loading || isLoadingMore || !hasMoreProducts) {
+    return;
+  }
 
   isLoadingMore = true;
 
   // 로딩 상태를 스토어에 반영
-  const currentState = store.getState();
+  currentState = store.getState();
   store.dispatch({
     type: "setProducts",
     payload: {
@@ -84,13 +90,15 @@ async function loadMoreProducts() {
     hasMoreProducts = pagination.hasNext || false;
   } catch (error) {
     console.error("Failed to load more products:", error);
-    // 에러 시 로딩 상태 해제
+    // 무한 스크롤 에러는 전체 에러로 처리하지 않고 로딩 상태만 해제
+    // (초기 로딩 실패와 구분)
+    const freshState = store.getState();
     store.dispatch({
       type: "setProducts",
       payload: {
-        products: currentState.home.products,
-        filters: currentState.home.filters,
-        pagination: { ...currentState.home.pagination, isLoadingMore: false },
+        products: freshState.home.products,
+        filters: freshState.home.filters,
+        pagination: { ...freshState.home.pagination, isLoadingMore: false },
       },
     });
   } finally {
@@ -111,10 +119,12 @@ export const Homepage = withLifecycle(
       const categories = await getCategories();
       store.dispatch({ type: "setCategories", payload: categories });
 
-      // 무한 스크롤 설정
-      setTimeout(() => {
-        scrollObserver = setupInfiniteScroll("#scroll-trigger", loadMoreProducts);
-      }, 100);
+      // 재시도 버튼 이벤트 리스너
+      document.addEventListener("click", (e) => {
+        if (e.target.id === "retry-btn") {
+          loadProducts();
+        }
+      });
     },
 
     // 컴포넌트 제거 시
@@ -137,9 +147,21 @@ export const Homepage = withLifecycle(
       // 상품 목록이 업데이트될 때마다 observer 재연결
       {
         target() {
-          return store.getState().home.products.length;
+          const state = store.getState().home;
+          return { length: state.products.length, error: state.error };
         },
         callback() {
+          const { error } = store.getState().home;
+
+          // 에러 상태면 무한 스크롤 해제
+          if (error) {
+            if (scrollObserver) {
+              teardownInfiniteScroll(scrollObserver);
+              scrollObserver = null;
+            }
+            return;
+          }
+
           // 기존 observer 해제 후 재연결
           if (scrollObserver) {
             teardownInfiniteScroll(scrollObserver);
@@ -154,13 +176,13 @@ export const Homepage = withLifecycle(
 
   // 렌더링 함수
   () => {
-    const { products, loading, pagination } = store.getState().home;
+    const { products, loading, pagination, error } = store.getState().home;
     const { categories } = store.getState();
     const filters = router.getCurrentRoute().query;
 
     return PageLayout({
       children: /* HTML */ `
-        ${SearchForm({ filters, categories })} ${ProductList({ loading, products, pagination })}
+        ${SearchForm({ filters, categories })} ${ProductList({ loading, products, pagination, error })}
         <!-- 무한 스크롤 트리거 -->
         <div id="scroll-trigger" class="h-1"></div>
       `,

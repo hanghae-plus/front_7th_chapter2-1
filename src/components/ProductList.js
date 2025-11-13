@@ -70,7 +70,28 @@ const ProductItem = ({ title, image, lprice, productId, brand }) => {
   `;
 };
 
-export const ProductList = ({ products, loading, pagination = {} }) => {
+const ErrorState = () => /* HTML */ `
+  <div class="text-center my-4 py-20 shadow-md p-6 bg-white rounded-lg">
+    <svg class="w-16 h-16 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      ></path>
+    </svg>
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">상품을 불러올 수 없습니다</h3>
+    <p class="text-sm text-gray-600 mb-4">네트워크 연결을 확인해주세요</p>
+    <button
+      id="retry-btn"
+      class="inline-block px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+    >
+      다시 시도
+    </button>
+  </div>
+`;
+
+export const ProductList = ({ products, loading, pagination = {}, error }) => {
   const totalCount = pagination.total || products.length;
   const isLoadingMore = pagination.isLoadingMore || false;
   const hasNext = pagination.hasNext !== undefined ? pagination.hasNext : true;
@@ -78,25 +99,27 @@ export const ProductList = ({ products, loading, pagination = {} }) => {
   return /* HTML */ `
     <div class="mb-6">
       <div>
-        ${loading
-          ? /* HTML */ `
-              <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${Skeleton.repeat(4)}</div>
-              ${Loading}
-            `
-          : /* HTML */ `
-              <div class="mb-4 text-sm text-gray-600">
-                총 <span class="font-medium text-gray-900">${totalCount}개</span>의 상품
-              </div>
-              <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
-              ${isLoadingMore
-                ? /* HTML */ `
-                    <div class="grid grid-cols-2 gap-4 mb-4">${Skeleton.repeat(4)}</div>
-                    ${Loading}
-                  `
-                : !hasNext && products.length > 0
-                  ? /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`
-                  : ""}
-            `}
+        ${error
+          ? ErrorState()
+          : loading
+            ? /* HTML */ `
+                <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${Skeleton.repeat(4)}</div>
+                ${Loading}
+              `
+            : /* HTML */ `
+                <div class="mb-4 text-sm text-gray-600">
+                  총 <span class="font-medium text-gray-900">${totalCount}개</span>의 상품
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
+                ${isLoadingMore
+                  ? /* HTML */ `
+                      <div class="grid grid-cols-2 gap-4 mb-4">${Skeleton.repeat(4)}</div>
+                      ${Loading}
+                    `
+                  : !hasNext && products.length > 0
+                    ? /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`
+                    : ""}
+              `}
       </div>
     </div>
   `;
