@@ -5,12 +5,27 @@ export class Router {
     this.$target = $target;
     this.routes = routes;
     this.currentComponent = null;
+    this.basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
     Router._instance = this;
     this.init();
   }
 
   static getInstance() {
     return Router._instance;
+  }
+
+  // pathname에서 basePath를 제거한 경로 반환
+  getPathname() {
+    const pathname = location.pathname;
+    if (this.basePath && pathname.startsWith(this.basePath)) {
+      return pathname.slice(this.basePath.length) || "/";
+    }
+    return pathname;
+  }
+
+  // 절대 경로를 basePath를 포함한 경로로 변환
+  getFullPath(path) {
+    return `${this.basePath}${path}`;
   }
 
   init() {
@@ -24,7 +39,8 @@ export class Router {
 
       e.preventDefault();
       const href = link.getAttribute("href");
-      history.pushState(null, "", href);
+      const fullPath = this.getFullPath(href);
+      history.pushState(null, "", fullPath);
       this.route();
     });
 
@@ -56,7 +72,7 @@ export class Router {
   }
 
   route() {
-    const pathname = location.pathname;
+    const pathname = this.getPathname();
     const matched = this.matchRoute(pathname);
 
     // 현재 컴포넌트 언마운트
@@ -80,7 +96,8 @@ export class Router {
   }
 
   getParams() {
-    const matched = this.matchRoute(location.pathname);
+    const pathname = this.getPathname();
+    const matched = this.matchRoute(pathname);
     return matched?.params || {};
   }
 
