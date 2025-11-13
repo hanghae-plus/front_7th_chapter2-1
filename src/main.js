@@ -57,7 +57,9 @@ const render = () => {
 
   // 다른 컴포넌트로 전환 시에만 unmount 호출
   if (currentComponent && currentComponent !== newComponent) {
-    currentComponent.unmount();
+    if (currentComponent.unmount) {
+      currentComponent.unmount();
+    }
   }
 
   currentComponent = newComponent;

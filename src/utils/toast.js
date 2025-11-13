@@ -4,14 +4,17 @@
  * @param {string} type - 토스트 타입 ('success' | 'info' | 'error')
  */
 export function showToast(message, type = "success") {
-  // 토스트 컨테이너가 없으면 생성
-  let toastContainer = document.getElementById("toast-container");
-  if (!toastContainer) {
-    toastContainer = document.createElement("div");
-    toastContainer.id = "toast-container";
-    toastContainer.className = "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2";
-    document.body.appendChild(toastContainer);
+  // 기존 토스트가 있으면 모두 제거
+  const existingContainer = document.getElementById("toast-container");
+  if (existingContainer) {
+    existingContainer.remove();
   }
+
+  // 토스트 컨테이너 생성
+  const toastContainer = document.createElement("div");
+  toastContainer.id = "toast-container";
+  toastContainer.className = "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2";
+  document.body.appendChild(toastContainer);
 
   // 타입별 스타일과 아이콘
   const styles = {
