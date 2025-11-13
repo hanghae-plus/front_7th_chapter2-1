@@ -66,9 +66,7 @@ async function main() {
   } else {
     console.log("[Initial Render] Not Found", relativePath);
     history.pushState(null, "", `${basePath}404`);
-    $root.innerHTML = `
-      ${ROUTES.notFound.render()}
-    `;
+    $root.replaceChildren(ROUTES.notFound.render());
   }
 
   /* Event Handlers */
@@ -76,7 +74,7 @@ async function main() {
     if (!event.target) return;
     if ($cartModalRoot.innerHTML !== "" && event.key === "Escape") {
       console.log("[Keydown Event] Escape", event);
-      $cartModalRoot.innerHTML = "";
+      $cartModalRoot.replaceChildren();
       appStore.setSelectedCartIds([]);
     }
   });
@@ -90,11 +88,11 @@ async function main() {
 
     if (event.target.closest("#cart-modal-close-btn")) {
       console.log("[Click Event] cart-modal-close-btn", event);
-      $cartModalRoot.innerHTML = "";
+      $cartModalRoot.replaceChildren();
       appStore.setSelectedCartIds([]);
     } else if (!event.target.closest("#cart-modal-container")) {
       console.log("[Click Event] cart-modal-container", event);
-      $cartModalRoot.innerHTML = "";
+      $cartModalRoot.replaceChildren();
       appStore.setSelectedCartIds([]);
     } else if (event.target.closest("#quantity-decrease-btn")) {
       console.log("[Click Event] quantity-decrease-btn", event);
