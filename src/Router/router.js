@@ -21,6 +21,7 @@ const createRouter = () => {
   const handlePathChange = () => {
     // 이전 페이지의 정리(unmount) 함수가 있으면 실행
     if (currentOnUnmount) {
+      console.log("handlePathChange - currentOnUnmount", currentOnUnmount);
       currentOnUnmount();
       currentOnUnmount = null;
     }
@@ -45,8 +46,11 @@ const createRouter = () => {
     }
 
     // 새 페이지 렌더링 및 초기화(mount)
+    // TODO : '장바구니 담기' 클릭 후 리렌더링되는 과정에서 'cartEventListeners'의 cartIconBtn에 addEventListener가 사라짐!!
+    // TODO : 그 이유가 여기임!!
     $root.innerHTML = pageComponent.html;
     if (pageComponent.onMount) {
+      console.log("handlePathChange - pageComponent", pageComponent);
       currentOnUnmount = pageComponent.onMount(); // onMount는 onUnmount 함수를 반환
     }
 

@@ -43,6 +43,7 @@ class Cart {
    * @return {function} 옵저빙 취소 함수 제공 (옵저버 패턴 해제 로직)
    * */
   subscribe(callback) {
+    console.log("Cart Store - subscribe!", callback);
     this.#observer.add(callback);
     return () => this.unsubscribe(callback);
   }
@@ -52,6 +53,7 @@ class Cart {
    * @param {function} callback 옵저버의 리렌더링 함수(observer Set데이터에서 삭제)
    * */
   unsubscribe(callback) {
+    console.log("Cart Store - unsubscribe!", callback);
     this.#observer.delete(callback);
   }
 
