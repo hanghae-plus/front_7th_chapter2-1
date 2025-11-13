@@ -1,8 +1,14 @@
 import { getProducts } from "../api/productApi";
 import router from "../Router.js";
 import { store } from "../store/Store.js";
+import InfiniteScrollLoader from "./InfiniteScrollLoader.js";
 
 const Products = (targetNode) => {
+  let currentPage = 1;
+  let isLoadingMore = false;
+  let hasNextPage = false;
+  let observerInstance = null;
+
   const registerStore = () => {
     store.subscribe("isProductListLoading", render);
     store.setState("isProductListLoading", true);
@@ -49,6 +55,11 @@ const Products = (targetNode) => {
       `;
     };
 
+    // 페이지네이션 정보 업데이트
+    if (data?.pagination) {
+      hasNextPage = data.pagination.hasNext;
+    }
+
     targetNode.innerHTML = /* HTML */ `
       ${isProductListLoading
         ? Skeleton()
@@ -62,10 +73,23 @@ const Products = (targetNode) => {
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
                 ${data?.products?.map((product) => ProductCard(product)).join("") ?? ""}
               </div>
-              <div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>
+              <!-- 무한 스크롤 트리거 -->
+              ${hasNextPage
+                ? /* HTML */ `<div id="scroll-trigger" class="h-4">${isLoadingMore ? InfiniteScrollLoader() : ""}</div>`
+                : /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`}
             </div>
           `}
     `;
+
+    // 기존 observer 정리
+    if (observerInstance) {
+      observerInstance.disconnect();
+    }
+
+    // 무한 스크롤 observer 설정
+    if (hasNextPage && !isProductListLoading) {
+      setupInfiniteScroll();
+    }
   };
 
   const addEventListeners = () => {
@@ -82,15 +106,60 @@ const Products = (targetNode) => {
     });
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     try {
-      const data = await getProducts();
-      store.setState("productsData", data);
+      const data = await getProducts({ page });
+
+      if (page === 1) {
+        // 첫 페이지는 교체
+        currentPage = 1;
+        store.setState("productsData", data);
+      } else {
+        // 다음 페이지는 기존 데이터에 추가
+        const existingData = store.getState("productsData");
+        store.setState("productsData", {
+          ...data,
+          products: [...(existingData?.products || []), ...data.products],
+        });
+        currentPage = page;
+      }
     } catch (error) {
       console.error(error);
     } finally {
       store.setState("isProductListLoading", false);
+      isLoadingMore = false;
     }
+  };
+
+  const loadNextPage = async () => {
+    if (isLoadingMore || !hasNextPage) return;
+
+    isLoadingMore = true;
+    render(); // 로딩 UI 표시
+
+    await fetchProducts(currentPage + 1);
+  };
+
+  const setupInfiniteScroll = () => {
+    const trigger = document.getElementById("scroll-trigger");
+    if (!trigger) return;
+
+    observerInstance = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && hasNextPage && !isLoadingMore) {
+            loadNextPage();
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0.1,
+      },
+    );
+
+    observerInstance.observe(trigger);
   };
 
   const didMount = () => {
