@@ -384,6 +384,32 @@ function main() {
       closeCartModal();
       return;
     }
+
+    // 상세 페이지 수량 조절 이벤트
+    const decreaseBtn = e.target.closest("#quantity-decrease");
+    const increaseBtn = e.target.closest("#quantity-increase");
+
+    if (decreaseBtn) {
+      const quantityInput = document.querySelector("#quantity-input");
+      if (quantityInput) {
+        const currentValue = Number(quantityInput.value);
+        if (currentValue > 1) {
+          quantityInput.value = currentValue - 1;
+          return;
+        }
+      }
+    }
+
+    if (increaseBtn) {
+      const quantityInput = document.querySelector("#quantity-input");
+      if (quantityInput) {
+        const currentValue = Number(quantityInput.value);
+        if (currentValue < 107) {
+          quantityInput.value = currentValue + 1;
+          return;
+        }
+      }
+    }
   });
 
   // 초기 렌더링
