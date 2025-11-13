@@ -1,15 +1,6 @@
 import { router } from "./core/router.js";
-import { store } from "./core/store.js";
-import { render, onBeforeRender, onAfterRender } from "./core/render.js";
+import { render } from "./core/render.js";
 import { HomePage, DetailPage, NotFoundPage } from "./pages/index.js";
-
-onBeforeRender(() => {
-  console.log("before render");
-});
-
-onAfterRender(() => {
-  console.log("after render");
-});
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -21,24 +12,20 @@ const enableMocking = () =>
 const main = () => {
   router.setup({
     "/": {
-      component: HomePage,
-      onEnter: () => {
-        store.fetchProducts();
-      },
+      page: HomePage,
     },
-    "/products/:id": {
-      component: DetailPage,
-      onEnter: (props) => {
-        store.fetchProductDetail(props.productId);
-      },
+    "/product/:id": {
+      page: DetailPage,
     },
     "*": {
-      component: NotFoundPage,
+      page: NotFoundPage,
     },
   });
-  // 상태 변경시 렌더
-  store.subscribe(render);
+
+  // 라우터 변경 시에만 렌더링
   router.subscribe(render);
+
+  // store 구독은 각 페이지에서 개별적으로 관리!
 };
 
 // 애플리케이션 시작
