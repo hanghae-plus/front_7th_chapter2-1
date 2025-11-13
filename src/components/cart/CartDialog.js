@@ -55,6 +55,58 @@ export const EmptyCart = () => {
   `;
 };
 
+// 장바구니 아이템 컴포넌트
+export const CartItem = (item) => {
+  return /*html*/ `
+    <div class="flex items-center py-3 border-b border-gray-100 cart-item" data-product-id="${item.id}">
+      <!-- 선택 체크박스 -->
+      <label class="flex items-center mr-3">
+        <input type="checkbox" class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded
+      focus:ring-blue-500" data-product-id="${item.id}" ${item.selected ? "checked" : ""}>
+      </label>
+      <!-- 상품 이미지 -->
+      <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden mr-3 flex-shrink-0">
+        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover cursor-pointer cart-item-image" data-product-id="${item.id}">
+      </div>
+      <!-- 상품 정보 -->
+      <div class="flex-1 min-w-0">
+        <h4 class="text-sm font-medium text-gray-900 truncate cursor-pointer cart-item-title" data-product-id="${item.id}">
+          ${item.title}
+        </h4>
+        <p class="text-sm text-gray-600 mt-1">
+          ${parseInt(item.price || 0).toLocaleString()}원
+        </p>
+        <!-- 수량 조절 -->
+        <div class="flex items-center mt-2">
+          <button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center
+       border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100" data-product-id="${item.id}">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+            </svg>
+          </button>
+          <input type="number" value="${item.quantity}" min="1" class="quantity-input w-12 h-7 text-center text-sm border-t border-b
+      border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" disabled="" data-product-id="${item.id}">
+          <button class="quantity-increase-btn w-7 h-7 flex items-center justify-center
+       border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100" data-product-id="${item.id}">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- 가격 및 삭제 -->
+      <div class="text-right ml-3">
+        <p class="text-sm font-medium text-gray-900">
+          ${(parseInt(item.price || 0) * (item.quantity || 1)).toLocaleString()}원
+        </p>
+        <button class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800" data-product-id="${item.id}">
+          삭제
+        </button>
+      </div>
+    </div>
+  `;
+};
+
 // 장바구니 아이템 목록 컴포넌트
 export const CartItemsList = (items, selectedAll = false) => {
   // 총 금액 계산
@@ -75,58 +127,7 @@ export const CartItemsList = (items, selectedAll = false) => {
     <!-- 아이템 목록 -->
     <div class="flex-1 overflow-y-auto">
       <div class="p-4 space-y-4">
-        ${items
-          .map(
-            (item) => `
-          <div class="flex items-center py-3 border-b border-gray-100 cart-item" data-product-id="${item.id}">
-            <!-- 선택 체크박스 -->
-            <label class="flex items-center mr-3">
-              <input type="checkbox" class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded
-            focus:ring-blue-500" data-product-id="${item.id}" ${item.selected ? "checked" : ""}>
-            </label>
-            <!-- 상품 이미지 -->
-            <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden mr-3 flex-shrink-0">
-              <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover cursor-pointer cart-item-image" data-product-id="${item.id}">
-            </div>
-            <!-- 상품 정보 -->
-            <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-medium text-gray-900 truncate cursor-pointer cart-item-title" data-product-id="${item.id}">
-                ${item.title}
-              </h4>
-              <p class="text-sm text-gray-600 mt-1">
-                ${parseInt(item.price || 0).toLocaleString()}원
-              </p>
-              <!-- 수량 조절 -->
-              <div class="flex items-center mt-2">
-                <button class="quantity-decrease-btn w-7 h-7 flex items-center justify-center
-             border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100" data-product-id="${item.id}">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                  </svg>
-                </button>
-                <input type="number" value="${item.quantity}" min="1" class="quantity-input w-12 h-7 text-center text-sm border-t border-b
-            border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" disabled="" data-product-id="${item.id}">
-                <button class="quantity-increase-btn w-7 h-7 flex items-center justify-center
-             border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100" data-product-id="${item.id}">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <!-- 가격 및 삭제 -->
-            <div class="text-right ml-3">
-              <p class="text-sm font-medium text-gray-900">
-                ${(parseInt(item.price || 0) * (item.quantity || 1)).toLocaleString()}원
-              </p>
-              <button class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800" data-product-id="${item.id}">
-                삭제
-              </button>
-            </div>
-          </div>
-        `,
-          )
-          .join("")}
+        ${items.map((item) => CartItem(item)).join("")}
       </div>
     </div>
     <!-- 하단 액션 -->
@@ -288,8 +289,69 @@ export const initCartDialog = () => {
     closeBtn.addEventListener("click", window.closeCartDialog);
   }
 
-  // 오버레이 클릭 시 닫기
+  // 오버레이 클릭 이벤트 (오버레이 닫기, 삭제 버튼, 수량 조절 버튼 처리)
   modalOverlay.addEventListener("click", (e) => {
+    // 수량 증가 버튼 클릭 처리
+    const increaseBtn = e.target.closest(".quantity-increase-btn");
+    if (increaseBtn) {
+      const productId = increaseBtn.getAttribute("data-product-id");
+      if (productId) {
+        const cartData = getCartData();
+        const item = cartData.items.find((item) => item.id === productId);
+        if (item) {
+          item.quantity = (item.quantity || 1) + 1;
+          saveCartData(cartData);
+          window.updateCartContent();
+        }
+      }
+      return;
+    }
+
+    // 수량 감소 버튼 클릭 처리
+    const decreaseBtn = e.target.closest(".quantity-decrease-btn");
+    if (decreaseBtn) {
+      const productId = decreaseBtn.getAttribute("data-product-id");
+      if (productId) {
+        const cartData = getCartData();
+        const item = cartData.items.find((item) => item.id === productId);
+        if (item && item.quantity > 1) {
+          item.quantity = item.quantity - 1;
+          saveCartData(cartData);
+          window.updateCartContent();
+        }
+      }
+      return;
+    }
+
+    // 삭제 버튼 클릭 처리
+    const removeBtn = e.target.closest(".cart-item-remove-btn");
+    if (removeBtn) {
+      const productId = removeBtn.getAttribute("data-product-id");
+      if (productId) {
+        // 로컬 스토리지에서 해당 아이템 제거
+        const cartData = getCartData();
+        cartData.items = cartData.items.filter((item) => item.id !== productId);
+
+        // 선택된 아이템이 없으면 전체 선택 해제
+        if (cartData.items.length === 0) {
+          cartData.selectedAll = false;
+        } else {
+          // 선택된 아이템이 있는지 확인하여 selectedAll 업데이트
+          const hasSelected = cartData.items.some((item) => item.selected);
+          if (!hasSelected) {
+            cartData.selectedAll = false;
+          }
+        }
+
+        // 로컬 스토리지에 저장
+        saveCartData(cartData);
+
+        // 장바구니 컨텐츠 업데이트
+        window.updateCartContent();
+      }
+      return; // 삭제 버튼 클릭 시 오버레이 닫기 이벤트 방지
+    }
+
     // 오버레이 자체를 클릭했을 때만 닫기 (내부 컨텐츠 클릭 시에는 닫지 않음)
     if (e.target === modalOverlay) {
       window.closeCartDialog();

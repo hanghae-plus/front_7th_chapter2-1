@@ -1,5 +1,5 @@
 import { Layout } from "./components/common";
-import { ItemDetailPage } from "./pages";
+import { ItemListPage } from "./pages";
 import { CartDialog, initCartDialog, initCartStorage } from "./components/cart/CartDialog.js";
 import { initAddToCartButtons } from "./components/cart/addToCartBtn.js";
 
@@ -18,7 +18,7 @@ function main() {
   initCartStorage();
 
   // 페이지 렌더링
-  const page = ItemDetailPage();
+  const page = ItemListPage();
   root.innerHTML = Layout(page.content, page.headerOptions);
 
   // CartDialog 모달이 아직 없으면 body에 추가
