@@ -86,6 +86,11 @@ const Products = (targetNode) => {
       observerInstance.disconnect();
     }
 
+    // DOM이 다시 생성되었으므로 이벤트 리스너 재등록
+    if (!isProductListLoading && data) {
+      addEventListeners();
+    }
+
     // 무한 스크롤 observer 설정
     if (hasNextPage && !isProductListLoading) {
       setupInfiniteScroll();
@@ -94,14 +99,14 @@ const Products = (targetNode) => {
 
   const addEventListeners = () => {
     const $productsGrid = document.getElementById("products-grid");
+    if (!$productsGrid) return;
+
     $productsGrid.addEventListener("click", (ev) => {
       const productCard = ev.target.closest(".product-card");
 
       if (productCard) {
         const productId = productCard.dataset.productId;
-        router.push(`/product/${productId}`);
-      } else {
-        console.error("Product card not found.");
+        router.push(`product/${productId}`);
       }
     });
   };
