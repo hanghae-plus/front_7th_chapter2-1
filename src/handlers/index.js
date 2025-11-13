@@ -127,10 +127,12 @@ function clickBreadcrumbBtn() {
   });
 }
 
-function clickProductItem() {
+export function clickProductItem() {
   const productItems = document.querySelectorAll(".product-image, .product-info");
 
   productItems.forEach((item) => {
+    if (item.dataset.listenerAttached) return;
+    item.dataset.listenerAttached = "true";
     item.addEventListener("click", (event) => {
       const productId = event.currentTarget.closest(".product-card").dataset.productId;
       router.navigateTo(`/product/${productId}`);
@@ -138,7 +140,7 @@ function clickProductItem() {
   });
 }
 
-function clickAddToCart() {
+export function clickAddToCart() {
   const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
 
   addToCartButtons.forEach((button) => {
