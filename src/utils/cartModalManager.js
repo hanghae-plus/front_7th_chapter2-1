@@ -54,12 +54,13 @@ const restoreCheckboxState = () => {
  * 장바구니 모달 열기
  */
 export const openCartModal = () => {
+  const $root = document.getElementById("root");
   let modalElement = document.querySelector(".cart-modal");
 
   // 모달이 없으면 생성
   if (!modalElement) {
     const modalHTML = CartModal();
-    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    $root.insertAdjacentHTML("beforeend", modalHTML);
     modalElement = document.querySelector(".cart-modal");
 
     // 이벤트 리스너 등록
