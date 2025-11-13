@@ -1,4 +1,4 @@
-import { Header, Footer } from "../components/index.js";
+import { Header, Footer, Toast } from "../components/index.js";
 export const PageLayout = (children) => {
   return /*html*/ `
     <div class="min-h-screen bg-gray-50">
@@ -7,6 +7,7 @@ export const PageLayout = (children) => {
             ${children}
         </main>
         ${Footer()}
+        ${Toast()}
     </div>
         `;
 };

@@ -1,4 +1,5 @@
 import { appendCartProduct } from "../store/appStore.js";
+import { showToast } from "./uiEvents.js";
 
 // router는 registerDetailPageEvents에서 주입받을 수 있도록 클로저로 관리
 let routerInstance = null;
@@ -152,7 +153,7 @@ const handleDetailPageClick = (event) => {
       quantity,
     });
 
-    // DetailPage에서는 모달을 띄우지 않음
+    showToast();
     return;
   }
 };

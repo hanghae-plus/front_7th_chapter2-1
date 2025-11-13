@@ -7,7 +7,7 @@ import {
   setHomepageLoadingMore,
 } from "../store/appStore.js";
 import { eventBus } from "../utils/EventBus.js";
-import { showCartModal } from "./uiEvents.js";
+import { showToast } from "./uiEvents.js";
 
 const updateSentinel = ({ loading, hasNext, nextPage, message, error }) => {
   const sentinel = document.querySelector("[data-infinite-trigger]");
@@ -142,7 +142,7 @@ const handleHomepageClick = (router) => (event) => {
       image,
     });
 
-    showCartModal();
+    showToast();
     return;
   }
 

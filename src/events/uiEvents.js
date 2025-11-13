@@ -1,4 +1,5 @@
 const getCartModal = () => document.querySelector("#cart-modal");
+const getToastContainer = () => document.querySelector("#toast-container");
 
 const showCartModal = () => {
   const cartModal = getCartModal();
@@ -53,6 +54,13 @@ const handleUIClick = (event) => {
     hideCartModal();
     return;
   }
+
+  // Toast 닫기 버튼 클릭
+  const toastCloseButton = event.target.closest("#toast-close-btn");
+  if (toastCloseButton) {
+    hideToast();
+    return;
+  }
 };
 
 const handleUIKeydown = (event) => {
@@ -65,9 +73,75 @@ const handleUIKeydown = (event) => {
   }
 };
 
+let toastTimeout = null;
+
+const showToast = () => {
+  // 즉시 실행 (Toast는 PageLayout에 항상 있음)
+  let toastContainer = getToastContainer();
+
+  if (!toastContainer) {
+    // Toast 컨테이너가 없으면 재시도 (라우터 렌더링 중일 수 있음)
+    requestAnimationFrame(() => {
+      toastContainer = getToastContainer();
+      if (!toastContainer) {
+        // 한 번 더 재시도
+        setTimeout(() => {
+          toastContainer = getToastContainer();
+          if (!toastContainer) {
+            console.error("Toast container not found in DOM");
+            return;
+          }
+          displayToast(toastContainer);
+        }, 100);
+        return;
+      }
+      displayToast(toastContainer);
+    });
+    return;
+  }
+
+  displayToast(toastContainer);
+};
+
+const displayToast = (toastContainer) => {
+  if (!toastContainer) {
+    return;
+  }
+
+  // 기존 타이머가 있으면 취소
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+
+  // Toast 표시 - hidden 클래스 제거
+  toastContainer.classList.remove("hidden");
+
+  // 3초 후 자동으로 숨김
+  toastTimeout = setTimeout(() => {
+    hideToast();
+  }, 3000);
+};
+
+const hideToast = () => {
+  const toastContainer = getToastContainer();
+  if (!toastContainer) {
+    return;
+  }
+
+  // 타이머 취소
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+
+  // Toast 숨김 - hidden 클래스 추가
+  toastContainer.classList.add("hidden");
+};
+
 export const registerUIEvents = () => {
   document.body.addEventListener("click", handleUIClick);
   document.addEventListener("keydown", handleUIKeydown);
 };
 
-export { showCartModal, hideCartModal };
+export { showCartModal, hideCartModal, showToast, hideToast };
