@@ -79,7 +79,7 @@ export const DetailInfo = ({ product }) => {
         ${DetailImage({ image: product.image, title: product.title })}
           <!-- 상품 정보 -->
           <div>
-            <p class="text-sm text-gray-600 mb-1"></p>
+            <p class="text-sm text-gray-600 mb-1">${product.maker || product.brand}</p>
             <h1 class="text-xl font-bold text-gray-900 mb-3">${product.title}</h1>
             ${ItemReview({ rating: product.rating, reviewCount: product.reviewCount })}
             ${Price({ price: product.lprice })}
