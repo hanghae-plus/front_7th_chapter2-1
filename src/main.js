@@ -3,6 +3,7 @@ import { store } from "./state/store.js";
 import { Homepage } from "./pages/HomePage.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
+import { showToast } from "./utils/toast.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -47,6 +48,19 @@ document.body.addEventListener("click", (e) => {
   if ($link) {
     e.preventDefault();
     router.push($link.getAttribute("href"));
+    return;
+  }
+
+  // 장바구니 담기 버튼 (상품 카드 클릭보다 먼저 체크)
+  const $addToCartBtn = e.target.closest(".add-to-cart-btn");
+  if ($addToCartBtn) {
+    e.stopPropagation(); // 상품 카드 클릭 이벤트 방지
+    const productData = $addToCartBtn.dataset.product;
+    if (productData) {
+      const product = JSON.parse(productData);
+      store.dispatch({ type: "addToCart", payload: product });
+      showToast("장바구니에 추가되었습니다", "success");
+    }
     return;
   }
 
