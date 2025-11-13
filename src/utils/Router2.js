@@ -24,8 +24,8 @@ export class Router2 {
     });
   }
 
-  addRoute({ path, loader, component, cacheKeys }) {
-    this.routes.push({ path, loader, component, cacheKeys });
+  addRoute({ path, loader, component }) {
+    this.routes.push({ path, loader, component });
   }
 
   #matchRoute(_path) {
@@ -58,21 +58,19 @@ export class Router2 {
           loader: route.loader,
           params: params,
           queryString: qString,
-          cacheKeys: route.cacheKeys,
         };
       }
     }
-    return { component: NotFoundPage2, loader: () => Promise.resolve({}), params: {}, queryString: {}, cacheKeys: [] };
+    return { component: NotFoundPage2, loader: () => Promise.resolve({}), params: {}, queryString: {} };
   }
 
-  async render({ withLoader = true }) {
+  async render({ withLoader = true } = {}) {
     this.isPending = true;
     const matched = this.#matchRoute(location.pathname);
 
     if (this.currentView && this.currentView.constructor !== matched.component) {
       this.currentView.unmount();
       this.currentView = null;
-      this.currentLoaderData = null;
     }
 
     // 1. Loading UI 렌더링 (isPending: true)
@@ -84,15 +82,11 @@ export class Router2 {
         loaderData: null,
       });
     } else {
-      const cachedLoaderData = {};
-      (matched.cacheKeys ?? []).forEach((cKey) => {
-        cachedLoaderData[cKey] = this.currentLoaderData[cKey];
-      });
       await this.currentView.updateProps({
         params: matched.params,
         queryString: matched.queryString,
         isPending: this.isPending,
-        loaderData: cachedLoaderData,
+        loaderData: this.currentLoaderData,
       });
     }
 

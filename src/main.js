@@ -7,18 +7,12 @@ import { Router2 } from "./utils/Router2.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
-    worker
-      .start({
-        serviceWorker: {
-          url: `${BASE_URL}mockServiceWorker.js`,
-        },
-        onUnhandledRequest: "bypass",
-      })
-      .then(() => {
-        console.log("MSW 초기화 완료!");
-        // MSW 완전히 준비될 때까지 잠시 대기
-        return new Promise((resolve) => setTimeout(resolve, 100));
-      }),
+    worker.start({
+      serviceWorker: {
+        url: `${BASE_URL}mockServiceWorker.js`,
+      },
+      onUnhandledRequest: "bypass",
+    }),
   );
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -46,7 +40,6 @@ router.addRoute({
     return { ...data, categories };
   },
   component: HomePage2,
-  cacheKeys: ["categories"],
 });
 
 router.addRoute({
@@ -63,7 +56,6 @@ router.addRoute({
     return { product, relatedProducts };
   },
   component: DetailPage2,
-  cacheKeys: ["product"],
 });
 
 const updateCartItemCount = () => {
@@ -75,7 +67,8 @@ const updateCartItemCount = () => {
 const handler = (e) => {
   if (e.detail.key === "shopping_cart") {
     updateCartItemCount();
-    router.render({ withLoader: false });
+    const useLoader = location.pathname.startsWith("/product") ? true : false;
+    router.render({ withLoader: useLoader });
   }
 };
 

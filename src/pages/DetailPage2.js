@@ -1,34 +1,36 @@
 import { Component } from "../components/Component";
 import { StarRating } from "../components/StarRating";
+import { CartUtil } from "../utils/cart";
 import { PageLayout } from "./PageLayout";
 
 export class DetailPage2 extends Component {
-  eventId = undefined;
   cache = {};
 
-  mount() {
-    this.eventId = this.$container.addEventListener("click", (e) => {
+  handleClick(e) {
+    if (e.target.closest("#add-to-cart-btn")) {
+      const { loaderData } = this.props;
+      const product = loaderData.product;
+      CartUtil.addCard(product);
+    } else if (e.target.closest(".related-product-card")) {
       const productCard = e.target.closest(".related-product-card");
-      if (productCard) {
-        const productId = productCard.dataset.productId;
-        window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
-      }
-    });
+      const productId = productCard.dataset.productId;
+      window.router2Instance.navigateTo(`${window.BASE_URL}product/${productId}`);
+    }
+  }
+
+  mount() {
+    this.$container.addEventListener("click", this.handleClick.bind(this));
   }
 
   unmount() {
-    this.$container.removeEventListener("click", this.eventId);
+    this.$container.removeEventListener("click", this.handleClick.bind(this));
   }
 
   template() {
-    const { loaderData, isPending: loading, params } = this.props;
-    let cachedData = this.cache?.[params.productId];
-    if (!cachedData && loaderData) {
-      this.cache[params.productId] = loaderData.product;
-    }
-    const props = cachedData ? { ...loaderData, product: cachedData } : loaderData;
+    const { loaderData, isPending: loading } = this.props;
+    const props = loaderData;
     return PageLayout({
-      children: loading && !cachedData ? LoadingIndicator : LoadedDetailPage(props),
+      children: loading ? LoadingIndicator : LoadedDetailPage({ ...props, loading }),
     });
   }
 }
@@ -75,7 +77,7 @@ const RelatedProductCard = (product) => {
   `;
 };
 
-export const LoadedDetailPage = ({ product, relatedProducts }) => `
+export const LoadedDetailPage = ({ product, relatedProducts, loading }) => `
   <!-- 브레드크럼 -->
   ${BreadCrumbNavigation(product)}
   <!-- 상품 상세 정보 -->
@@ -173,7 +175,7 @@ export const LoadedDetailPage = ({ product, relatedProducts }) => `
   </div>
   <!-- 관련 상품 -->
   ${
-    (relatedProducts?.length ?? []) > 0
+    !loading && (relatedProducts?.length ?? []) > 0
       ? `<div class="bg-white rounded-lg shadow-sm">
               <div class="p-4 border-b border-gray-200">
                 <h2 class="text-lg font-bold text-gray-900">관련 상품</h2>
