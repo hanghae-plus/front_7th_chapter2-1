@@ -1,4 +1,5 @@
 import { Component } from "@/core/Component";
+import { Router } from "@/core/Router.js";
 
 const ProductCard = Component({
   template: (context) => {
@@ -31,6 +32,12 @@ const ProductCard = Component({
         </button>
       </div>
     `;
+  },
+  setEvent: ({ addEvent, selector, props }) => {
+    addEvent(selector, "click", () => {
+      const router = Router();
+      router.push(`/product/${props.product.productId}`);
+    });
   },
 });
 

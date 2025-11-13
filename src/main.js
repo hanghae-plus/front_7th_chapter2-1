@@ -1,4 +1,5 @@
 import Home from "@pages/Home.js";
+import { initRouter } from "@/core/Router.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -11,7 +12,8 @@ const enableMocking = () =>
   );
 
 const main = () => {
-  Home("#root");
+  // router 초기화
+  initRouter([{ path: "/", page: Home }, { path: "/product", page: null }, { path: "/product/:productId" }]);
 };
 
 // 애플리케이션 시작
