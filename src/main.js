@@ -6,6 +6,7 @@ import { attachSearchFormEnhancer } from "./router/enhancers/searchForm.js";
 import { attachProductListEnhancer } from "./router/enhancers/productList.js";
 import { registerHomepageEvents } from "./events/homepageEvents.js";
 import { registerUIEvents } from "./events/uiEvents.js";
+import { setupCartModal } from "./components/CartModal.js";
 import { resetHomepageState, setHomepageState } from "./store/appStore.js";
 
 const enableMocking = () =>
@@ -66,6 +67,7 @@ attachSearchFormEnhancer(router);
 attachProductListEnhancer(router);
 registerHomepageEvents(router);
 registerUIEvents();
+setupCartModal(router);
 
 // 4) 애플리케이션 시작
 const startApp = () => {

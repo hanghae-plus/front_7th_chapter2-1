@@ -5,8 +5,13 @@ const createHomepageState = () => ({
   isLoadingMore: false,
 });
 
+const createCartState = () => ({
+  items: [],
+});
+
 let state = {
   homepage: createHomepageState(),
+  cart: createCartState(),
 };
 
 const listeners = new Set();
@@ -37,9 +42,27 @@ const updateHomepage = (updater) => {
   notify();
 };
 
+const updateCart = (updater) => {
+  const currentCart = state.cart;
+  const nextCart = typeof updater === "function" ? updater(currentCart) : updater;
+
+  if (!nextCart || nextCart === currentCart) {
+    return;
+  }
+
+  state = {
+    ...state,
+    cart: nextCart,
+  };
+
+  notify();
+};
+
 export const getState = () => state;
 
 export const getHomepageState = () => state.homepage;
+
+export const getCartState = () => state.cart;
 
 export const subscribe = (listener) => {
   if (typeof listener !== "function") {
@@ -83,6 +106,49 @@ export const setHomepageLoadingMore = (value) => {
     return {
       ...prev,
       isLoadingMore: value,
+    };
+  });
+};
+
+export const resetCartState = () => {
+  updateCart(createCartState());
+};
+
+export const appendCartProduct = ({ id, title, price, image }) => {
+  if (!id) {
+    return;
+  }
+
+  updateCart((prev) => {
+    const existingIndex = prev.items.findIndex((item) => item.id === id);
+
+    if (existingIndex >= 0) {
+      const items = prev.items.map((item, index) =>
+        index === existingIndex
+          ? {
+              ...item,
+              quantity: item.quantity + 1,
+            }
+          : item,
+      );
+
+      return {
+        ...prev,
+        items,
+      };
+    }
+
+    const nextItem = {
+      id,
+      title,
+      price,
+      image,
+      quantity: 1,
+    };
+
+    return {
+      ...prev,
+      items: prev.items.concat(nextItem),
     };
   });
 };

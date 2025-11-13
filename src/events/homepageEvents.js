@@ -1,7 +1,13 @@
 import { getProducts } from "../api/productApi.js";
 import { renderProductItems } from "../components/ProductList.js";
-import { appendHomepageProducts, getHomepageState, setHomepageLoadingMore } from "../store/appStore.js";
+import {
+  appendCartProduct,
+  appendHomepageProducts,
+  getHomepageState,
+  setHomepageLoadingMore,
+} from "../store/appStore.js";
 import { eventBus } from "../utils/EventBus.js";
+import { showCartModal } from "./uiEvents.js";
 
 const updateSentinel = ({ loading, hasNext, nextPage, message, error }) => {
   const sentinel = document.querySelector("[data-infinite-trigger]");
@@ -115,7 +121,28 @@ const handleHomepageClick = (router) => (event) => {
       return;
     }
 
-    console.log(productId);
+    const card = addToCartButton.closest(".product-card");
+    if (!card) {
+      return;
+    }
+
+    const titleElement = card.querySelector("h3");
+    const priceElement = card.querySelector(".text-lg.font-bold");
+    const imageElement = card.querySelector("img");
+
+    const title = titleElement?.textContent?.trim() ?? "";
+    const priceText = priceElement?.textContent ?? "";
+    const price = Number(priceText.replace(/[^\d]/g, "")) || 0;
+    const image = imageElement?.getAttribute("src") ?? "";
+
+    appendCartProduct({
+      id: productId,
+      title,
+      price,
+      image,
+    });
+
+    showCartModal();
     return;
   }
 
