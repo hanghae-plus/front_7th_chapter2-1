@@ -17,10 +17,18 @@ const getBasePath = () => {
 export const addBasePath = (path) => {
   const base = getBasePath();
   if (base === "/") return path;
+
   // base path가 이미 포함되어 있으면 그대로 반환
   if (path.startsWith(base)) return path;
-  // base path를 추가
-  return base.replace(/\/$/, "") + path;
+
+  // base path 정규화 (끝에 슬래시 제거)
+  const normalizedBase = base.replace(/\/$/, "");
+
+  // path 정규화 (앞에 슬래시 유지)
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  // base path + path 조합 (슬래시 중복 방지)
+  return normalizedBase + normalizedPath;
 };
 
 /**
