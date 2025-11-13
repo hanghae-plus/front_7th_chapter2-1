@@ -1,7 +1,14 @@
 // 상품 목록 조회
 export async function getProducts(params = {}) {
-  const { limit = 20, search = "", category1 = "", category2 = "", sort = "price_asc" } = params;
-  const page = params.current ?? params.page ?? 1;
+  const { limit = 20, skip, search = "", category1 = "", category2 = "", sort = "price_asc" } = params;
+
+  // skip이 있으면 page로 변환, 없으면 기존 방식 사용
+  let page;
+  if (skip !== undefined) {
+    page = Math.floor(skip / limit) + 1;
+  } else {
+    page = params.current ?? params.page ?? 1;
+  }
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
