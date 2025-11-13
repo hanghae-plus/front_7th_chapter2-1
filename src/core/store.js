@@ -15,7 +15,8 @@ export const store = {
       filters: [],
       pagination: [],
       error: null,
-      limit: 0,
+      limit: 20,
+      sort: "price_asc",
     },
     detail: {
       product: null,
