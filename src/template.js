@@ -268,7 +268,6 @@ const 상품목록_레이아웃_카테고리_2Depth = `
 
         <!-- 필터 옵션 -->
         <div class="space-y-3">
-
           <!-- 카테고리 필터 -->
           <div class="space-y-2">
             <div class="flex items-center gap-2">

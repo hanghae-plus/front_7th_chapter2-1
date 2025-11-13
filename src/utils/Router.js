@@ -1,56 +1,130 @@
 import { NotFoundPage } from "../pages/NotFoundPage";
 
-function convertToRegex(routePattern) {
-  // 1. 문자열의 시작과 끝에서 슬래시를 이스케이프하고 시작/끝 앵커를 추가합니다.
-  //    정규 표현식의 시작(^)과 끝($)을 설정합니다.
-  let regexString = routePattern.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"); // 정규 표현식 특수 문자를 모두 이스케이프
-
-  // 2. 동적 경로 매개변수(:paramName) 부분을 정규 표현식으로 대체합니다.
-  //    :postId -> ([\w]+) 또는 ([\w\-]+) 등으로 확장 가능
-  //    여기서는 제시하신 대로 단어 문자(숫자, 문자, 언더바)를 의미하는 \w+를 사용합니다.
-  regexString = regexString.replace(/:(\w+)/g, "([\\w]+)");
-
-  // 3. 시작 앵커와 끝 앵커를 추가하여 전체 경로 일치를 강제합니다.
-  regexString = `^${regexString}$`;
-
-  // 4. 최종 정규 표현식 객체를 생성하여 반환합니다.
-  return new RegExp(regexString);
-}
+const convertToRelativePath2 = (pathName) => {
+  const basePath = import.meta.env.BASE_URL;
+  return pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+};
 
 export class Router {
-  constructor($container) {
-    this.routes = {};
-    this._routesArray = [];
-    this.$container = $container;
-    window.addEventListener("popstate", this.handlePopState.bind(this));
+  constructor($app) {
+    this.$app = $app;
+    this.routes = [];
+    this.isPending = false;
+    this.current = {
+      view: null,
+      loaderData: null,
+      params: null,
+      queryString: null,
+    };
+    this.init();
   }
 
-  addRoute(path, handler) {
-    const regexPath = convertToRegex(path);
-    this.routes[regexPath] = handler;
-    this._routesArray.push(regexPath);
+  init() {
+    window.addEventListener("popstate", () => {
+      this.render();
+    });
+  }
+
+  addRoute({ path, loader, component }) {
+    this.routes.push({ path, loader, component });
+  }
+
+  #matchRoute(_path) {
+    const path = convertToRelativePath2(_path);
+    for (const route of this.routes) {
+      const pathRegex = new RegExp("^" + route.path.replace(/:\w+/g, "([^/]+)") + "$");
+      const match = path.match(pathRegex);
+
+      if (match) {
+        // 1. 경로 매개변수 (Path Params) 추출
+        const paramNames = (route.path.match(/:\w+/g) || []).map((name) => name.substring(1));
+        const params = match.slice(1).reduce((acc, value, index) => {
+          acc[paramNames[index]] = value;
+          return acc;
+        }, {});
+
+        // 2. 쿼리스트링 매개변수 (Query Params) 추가
+        const qString = {};
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.size > 0) {
+          for (const [qKey, value] of queryParams.entries()) {
+            if (!(qKey in params)) {
+              qString[qKey] = value;
+            }
+          }
+        }
+
+        return {
+          component: route.component,
+          loader: route.loader,
+          params: params,
+          queryString: qString,
+        };
+      }
+    }
+    return { component: NotFoundPage, loader: () => Promise.resolve({}), params: {}, queryString: {} };
+  }
+
+  async render({ withLoader = true } = {}) {
+    this.isPending = true;
+    const matched = this.#matchRoute(location.pathname);
+
+    if (this.current.view && this.current.view.constructor !== matched.component) {
+      this.current.view.unmount();
+      this.current = {
+        view: null,
+        loaderData: null,
+        params: null,
+        queryString: null,
+      };
+    }
+
+    // 1. Loading UI 렌더링 (isPending: true)
+    if (!this.current.view) {
+      this.current.view = new matched.component(this.$app, {
+        params: matched.params,
+        queryString: matched.queryString,
+        isPending: this.isPending,
+        loaderData: null,
+      });
+    } else {
+      await this.current.view.updateProps({
+        params: matched.params,
+        queryString: matched.queryString,
+        isPending: this.isPending,
+        loaderData: this.current.loaderData,
+      });
+    }
+
+    // 2. ⭐ 데이터 로딩 및 대기
+    const fetchLoaderData =
+      withLoader ||
+      (JSON.stringify(matched.params) !== JSON.stringify(this.current.params) &&
+        JSON.stringify(matched.queryString) !== JSON.stringify(this.current.queryString));
+    if (fetchLoaderData) {
+      try {
+        this.current.params = matched.params;
+        this.current.queryString = matched.queryString;
+        this.current.loaderData = await matched.loader({ params: matched.params, queryString: matched.queryString });
+      } catch (e) {
+        this.current.loaderData = { error: e.message };
+      }
+    }
+
+    // 3. 로딩 완료 후 최종 렌더링 (isPending: false)
+    this.isPending = false;
+    if (this.current.view && this.current.view.updateProps) {
+      await this.current.view.updateProps({
+        params: matched.params,
+        queryString: matched.queryString,
+        isPending: this.isPending,
+        loaderData: this.current.loaderData,
+      });
+    }
   }
 
   navigateTo(path) {
     history.pushState(null, "", path);
-    this.handleRoute(path);
-  }
-
-  handlePopState() {
-    this.handleRoute(location.pathname);
-  }
-
-  handleRoute(path) {
-    const basePath = import.meta.env.BASE_URL;
-    const pathName = path;
-    const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
-    const matchedParam = this._routesArray.find((route) => route.test(relativePath));
-    const handler = this.routes[matchedParam];
-    if (handler) {
-      handler();
-    } else {
-      this.$container.innerHTML = NotFoundPage();
-      console.log("404 Not Found");
-    }
+    this.render(path);
   }
 }
