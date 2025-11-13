@@ -38,9 +38,8 @@ class Router {
     const route = getRoute(path);
 
     if (route) {
-      const root = document.getElementById("root");
-      // document.getElementById("root").innerHTML = /* HTML */ ` ${route.component().onMount()} `;
-      route.component().onMount(root);
+      const $root = document.getElementById("root");
+      route.component($root);
     }
   }
 
