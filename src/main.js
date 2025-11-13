@@ -12,7 +12,14 @@ import { setupHeader } from "./components/Header.js";
 import { resetHomepageState, setHomepageState } from "./store/appStore.js";
 
 const enableMocking = () =>
-  import("./mocks/browser.js").then(({ worker }) => worker.start({ onUnhandledRequest: "bypass" }));
+  import("./mocks/browser.js").then(({ worker }) =>
+    worker.start({
+      serviceWorker: {
+        url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+      },
+      onUnhandledRequest: "bypass",
+    }),
+  );
 
 // 1) 라우트 정의
 const routes = [
