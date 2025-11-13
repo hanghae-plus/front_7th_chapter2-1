@@ -27,6 +27,15 @@ const Loading = /* HTML */ `
 `;
 
 const ProductItem = ({ title, image, lprice, productId, brand }) => {
+  // 장바구니에 추가할 상품 데이터
+  const productData = JSON.stringify({
+    id: productId,
+    title,
+    image,
+    lprice,
+    brand,
+  });
+
   return /* HTML */ `
     <div
       class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
@@ -52,7 +61,7 @@ const ProductItem = ({ title, image, lprice, productId, brand }) => {
         <button
           class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
                     hover:bg-blue-700 transition-colors add-to-cart-btn"
-          data-product-id="${productId}"
+          data-product="${productData.replace(/"/g, "&quot;")}"
         >
           장바구니 담기
         </button>
