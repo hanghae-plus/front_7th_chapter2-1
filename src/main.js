@@ -64,6 +64,13 @@ class AppLifecycle {
     this.unsubscribe = null;
     this.previousPath = null; // 이전 경로 추적
     this.isPopState = false; // popstate 이벤트 여부
+    // 검색/필터 관련 이전 값 추적 (중복 호출 방지)
+    this.previousSearch = null;
+    this.previousSort = null;
+    this.previousLimit = null;
+    this.previousCategory1 = null;
+    this.previousCategory2 = null;
+    this.pendingLoadProducts = false; // loadProducts 호출 대기 중인지 추적
   }
 
   /**
@@ -85,6 +92,13 @@ class AppLifecycle {
     // 초기 경로 설정 (이것이 store.subscribe를 트리거하여 초기 렌더링이 시작됨)
     const initialPath = removeBasePath(window.location.pathname);
     this.previousPath = initialPath; // 초기 경로 설정
+    const params = parseUrlParams();
+    // 초기 검색/필터 값 설정
+    this.previousSearch = params.search;
+    this.previousSort = params.sort;
+    this.previousLimit = params.limit;
+    this.previousCategory1 = params.category1;
+    this.previousCategory2 = params.category2;
     store.setState({ path: initialPath });
   }
 
@@ -133,20 +147,19 @@ class AppLifecycle {
   setupSearchHandler() {
     const performSearch = (value) => {
       const trimmed = value.trim();
-      if (trimmed === store.state.search) return;
+
+      if (trimmed === store.state.search) {
+        return;
+      }
 
       // buildUpdatedUrl을 사용하여 기존 파라미터를 유지하면서 search만 업데이트
       const url = buildUpdatedUrl({ search: trimmed });
+
+      // navigate만 호출 - store.subscribe에서 search 변경을 감지하여 loadProducts 호출
       this.navigate(url);
 
-      // navigate가 store를 업데이트한 후에 loadProducts를 호출하도록 queueMicrotask 사용
+      // 로딩 상태만 업데이트 (loadProducts는 store.subscribe에서 호출)
       store.setState({ isLoaded: false, currentPage: 1, hasMore: true, error: null });
-      if (store.state.path === "/" && !this.isFetchingProducts) {
-        queueMicrotask(() => {
-          // navigate가 store를 업데이트한 후에 실행되도록 보장
-          this.loadProducts(1, false);
-        });
-      }
     };
 
     // 키보드 이벤트 핸들러
@@ -165,6 +178,7 @@ class AppLifecycle {
 
       event.preventDefault();
       const input = target.value ?? "";
+
       performSearch(input);
     };
 
@@ -189,10 +203,8 @@ class AppLifecycle {
         const sortValue = target.value;
         if (sortValue === store.state.sort) return;
         updateParams({ sort: sortValue === "price_asc" ? "" : sortValue });
+        // 상태만 업데이트 - loadProducts는 store.subscribe에서 호출
         store.setState({ isLoaded: false, sort: sortValue, currentPage: 1, hasMore: true, error: null });
-        if (store.state.path === "/" && !this.isFetchingProducts) {
-          this.loadProducts(1, false);
-        }
         return;
       }
 
@@ -200,10 +212,8 @@ class AppLifecycle {
         const limitValue = target.value;
         if (limitValue === store.state.limit) return;
         updateParams({ limit: limitValue });
+        // 상태만 업데이트 - loadProducts는 store.subscribe에서 호출
         store.setState({ isLoaded: false, limit: limitValue, currentPage: 1, hasMore: true, error: null });
-        if (store.state.path === "/" && !this.isFetchingProducts) {
-          this.loadProducts(1, false);
-        }
       }
     });
   }
@@ -219,6 +229,13 @@ class AppLifecycle {
       const params = parseUrlParams();
       const pathWithoutBase = removeBasePath(window.location.pathname);
 
+      // 이전 값 업데이트 (store.subscribe에서 중복 호출 방지)
+      this.previousSearch = params.search;
+      this.previousSort = params.sort;
+      this.previousLimit = params.limit;
+      this.previousCategory1 = params.category1;
+      this.previousCategory2 = params.category2;
+
       store.setState({
         path: pathWithoutBase,
         search: params.search,
@@ -232,10 +249,16 @@ class AppLifecycle {
         error: null,
       });
 
-      // 홈 페이지로 돌아온 경우 상품 로드
+      // 홈 페이지로 돌아온 경우 상품 로드 (store.subscribe에서 처리되지 않으므로 직접 호출)
       if (pathWithoutBase === "/" && !this.isFetchingProducts) {
         this.loadProducts(1, false);
       }
+
+      // popstate 처리 완료 후 플래그 리셋
+      // store.subscribe가 실행된 후에 리셋하도록 queueMicrotask 사용
+      queueMicrotask(() => {
+        this.isPopState = false;
+      });
     });
   }
 
@@ -249,6 +272,52 @@ class AppLifecycle {
         document.body.style.overflow = "hidden";
       } else {
         document.body.style.overflow = "";
+      }
+
+      // 검색/필터 파라미터 변경 감지하여 loadProducts 호출 (중복 방지)
+      // handleStateChange에서 초기 로드는 처리하므로, 여기서는 파라미터 변경만 감지
+      // popstate 이벤트로 인한 변경은 popstate 핸들러에서 직접 처리하므로 건너뜀
+      if (state.path === "/" && !this.isFetchingProducts && !this.pendingLoadProducts && !this.isPopState) {
+        const searchChanged = this.previousSearch !== state.search;
+        const sortChanged = this.previousSort !== state.sort;
+        const limitChanged = this.previousLimit !== state.limit;
+        const category1Changed = this.previousCategory1 !== state.category1;
+        const category2Changed = this.previousCategory2 !== state.category2;
+
+        // 파라미터가 변경되었고, 이전 값이 설정되어 있을 때만 loadProducts 호출
+        // (초기 로드는 handleStateChange에서 처리)
+        const shouldLoad =
+          (searchChanged && this.previousSearch !== null) ||
+          (sortChanged && this.previousSort !== null) ||
+          (limitChanged && this.previousLimit !== null) ||
+          (category1Changed && this.previousCategory1 !== null) ||
+          (category2Changed && this.previousCategory2 !== null);
+
+        // 파라미터가 변경되었으면 loadProducts 호출
+        // isLoaded가 false로 설정되어 있거나, 파라미터가 변경되었으면 호출
+        if (shouldLoad) {
+          // 이미 fetching 중이면 pendingLoadProducts 플래그만 설정
+          // loadProducts 완료 시 재시도됨
+          if (this.isFetchingProducts) {
+            // 파라미터 변경으로 인한 재로드이므로 isLoaded를 false로 설정
+            store.setState({ isLoaded: false });
+            this.pendingLoadProducts = true;
+          } else {
+            this.pendingLoadProducts = true;
+            setTimeout(() => {
+              // 파라미터 변경으로 인한 재로드이므로 isLoaded를 false로 설정
+              store.setState({ isLoaded: false });
+              this.loadProducts(1, false);
+            }, 0);
+          }
+        }
+
+        // 이전 값 업데이트 (변경 여부와 관계없이 항상 업데이트)
+        this.previousSearch = state.search;
+        this.previousSort = state.sort;
+        this.previousLimit = state.limit;
+        this.previousCategory1 = state.category1;
+        this.previousCategory2 = state.category2;
       }
 
       await this.handleStateChange(state);
@@ -328,6 +397,17 @@ class AppLifecycle {
       });
     } finally {
       this.isFetchingProducts = false;
+
+      // pendingLoadProducts가 true면 다시 호출 (파라미터 변경으로 인한 재시도)
+      if (this.pendingLoadProducts) {
+        this.pendingLoadProducts = false;
+        // 파라미터 변경으로 인한 재로드이므로 isLoaded를 false로 설정
+        store.setState({ isLoaded: false });
+        // 다음 이벤트 루프에서 실행
+        setTimeout(() => {
+          this.loadProducts(1, false);
+        }, 0);
+      }
     }
   }
 

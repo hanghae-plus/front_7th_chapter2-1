@@ -377,22 +377,17 @@ export class EventHandlers {
    * 카테고리 상태 업데이트
    * navigate 함수가 이미 URL 파라미터를 파싱해서 store에 반영하므로,
    * 여기서는 로딩 상태만 업데이트합니다.
+   * loadProducts는 store.subscribe에서 파라미터 변경을 감지하여 호출됩니다.
    */
   updateCategoryState() {
     // navigate가 이미 category1, category2를 store에 반영했으므로
-    // 로딩 상태만 업데이트
+    // 로딩 상태만 업데이트 (loadProducts는 store.subscribe에서 호출)
     store.setState({
       isLoaded: false,
       currentPage: 1,
       hasMore: true,
       error: null,
     });
-
-    if (store.state.path === "/" && !this.isFetchingProducts()) {
-      queueMicrotask(() => {
-        this.loadProducts(1, false);
-      });
-    }
   }
 
   /**
