@@ -188,4 +188,20 @@
  * @typedef {Promise<T>} AsyncReturn
  */
 
+// ============================================
+// Route 타입
+// ============================================
+
+/**
+ * @typedef {Record<string, RouteConfig>} Routes
+ */
+/**
+ * @typedef {Object} RouteConfig
+ * @property {string} name
+ * @property {string} path
+ * @property {RegExp} pattern
+ * @property {(props: any) => string} render
+ * @property {(params: any) => Promise<any>} loader
+ */
+
 export {};

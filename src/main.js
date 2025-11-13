@@ -3,45 +3,49 @@ import CartModal from "./components/CartModal";
 import { TOAST_MESSAGE_MAP } from "./constants/toast-constant";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
-import { extractParams } from "./utils/route";
 import { showToastMessage } from "./utils/toast-utils";
+import Router from "./core/router";
 
 /**
  * @typedef {import('./types.js').CategoryTreeNode} CategoryTreeNode
  * @typedef {import('./types.js').ProductListResponse} ProductListResponse
+ * @typedef {import('./types.js').Routes} Routes
  */
 
 /** @type {HTMLElement | null} */
 let ioSentinel = null;
 
-/* Utils */
+/** @type {string} */
+const basePath = import.meta.env.BASE_URL;
 
+/** @type {HTMLElement | null} */
+const $root = document.querySelector("#root");
+const $cartModalRoot = document.querySelector("#cart-modal-root");
+
+/* Utils */
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
       serviceWorker: {
-        url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+        url: `${basePath}mockServiceWorker.js`,
       },
       onUnhandledRequest: "bypass",
     }),
   );
 
 async function main() {
-  const basePath = import.meta.env.BASE_URL;
+  if (!$root) throw new Error("Root element not found");
+  if (!$cartModalRoot) throw new Error("Cart modal root element not found");
+
+  Router.init(ROUTES, basePath, $root);
+
   const pathName = window.location.pathname;
   const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
   const homeRoute = ROUTES.home;
   const productDetailRoute = ROUTES.productDetail;
 
-  /** @type {HTMLElement | null} */
-  const $root = document.querySelector("#root");
-  const $cartModalRoot = document.querySelector("#cart-modal-root");
-
   const appState = appStore.getState();
-
-  if (!$root) throw new Error("Root element not found");
-  if (!$cartModalRoot) throw new Error("Cart modal root element not found");
 
   /* Initial Render */
   if (relativePath === homeRoute.path) {
@@ -70,24 +74,6 @@ async function main() {
   }
 
   /* Event Handlers */
-
-  // Window Event Handler
-  /**
-   * @param {PopStateEvent} event
-   */
-  window.addEventListener("popstate", async (event) => {
-    console.log("[PopState Event]", event, window.location, event.state);
-    const currentPathName = window.location.pathname;
-    const currentRelativePath = currentPathName.replace(basePath, "/").replace(/\/$/, "") || "/";
-    const targetRoute = Object.values(ROUTES).find((route) => route.pattern.test(currentRelativePath));
-    if (!targetRoute) throw new Error("Route not found");
-    const params = extractParams(targetRoute.path, currentRelativePath);
-    const props = await targetRoute.loader(params);
-    $root.innerHTML = `
-      ${targetRoute.render(props)}
-    `;
-  });
-
   window.addEventListener("keydown", async (event) => {
     if (!event.target) return;
     if ($cartModalRoot.innerHTML !== "" && event.key === "Escape") {
@@ -237,16 +223,9 @@ async function main() {
       const linkHref = linkElement.dataset.linkHref;
 
       if (linkHref) {
-        const route = Object.values(ROUTES).find((route) => route.pattern.test(linkHref));
-        if (!route) throw new Error("Route not found");
-        history.pushState(null, "", `${basePath}${linkHref.replace("/", "")}`);
-        const params = extractParams(route.path, linkHref);
-        const props = await route.loader(params);
-        $root.innerHTML = `
-          ${route.render(props)}
-        `;
+        Router.push(linkHref);
       } else if (linkElement.closest("[data-go-back]")) {
-        history.back();
+        Router.goBack();
       }
     }
   });
@@ -383,7 +362,7 @@ async function main() {
 
 // 애플리케이션 시작
 if (import.meta.env.MODE !== "test") {
-  enableMocking().then(main);
+  enableMocking().then(() => main());
 } else {
   main();
 }
