@@ -222,6 +222,13 @@ const render = async () => {
 document.body.addEventListener('click', (e) => {
   const $target = e.target;
 
+  if ($target.closest('a')) {
+    e.preventDefault();
+    const href = $target.closest('a').getAttribute('href');
+    push(href);
+    return;
+  }
+
   // 재시도 버튼 클릭
   if ($target.closest('#retry-btn')) {
     e.stopPropagation();
@@ -510,14 +517,12 @@ document.body.addEventListener('click', (e) => {
     const productId = $target.closest('.related-product-card').dataset
       .productId;
     push(`${import.meta.env.BASE_URL}product/${productId}`);
-    render();
     return;
   }
 
   if ($target.closest('.product-card')) {
     const productId = $target.closest('.product-card').dataset.productId;
     push(`${import.meta.env.BASE_URL}product/${productId}`);
-    render();
   }
 });
 
@@ -541,8 +546,7 @@ document.body.addEventListener('change', (e) => {
     const url = new URL(window.location);
     url.searchParams.set('limit', newLimit);
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 });
 
@@ -554,8 +558,7 @@ document.body.addEventListener('change', (e) => {
     const url = new URL(window.location);
     url.searchParams.set('sort', newSort);
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 });
 
@@ -572,8 +575,7 @@ document.body.addEventListener('keypress', (e) => {
       url.searchParams.delete('search');
     }
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 });
 
@@ -588,8 +590,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category1', category1);
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 
   // 2depth 카테고리 필터
@@ -600,8 +601,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category1', category1);
     url.searchParams.set('category2', category2);
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 
   // 브레드크럼 리셋
@@ -610,8 +610,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.delete('category1');
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 
   // 브레드크럼 category1
@@ -621,8 +620,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category1', category1);
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
-    history.pushState(null, null, url);
-    render();
+    push(url);
   }
 });
 
