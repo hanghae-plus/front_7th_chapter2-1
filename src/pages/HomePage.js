@@ -3,6 +3,7 @@ import { SearchForm, ProductList } from "../components";
 import { getCategories, getProducts } from "../api/productApi.js";
 import { parseHomeQuery } from "../utils/urlUtils.js";
 import { useState } from "../lib/hook.js";
+import { showToast } from "../lib/toast.js";
 
 import { cartStore } from "../store/cartStore.js";
 import { ModalShell } from "../components/modal/ModalShell.js";
@@ -202,7 +203,15 @@ const mountHomePage = () => {
 
   // 장바구니 모달 열기
   const handleCartModal = (event) => {
-    if (event.target.closest(".cart-item-remove-btn")) return;
+    if (
+      event.target.closest(".cart-item-remove-btn") ||
+      event.target.closest("#cart-modal-clear-cart-btn") ||
+      event.target.closest("#cart-modal-remove-selected-btn") ||
+      event.target.closest(".quantity-increase-btn") ||
+      event.target.closest(".quantity-decrease-btn") ||
+      event.target.closest(".cart-item-checkbox")
+    )
+      return;
     const modal = document.querySelector(".cart-modal");
     if (!modal) return;
 
@@ -239,7 +248,11 @@ const mountHomePage = () => {
           hasChanged = true;
           return { ...item, checked: shouldChecked };
         });
-        return hasChanged ? updatedList : baseList;
+        if (hasChanged) {
+          runtime.selectProductList = updatedList;
+          return updatedList;
+        }
+        return baseList;
       });
       cartStore.setAllChecked(shouldChecked);
       return;
@@ -260,7 +273,11 @@ const mountHomePage = () => {
         hasChanged = true;
         return { ...item, checked: shouldChecked };
       });
-      return hasChanged ? updatedList : baseList;
+      if (hasChanged) {
+        runtime.selectProductList = updatedList;
+        return updatedList;
+      }
+      return baseList;
     });
 
     if (hasChanged) {
@@ -280,11 +297,18 @@ const mountHomePage = () => {
     if (!productId) return;
 
     runtime.setSelectProductList?.((prev) => {
-      if (!Array.isArray(prev)) return [];
-      return prev.filter((item) => item.productId !== productId);
+      if (!Array.isArray(prev)) {
+        runtime.selectProductList = [];
+        return [];
+      }
+      const nextList = prev.filter((item) => item.productId !== productId);
+      runtime.selectProductList = nextList;
+      return nextList;
     });
 
     cartStore.removeItem(productId);
+    const message = "선택된 상품들이 삭제되었습니다";
+    showToast({ type: "info", message });
   };
 
   // ✅ 장바구니 수량 조절 버튼을 처리한다
@@ -314,7 +338,11 @@ const mountHomePage = () => {
         hasChanged = true;
         return { ...item, quantity: computedQuantity };
       });
-      return hasChanged ? updatedList : baseList;
+      if (hasChanged) {
+        runtime.selectProductList = updatedList;
+        return updatedList;
+      }
+      return baseList;
     });
 
     if (hasChanged && nextQuantity !== null) {
@@ -330,8 +358,15 @@ const mountHomePage = () => {
     event.preventDefault();
     event.stopPropagation();
 
-    runtime.setSelectProductList?.([]);
+    const hadItems = (runtime.selectProductList?.length ?? 0) > 0;
+    runtime.setSelectProductList?.(() => {
+      runtime.selectProductList = [];
+      return [];
+    });
     cartStore.clear();
+    if (hadItems) {
+      showToast({ type: "info", message: "장바구니를 비웠습니다." });
+    }
   };
 
   // ✅ 선택된 장바구니 항목만 제거한다
@@ -342,14 +377,33 @@ const mountHomePage = () => {
     event.preventDefault();
     event.stopPropagation();
 
-    runtime.setSelectProductList?.((prev) => {
-      if (!Array.isArray(prev)) return [];
-      const nextList = prev.filter((item) => !item.checked);
-      return nextList;
+    const currentItems = runtime.selectProductList ?? [];
+    const removedItems = currentItems.filter((item) => item.checked);
+    if (removedItems.length === 0) {
+      showToast({ type: "info", message: "선택된 상품이 없습니다." });
+      return;
+    }
+
+    const remainingItems = currentItems.filter((item) => !item.checked);
+
+    runtime.setSelectProductList?.(() => {
+      runtime.selectProductList = remainingItems;
+      return remainingItems;
     });
+
+    removedItems.forEach((item) => cartStore.removeItem(item.productId));
     cartStore.setAllChecked(false);
-    const currentCartItems = runtime.selectProductList ?? [];
-    currentCartItems.filter((item) => item.checked).forEach((item) => cartStore.removeItem(item.productId));
+    showToast({ type: "info", message: "선택된 상품들이 삭제되었습니다" });
+  };
+
+  const handleCheckoutClick = (event) => {
+    const checkoutButton = event.target.closest("#cart-modal-checkout-btn");
+    if (!checkoutButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    showToast({ type: "info", message: "구매 기능은 추후 구현 예정입니다." });
   };
 
   // ✅ 상품 카드에서 장바구니 버튼을 클릭하면 장바구니에 추가한다
@@ -376,8 +430,9 @@ const mountHomePage = () => {
     runtime.setSelectProductList?.((prev) => {
       const baseList = Array.isArray(prev) ? prev : [];
       const targetIndex = baseList.findIndex((item) => item.productId === productId);
+      let nextList;
       if (targetIndex >= 0) {
-        return baseList.map((item, index) => {
+        nextList = baseList.map((item, index) => {
           if (index !== targetIndex) return item;
           const currentQuantity = Number(item.quantity ?? 0);
           return {
@@ -385,18 +440,21 @@ const mountHomePage = () => {
             quantity: currentQuantity + 1,
           };
         });
+      } else {
+        nextList = [
+          ...baseList,
+          {
+            productId,
+            title,
+            image,
+            price,
+            quantity: 1,
+            checked: false,
+          },
+        ];
       }
-      return [
-        ...baseList,
-        {
-          productId,
-          title,
-          image,
-          price,
-          quantity: 1,
-          checked: false,
-        },
-      ];
+      runtime.selectProductList = nextList;
+      return nextList;
     });
 
     cartStore.addItem(
@@ -408,6 +466,7 @@ const mountHomePage = () => {
       },
       1,
     );
+    showToast({ type: "success", message: "장바구니에 추가되었습니다" });
   };
 
   root.addEventListener("click", handleProductCardClick);
@@ -422,6 +481,7 @@ const mountHomePage = () => {
   root.addEventListener("click", handleCartItemQuantityClick);
   root.addEventListener("click", handleClearCart);
   root.addEventListener("click", handleRemoveSelectedCartItems);
+  root.addEventListener("click", handleCheckoutClick);
 
   runtime.reobserveSentinel = () => {
     window.requestAnimationFrame(() => observeSentinel());
@@ -446,6 +506,7 @@ const mountHomePage = () => {
     root.removeEventListener("click", handleCartItemQuantityClick);
     root.removeEventListener("click", handleClearCart);
     root.removeEventListener("click", handleRemoveSelectedCartItems);
+    root.removeEventListener("click", handleCheckoutClick);
     observer.disconnect();
     runtime.reobserveSentinel = null;
     if (runtime.unMount === unMount) runtime.unMount = null;
@@ -505,6 +566,7 @@ export const HomePageComponent = () => {
     runtime.cartSyncHandler ??= (nextCartItems) => {
       if (!Array.isArray(nextCartItems)) {
         runtime.setSelectProductList?.([]);
+        runtime.selectProductList = [];
         return;
       }
 
@@ -535,6 +597,7 @@ export const HomePageComponent = () => {
         checked: Boolean(item.checked),
       }));
       runtime.setSelectProductList?.(snapshot);
+      runtime.selectProductList = snapshot;
     };
     runtime.cartUnsubscribe = cartStore.subscribe(runtime.cartSyncHandler);
     runtime.isCartSubscribed = true;
@@ -675,6 +738,7 @@ const loadInitialData = async (query) => {
   } catch (error) {
     console.error("홈 페이지 로딩 실패", error);
     runtime.setError?.("상품을 불러오지 못했습니다.");
+    showToast({ type: "error", message: "오류가 발생했습니다." });
   } finally {
     runtime.setIsLoading?.(false);
     runtime.isInitializing = false;
@@ -716,6 +780,7 @@ const requestLoadMore = () => {
     .catch((error) => {
       console.error("추가 상품 로딩 실패", error);
       runtime.setError?.("추가 상품을 불러오지 못했습니다.");
+      showToast({ type: "error", message: "오류가 발생했습니다." });
     })
     .finally(() => {
       runtime.isLoadingMore = false;

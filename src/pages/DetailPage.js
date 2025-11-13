@@ -3,6 +3,7 @@ import { getProduct, getProducts } from "../api/productApi.js";
 import { useState } from "../lib/hook.js";
 import { navigate } from "../router/router.js";
 import { cartStore } from "../store/cartStore.js";
+import { showToast } from "../lib/toast.js";
 
 import { ProductDetailLoading } from "../components/productDetail/ProductDetailLoading.js";
 import { ProductBreadcrumb } from "../components/productDetail/ProductBreadcrumb.js";
@@ -195,6 +196,9 @@ const mountDetailPage = () => {
     });
     cartStore.addItem(product, quantity);
     runtime.setProductQty?.(1);
+    runtime.productQty = 1;
+    if (quantityInput) quantityInput.value = "1";
+    showToast({ type: "success", message: "장바구니에 추가되었습니다" });
   };
 
   const handleAddToCartFromList = (event) => {
@@ -256,6 +260,7 @@ const mountDetailPage = () => {
       },
       1,
     );
+    showToast({ type: "success", message: "장바구니에 추가되었습니다" });
   };
 
   const handleCartModalCheckboxChange = (event) => {
@@ -331,6 +336,8 @@ const mountDetailPage = () => {
       return nextList;
     });
     cartStore.removeItem(productId);
+    const message = "선택된 상품들이 삭제되었습니다";
+    showToast({ type: "info", message });
   };
 
   const handleCartItemQuantityClick = (event) => {
@@ -378,9 +385,15 @@ const mountDetailPage = () => {
     event.preventDefault();
     event.stopPropagation();
 
-    runtime.setSelectProductList?.([]);
-    runtime.selectProductList = [];
+    const hadItems = (runtime.selectProductList?.length ?? 0) > 0;
+    runtime.setSelectProductList?.(() => {
+      runtime.selectProductList = [];
+      return [];
+    });
     cartStore.clear();
+    if (hadItems) {
+      showToast({ type: "info", message: "장바구니를 비웠습니다." });
+    }
   };
 
   const handleRemoveSelectedCartItems = (event) => {
@@ -391,14 +404,30 @@ const mountDetailPage = () => {
     event.stopPropagation();
 
     const currentCartItems = runtime.selectProductList ?? [];
-    const remainingItems = currentCartItems.filter((item) => !item.checked);
     const removedItems = currentCartItems.filter((item) => item.checked);
+    if (removedItems.length === 0) {
+      showToast({ type: "info", message: "선택된 상품이 없습니다." });
+      return;
+    }
+
+    const remainingItems = currentCartItems.filter((item) => !item.checked);
 
     runtime.setSelectProductList?.(remainingItems);
     runtime.selectProductList = remainingItems;
 
     removedItems.forEach((item) => cartStore.removeItem(item.productId));
     cartStore.setAllChecked(false);
+    showToast({ type: "info", message: "선택된 상품들이 삭제되었습니다" });
+  };
+
+  const handleCheckoutClick = (event) => {
+    const checkoutButton = event.target.closest("#cart-modal-checkout-btn");
+    if (!checkoutButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    showToast({ type: "info", message: "구매 기능은 추후 구현 예정입니다." });
   };
 
   const handleCartModal = (event) => {
@@ -443,6 +472,7 @@ const mountDetailPage = () => {
   $root.addEventListener("click", handleCartItemQuantityClick);
   $root.addEventListener("click", handleClearCart);
   $root.addEventListener("click", handleRemoveSelectedCartItems);
+  $root.addEventListener("click", handleCheckoutClick);
   if (runtime.isCartModalOpen) {
     const modal = document.querySelector(".cart-modal");
     if (modal) modal.classList.remove("hidden");
@@ -460,6 +490,7 @@ const mountDetailPage = () => {
     $root.removeEventListener("click", handleCartItemQuantityClick);
     $root.removeEventListener("click", handleClearCart);
     $root.removeEventListener("click", handleRemoveSelectedCartItems);
+    $root.removeEventListener("click", handleCheckoutClick);
     const modal = document.querySelector(".cart-modal");
     if (modal && !runtime.isCartModalOpen) modal.classList.add("hidden");
     runtime.cartUnsubscribe?.();
@@ -507,6 +538,7 @@ export const DetailPageComponent = (context = {}) => {
     runtime.cartSyncHandler ??= (nextCartItems) => {
       if (!Array.isArray(nextCartItems)) {
         runtime.setSelectProductList?.([]);
+        runtime.selectProductList = [];
         return;
       }
 
@@ -537,6 +569,7 @@ export const DetailPageComponent = (context = {}) => {
         checked: Boolean(item.checked),
       }));
       runtime.setSelectProductList?.(snapshot);
+      runtime.selectProductList = snapshot;
     };
     runtime.cartUnsubscribe = cartStore.subscribe(runtime.cartSyncHandler);
     runtime.isCartSubscribed = true;
@@ -578,6 +611,7 @@ const fetchProduct = async (productId) => {
       relatedProducts: null,
       error: "상품을 불러오지 못했습니다.",
     }));
+    showToast({ type: "error", message: "오류가 발생했습니다." });
   }
 };
 
