@@ -2,7 +2,7 @@ import { router } from "./router.js";
 import { store } from "./store/store.js";
 import { HomePage } from "./pages/HomePage.js";
 import { DetailPage } from "./pages/DetailPage.js";
-import { getProducts, getCategories } from "./api/productApi";
+import { getProducts, getCategories, getProduct } from "./api/productApi";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -104,42 +104,49 @@ document.body.addEventListener("keydown", (e) => {
 
 function syncStateFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  const category1 = params.get("category1") || "";
-  const category2 = params.get("category2") || "";
-  const limit = parseInt(params.get("limit")) || 20;
-  const search = params.get("search") || "";
-  const sort = params.get("sort") || "price_asc";
-  const page = parseInt(params.get("current")) || 1;
 
-  const stateUpdates = {};
+  const urlState = {
+    category1: params.get("category1") || "",
+    category2: params.get("category2") || "",
+    search: params.get("search") || "",
+    sort: params.get("sort") || "price_asc",
+    pagination: {
+      page: parseInt(params.get("current")) || 1,
+      limit: parseInt(params.get("limit")) || 20,
+    },
+  };
 
-  if (store.state.category1 !== category1 || store.state.category2 !== category2) {
-    stateUpdates.category1 = category1;
-    stateUpdates.category2 = category2;
-    // 카테고리나 서브카테고리가 변경되면 page를 1로 리셋
-    stateUpdates.pagination = { ...store.state.pagination, page, limit };
+  const updates = {};
+  const prev = store.state;
+
+  // 1) 필터 변경 → page 초기화가 필요한 경우 체크
+  const filterChanged =
+    prev.category1 !== urlState.category1 || prev.category2 !== urlState.category2 || prev.search !== urlState.search;
+
+  if (prev.category1 !== urlState.category1) updates.category1 = urlState.category1;
+  if (prev.category2 !== urlState.category2) updates.category2 = urlState.category2;
+
+  if (prev.search !== urlState.search) updates.search = urlState.search;
+  if (prev.sort !== urlState.sort) updates.sort = urlState.sort;
+
+  // 2) pagination 처리
+  const paginationChanged =
+    prev.pagination.page !== urlState.pagination.page || prev.pagination.limit !== urlState.pagination.limit;
+
+  if (filterChanged) {
+    // 필터 바뀌면 page = 1 유지
+    updates.pagination = {
+      ...prev.pagination,
+      page: 1,
+      limit: urlState.pagination.limit,
+    };
+  } else if (paginationChanged) {
+    updates.pagination = urlState.pagination;
   }
 
-  if (search !== store.state.search) {
-    stateUpdates.search = search;
-    // 검색이 변경되면 page를 1로 리셋
-    stateUpdates.pagination = { ...store.state.pagination, page, limit };
-  }
-
-  if (store.state.pagination.limit !== limit) {
-    stateUpdates.pagination = { ...store.state.pagination, page, limit };
-  }
-
-  if (store.state.sort !== sort) {
-    stateUpdates.sort = sort;
-  }
-
-  if (store.state.pagination.page !== page) {
-    stateUpdates.pagination = { ...store.state.pagination, page, limit };
-  }
-
-  if (Object.keys(stateUpdates).length > 0) {
-    store.setState(stateUpdates);
+  // 3) 업데이트 필요한 경우만 setState
+  if (Object.keys(updates).length > 0) {
+    store.setState(updates);
   }
 }
 
@@ -174,6 +181,34 @@ const loadProducts = async () => {
 const loadCategories = async () => {
   const response = await getCategories();
   store.setState({ categories: response });
+};
+
+// 상품 상세 정보 로드
+const loadProductDetail = async (productId) => {
+  store.setState({ loading: true, product: null, relatedProducts: [] });
+  try {
+    const product = await getProduct(productId);
+
+    // category2가 같은 관련 상품 로드 (현재 상품 제외, 최대 4개)
+    const relatedResponse = await getProducts({
+      category1: product.category1,
+      category2: product.category2,
+      limit: 20,
+    });
+
+    const relatedProducts = relatedResponse.products
+      .filter((p) => p.productId !== productId) // 현재 상품 제외
+      .slice(0, 20); // 최대 4개만
+
+    store.setState({
+      product,
+      relatedProducts,
+      loading: false,
+    });
+  } catch (error) {
+    console.error("상품 로드 실패:", error);
+    store.setState({ loading: false });
+  }
 };
 
 // 무한스크롤 관련 변수
@@ -286,8 +321,14 @@ const render = async ({ isQueryOnly = false } = {}) => {
     setTimeout(() => {
       setupInfiniteScroll();
     }, 0);
-  } else if (path.startsWith("/products")) {
-    DetailPage();
+  } else if (path.startsWith("/product/")) {
+    const productId = path.split("/")[2]; // /product/123 → 123
+
+    if (!isQueryOnly) {
+      loadProductDetail(productId);
+    }
+
+    DetailPage({ loading: store.state.loading, product: store.state.product });
   }
 };
 

@@ -3,7 +3,7 @@ export const SearchBar = () => {
   const $el = document.createElement("div");
   $el.className = "mb-4";
 
-  function render() {
+  const render = () => {
     const { search } = store.state;
     $el.innerHTML = /* HTML */ `
       <div class="mb-4">
@@ -30,7 +30,7 @@ export const SearchBar = () => {
         </div>
       </div>
     `;
-  }
+  };
   store.subscribe(render);
   render();
 

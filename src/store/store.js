@@ -16,6 +16,28 @@ export const initialState = {
   category1: category1 || "",
   category2: category2 || "",
   loading: true,
+  product: {
+    title: "",
+    link: "",
+    image: "",
+    lprice: "",
+    hprice: "",
+    mallName: "",
+    productId: "",
+    productType: "",
+    brand: "",
+    maker: "",
+    category1: "",
+    category2: "",
+    category3: "",
+    category4: "",
+    description: "",
+    rating: 0,
+    reviewCount: 0,
+    stock: 0,
+    images: [],
+  },
+  relatedProducts: [],
 };
 
 export const store = createStore(initialState);
