@@ -1,61 +1,29 @@
-import { PageLayout } from "./PageLayout";
+import { DetailLayout } from "./DetailLayout";
 import { getProduct, getProducts } from "../api/productApi.js";
-import ErrorPage from "./ErrorPage.js";
 import { useState } from "../lib/hook.js";
 import { navigate } from "../router/router.js";
 
+import { ProductDetailLoading } from "../components/productDetail/ProductDetailLoading.js";
+import { ProductBreadcrumb } from "../components/productDetail/ProductBreadcrumb.js";
 import { ProductDetailInfo } from "../components/productDetail/ProductDetailInfo.js";
 import { RelatedProductsList } from "../components/productDetail/RelatedProductsList.js";
-import { ProductDetailLoading } from "../components/productDetail/ProductDetailLoading.js";
 
 const runtime = {
   setMainProductState: null,
   mainProductState: null,
 
   isFetching: false, // 데이터 로딩 여부
-  unMount: null,
+  unMount: null, // 컴포넌트 언마운트 핸들러
+  setProductQty: null,
+  productQty: null,
 };
 
-const ProductBreadcrumb = (product) => {
-  return /*html*/ `
-    <nav class="mb-4">
-      <div class="flex items-center space-x-2 text-sm text-gray-600">
-        <a href="/" data-link="" class="hover:text-blue-600 transition-colors">홈</a>
-        ${
-          product.category1
-            ? /*html*/ `
-          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-          </svg>
-          <button class="breadcrumb-link" data-category1="${product.category1}">
-            ${product.category1}
-          </button>
-        `
-            : ""
-        }
-        ${
-          product.category2
-            ? /*html*/ `
-          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-          </svg>
-          <button class="breadcrumb-link" data-category2="${product.category2}">
-            ${product.category2}
-          </button>
-        `
-            : ""
-        }
-      </div>
-    </nav>
-  `;
-};
-
-const buildPageView = (state) => {
-  const { loading, product, relatedProducts, error } = state;
-  if (error) return ErrorPage();
+const buildPageView = (props) => {
+  const { loading, product, relatedProducts, error, productQty } = props;
+  if (error) throw new Error(error);
   const safeProduct = product ?? {};
 
-  return PageLayout({
+  return DetailLayout({
     children: loading
       ? ProductDetailLoading()
       : /*html*/ `
@@ -77,7 +45,7 @@ const buildPageView = (state) => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                   </svg>
                 </button>
-                <input type="number" id="quantity-input" value="1" min="1" max="107" class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
+                <input type="number" id="quantity-input" value="${productQty ?? 1}" min="1" max="107" class="w-16 h-8 text-center text-sm border-t border-b border-gray-300
                   focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                 <button id="quantity-increase" class="w-8 h-8 flex items-center justify-center border border-gray-300
                    rounded-r-md bg-gray-50 hover:bg-gray-100">
@@ -145,26 +113,69 @@ const fetchProduct = async (productId) => {
 };
 
 const mountDetailPage = () => {
-  const root = document.getElementById("root");
-  if (!root) return () => {};
+  const $root = document.getElementById("root");
+  if (!$root) return () => {};
 
+  // 중복 이벤트 핸들러 초기화
   runtime.unMount?.();
   runtime.unMount = null;
 
   const handleProductCardClick = (event) => {
+    // 관련 상품 클릭
     const item = event.target.closest(".related-product-card");
     if (!item) return;
     const productId = item.dataset.productId;
-    console.log("productId : ", productId);
     if (productId) {
       navigate(`/products/${productId}`);
     }
   };
 
-  root.addEventListener("click", handleProductCardClick);
+  const handleCategoryClick = (event) => {
+    // 상부 카테고리 클릭
+    const item = event.target.closest(".breadcrumb-link");
+    if (!item) return;
+    const currentCategory1 = runtime.mainProductState?.product?.category1 ?? "";
+    const category1 = item.dataset.category1 ?? currentCategory1;
+    const category2 = item.dataset.category2 ?? "";
+    if (category2) {
+      navigate(`/?category1=${category1}&category2=${category2}`);
+    }
+    if (category1) {
+      navigate(`/?category1=${category1}`);
+    }
+  };
 
+  const handleGoToProductListClick = (event) => {
+    // 상품 목록으로 돌아가기
+    const item = event.target.closest(".go-to-product-list");
+    if (!item) return;
+
+    const currentCategory1 = runtime.mainProductState?.product?.category1 ?? "";
+    const currentCategory2 = runtime.mainProductState?.product?.category2 ?? "";
+    navigate(`/?category1=${currentCategory1}&category2=${currentCategory2}`);
+  };
+
+  const handelQuantityClick = (event) => {
+    // 수량 '-', '+' 버튼 클릭
+    const clickedButton = event.target.closest("#quantity-increase, #quantity-decrease");
+    if (!clickedButton) return;
+
+    // 어떤 버튼인지에 따라 증감 값 계산
+    const quantityDiff = clickedButton.id === "quantity-increase" ? 1 : -1;
+    const currentQty = runtime.productQty;
+    const nextQty = Math.max(1, currentQty + quantityDiff);
+    runtime.setProductQty?.(nextQty);
+  };
+
+  $root.addEventListener("click", handleProductCardClick);
+  $root.addEventListener("click", handleCategoryClick);
+  $root.addEventListener("click", handleGoToProductListClick);
+  $root.addEventListener("click", handelQuantityClick);
   const unMount = () => {
-    root.removeEventListener("click", handleProductCardClick);
+    $root.removeEventListener("click", handleProductCardClick);
+    $root.removeEventListener("click", handleCategoryClick);
+    $root.removeEventListener("click", handleGoToProductListClick);
+    $root.removeEventListener("click", handelQuantityClick);
     if (runtime.unMount === unMount) runtime.unMount = null;
   };
 
@@ -176,7 +187,7 @@ export const DetailPageComponent = (context = {}) => {
   const productId = context?.params?.id;
   if (!productId) {
     console.warn("상품 ID가 제공되지 않았습니다.");
-    return ErrorPage();
+    throw new Error("상품 ID가 제공되지 않았습니다.");
   }
 
   const [mainProductState, setMainProductState] = useState({
@@ -185,8 +196,13 @@ export const DetailPageComponent = (context = {}) => {
     relatedProducts: null,
     error: null,
   });
+
+  const [productQty, setProductQty] = useState(1);
+
   runtime.setMainProductState = setMainProductState;
   runtime.mainProductState = mainProductState;
+  runtime.setProductQty = setProductQty;
+  runtime.productQty = productQty;
 
   if (!runtime.isFetching && mainProductState.loading) {
     runtime.isFetching = true;
@@ -194,8 +210,11 @@ export const DetailPageComponent = (context = {}) => {
       runtime.isFetching = false;
     });
   }
-
-  return buildPageView(mainProductState);
+  const props = {
+    ...mainProductState,
+    productQty,
+  };
+  return buildPageView(props);
 };
 
 DetailPageComponent.mount = mountDetailPage;
