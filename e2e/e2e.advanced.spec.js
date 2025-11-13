@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { E2EHelpers } from "./E2EHelpers.js";
+import { E2EHelpers } from "@e2e/E2EHelpers.js";
 
 // 테스트 설정
 test.describe.configure({ mode: "serial" });
