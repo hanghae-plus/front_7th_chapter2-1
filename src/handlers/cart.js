@@ -1,6 +1,6 @@
 import { cartState } from "../App";
 import { CartIcon } from "../components/cart/CartIcon";
-import { CartModal, CartModalContent } from "../components/cart/CartModal";
+import { CartModal, CartModalContent, CartModalAction } from "../components/cart/CartModal";
 
 let modalUnsubscribe = null;
 
@@ -12,7 +12,10 @@ function renderCartModalContent() {
   if (!contentContainer) return;
 
   const { items } = cartState.getState();
-  contentContainer.innerHTML = CartModalContent({ items });
+  contentContainer.innerHTML = `
+    ${CartModalContent({ items })}
+    ${items.length > 0 ? CartModalAction({ items }) : ""}
+  `;
 }
 
 /**

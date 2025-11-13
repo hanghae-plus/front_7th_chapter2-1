@@ -148,12 +148,38 @@ function clickAddToCart() {
     button.addEventListener("click", (event) => {
       event.stopPropagation(); // 상품 클릭 이벤트 전파 방지
       const productId = event.currentTarget.dataset.productId;
+      const title = event.currentTarget.dataset.productTitle;
+      const image = event.currentTarget.dataset.productImage;
+      const lprice = event.currentTarget.dataset.productLprice;
+
       console.log(`상품 ${productId}번이 장바구니에 추가되었습니다.`);
 
-      // TODO 장바구니 스토어에 추가
-      cartState.setState({
-        items: [...cartState.getState().items, { productId, quantity: 1 }],
-      });
+      // 기존 장바구니 아이템 확인
+      const currentItems = cartState.getState().items;
+      const existingItem = currentItems.find((item) => item.productId === productId);
+
+      if (existingItem) {
+        // 이미 있으면 수량만 증가
+        cartState.setState({
+          items: currentItems.map((item) =>
+            item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item,
+          ),
+        });
+      } else {
+        // 없으면 새로 추가
+        cartState.setState({
+          items: [
+            ...currentItems,
+            {
+              productId,
+              quantity: 1,
+              title,
+              image,
+              lprice,
+            },
+          ],
+        });
+      }
 
       // Toast 표시
       showToast();
@@ -208,7 +234,40 @@ function onClickAddToCart() {
 
   const addToCartEventHandler = () => {
     const productId = addToCartButton.dataset.productId;
+    const title = addToCartButton.dataset.productTitle;
+    const image = addToCartButton.dataset.productImage;
+    const lprice = addToCartButton.dataset.productLprice;
+    const quantityInput = document.querySelector("#quantity-input");
+    const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
     console.log(`상품 ${productId}번이 장바구니에 추가되었습니다.`);
+
+    // 기존 장바구니 아이템 확인
+    const currentItems = cartState.getState().items;
+    const existingItem = currentItems.find((item) => item.productId === productId);
+
+    if (existingItem) {
+      // 이미 있으면 수량만 증가
+      cartState.setState({
+        items: currentItems.map((item) =>
+          item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item,
+        ),
+      });
+    } else {
+      // 없으면 새로 추가
+      cartState.setState({
+        items: [
+          ...currentItems,
+          {
+            productId,
+            quantity,
+            title,
+            image,
+            lprice,
+          },
+        ],
+      });
+    }
 
     // Toast 표시
     showToast();

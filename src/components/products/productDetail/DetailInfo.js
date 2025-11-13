@@ -63,8 +63,13 @@ const Counter = () => {
             </div>`;
 };
 
-const AddToCartButton = ({ productId }) => {
-  return /*HTML*/ `<button id="add-to-cart-btn" data-product-id=${productId} class="w-full bg-blue-600 text-white py-3 px-4 rounded-md 
+const AddToCartButton = ({ product }) => {
+  return /*HTML*/ `<button id="add-to-cart-btn" 
+               data-product-id="${product.productId}"
+               data-product-title="${product.title}"
+               data-product-image="${product.image}"
+               data-product-lprice="${product.lprice}"
+               class="w-full bg-blue-600 text-white py-3 px-4 rounded-md 
                hover:bg-blue-700 transition-colors font-medium">
             장바구니 담기
           </button>`;
@@ -93,7 +98,7 @@ export const DetailInfo = ({ product }) => {
             <span class="text-sm font-medium text-gray-900">수량</span>
             ${Counter()}
           </div>
-          ${AddToCartButton({ productId: product.productId })}
+          ${AddToCartButton({ product })}
         </div>
       </div>`;
 };
