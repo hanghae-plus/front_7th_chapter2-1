@@ -1,5 +1,6 @@
 export const EmptyCart = () => {
   return /*html*/ `
+  <div class="flex flex-col max-h-[calc(90vh-120px)]">
     <div class="flex-1 flex items-center justify-center p-8">
       <div class="text-center">
         <div class="text-gray-400 mb-4">
@@ -11,5 +12,6 @@ export const EmptyCart = () => {
         <p class="text-gray-600">원하는 상품을 담아보세요!</p>
       </div>
     </div>
+  </div>
   `;
 };

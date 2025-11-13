@@ -36,6 +36,7 @@ const runtime = {
   cartUnsubscribe: null,
   isCartSubscribed: false,
   cartSyncHandler: null,
+  isCartModalOpen: false,
 };
 
 const buildPageView = (state) => {
@@ -200,7 +201,8 @@ const mountHomePage = () => {
   };
 
   const handleCartModal = (event) => {
-    // 장바구니 모달
+    // 장바구니 모달 열기
+    if (event.target.closest(".cart-item-remove-btn")) return;
     const modal = document.querySelector(".cart-modal");
     if (!modal) return;
 
@@ -210,38 +212,123 @@ const mountHomePage = () => {
 
     if (openButton) {
       modal.classList.remove("hidden");
+      runtime.isCartModalOpen = true;
       return;
     }
 
     if (closeButton || overlayClicked) {
       modal.classList.add("hidden");
+      runtime.isCartModalOpen = false;
     }
+  };
+
+  const handleRemoveCartItem = (event) => {
+    const removeButton = event.target.closest(".cart-item-remove-btn");
+    if (!removeButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { productId } = removeButton.dataset;
+    if (!productId) return;
+
+    runtime.setSelectProductList?.((prev) => {
+      if (!Array.isArray(prev)) return [];
+      return prev.filter((item) => item.productId !== productId);
+    });
+
+    cartStore.removeItem(productId);
+  };
+
+  const handleAddToCartFromList = (event) => {
+    const addButton = event.target.closest(".add-to-cart-btn");
+    if (!addButton) return;
+    event.preventDefault();
+    const card = addButton.closest(".product-card");
+    if (!card) return;
+
+    const productId = addButton.dataset.productId ?? card.dataset.productId;
+    if (!productId) return;
+
+    const titleElement = card.querySelector(".product-info h3");
+    const priceElement = card.querySelector(".product-info + p") ?? card.querySelector(".product-info p:last-child");
+    const imageElement = card.querySelector("img");
+
+    const title = titleElement?.textContent?.trim() ?? "";
+    const priceText = priceElement?.textContent?.replace(/[^0-9]/g, "") ?? "0";
+    const image = imageElement?.getAttribute("src") ?? "";
+
+    const price = Number(priceText) || 0;
+
+    runtime.setSelectProductList?.((prev) => {
+      const baseList = Array.isArray(prev) ? prev : [];
+      const targetIndex = baseList.findIndex((item) => item.productId === productId);
+      if (targetIndex >= 0) {
+        return baseList.map((item, index) =>
+          index === targetIndex
+            ? {
+                ...item,
+                quantity: (item.quantity ?? 0) + 1,
+              }
+            : item,
+        );
+      }
+      return [
+        ...baseList,
+        {
+          productId,
+          title,
+          image,
+          price,
+          quantity: 1,
+        },
+      ];
+    });
+
+    cartStore.addItem(
+      {
+        productId,
+        title,
+        image,
+        lprice: price,
+      },
+      1,
+    );
   };
 
   root.addEventListener("click", handleProductCardClick);
   root.addEventListener("click", handleCategoryClick);
+  root.addEventListener("click", handleAddToCartFromList);
   root.addEventListener("change", handleLimitChange);
   root.addEventListener("change", handleSortChange);
   root.addEventListener("submit", handleSearchSubmit);
   root.addEventListener("click", handleCartModal);
+  root.addEventListener("click", handleRemoveCartItem);
 
   runtime.reobserveSentinel = () => {
     window.requestAnimationFrame(() => observeSentinel());
   };
   runtime.reobserveSentinel();
 
+  if (runtime.isCartModalOpen) {
+    const modal = document.querySelector(".cart-modal");
+    if (modal) modal.classList.remove("hidden");
+  }
+
   const unMount = () => {
     root.removeEventListener("click", handleProductCardClick);
     root.removeEventListener("click", handleCategoryClick);
+    root.removeEventListener("click", handleAddToCartFromList);
     root.removeEventListener("change", handleLimitChange);
     root.removeEventListener("change", handleSortChange);
     root.removeEventListener("submit", handleSearchSubmit);
     root.removeEventListener("click", handleCartModal);
+    root.removeEventListener("click", handleRemoveCartItem);
     observer.disconnect();
     runtime.reobserveSentinel = null;
     if (runtime.unMount === unMount) runtime.unMount = null;
     const modal = document.querySelector(".cart-modal");
-    if (modal) modal.classList.add("hidden");
+    if (modal && !runtime.isCartModalOpen) modal.classList.add("hidden");
     runtime.cartUnsubscribe?.();
     runtime.cartUnsubscribe = null;
     runtime.isCartSubscribed = false;
@@ -294,7 +381,30 @@ export const HomePageComponent = () => {
 
   if (!runtime.isCartSubscribed) {
     runtime.cartSyncHandler ??= (nextCartItems) => {
-      runtime.setSelectProductList?.(nextCartItems);
+      if (!Array.isArray(nextCartItems)) {
+        runtime.setSelectProductList?.([]);
+        return;
+      }
+
+      const prevItems = runtime.selectProductList ?? [];
+      const isSameLength = prevItems.length === nextCartItems.length;
+      let isShallowEqual = isSameLength;
+
+      if (isSameLength) {
+        for (let index = 0; index < nextCartItems.length; index += 1) {
+          const currentItem = nextCartItems[index];
+          const prevItem = prevItems[index];
+          if (!prevItem || prevItem.productId !== currentItem.productId || prevItem.quantity !== currentItem.quantity) {
+            isShallowEqual = false;
+            break;
+          }
+        }
+      }
+
+      if (isShallowEqual) return;
+
+      const snapshot = nextCartItems.map((item) => ({ ...item }));
+      runtime.setSelectProductList?.(snapshot);
     };
     runtime.cartUnsubscribe = cartStore.subscribe(runtime.cartSyncHandler);
     runtime.isCartSubscribed = true;

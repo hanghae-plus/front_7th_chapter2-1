@@ -81,6 +81,7 @@ export const cartStore = {
       const targetIndex = nextState.findIndex((item) => item.productId === product.productId);
       if (targetIndex >= 0) {
         const existingItem = nextState[targetIndex];
+        console.log(existingItem);
         nextState[targetIndex] = {
           ...existingItem,
           quantity: sanitizeQuantity(existingItem.quantity + normalizedQuantity),
