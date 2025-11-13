@@ -1,7 +1,6 @@
 import { PageLayout } from "./PageLayout";
 import { Breadcrumb } from "../components/detail/Breadcrumb.js";
 import { ProductDetailInfo } from "../components/detail/ProductDetailInfo.js";
-import { QuantitySelector } from "../components/detail/QuantitySelector.js";
 import { RelatedProducts } from "../components/detail/RelatedProducts.js";
 import { getProduct, getProducts } from "../api/productApi.js";
 
@@ -21,7 +20,6 @@ export const DetailPage = ({ data = {} }) => {
     children: `
       ${Breadcrumb({ category1: product.category1, category2: product.category2 })}
       ${ProductDetailInfo(product)}
-      ${QuantitySelector({ productId: product.productId, stock: product.stock })}
       <div class="mb-6">
         <a
           href="/"

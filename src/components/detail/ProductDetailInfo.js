@@ -1,4 +1,5 @@
 import { StarRating } from "./StarRating.js";
+import { QuantitySelector } from "./QuantitySelector.js";
 
 /**
  * 상품 상세 정보 컴포넌트
@@ -44,6 +45,7 @@ export const ProductDetailInfo = (product) => {
           </div>
         </div>
       </div>
+      ${QuantitySelector({ productId: product.productId, stock: product.stock })}
     </div>
   `;
 };
