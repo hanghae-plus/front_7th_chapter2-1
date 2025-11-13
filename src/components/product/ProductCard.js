@@ -1,8 +1,8 @@
 import { Component } from "@/core/Component";
 
 const ProductCard = Component({
-  template: ({ props }) => {
-    const { title, image, lprice } = props.product;
+  template: (context) => {
+    const { title, image, lprice, productId } = context.props.product;
 
     return /* HTML */ `
       <!-- 상품 이미지 -->
@@ -25,7 +25,7 @@ const ProductCard = Component({
         <button
           class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
                 hover:bg-blue-700 transition-colors add-to-cart-btn"
-          data-product-id="85067212996"
+          data-product-id="${productId}"
         >
           장바구니 담기
         </button>

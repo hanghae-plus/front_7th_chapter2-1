@@ -34,8 +34,8 @@ const Skelleton = () => {
 };
 
 const ProductList = Component({
-  template: ({ props }) => {
-    const { products, pagination, loading } = props;
+  template: (context) => {
+    const { products, pagination, loading } = context.props;
     return /* HTML */ `
       <div>
         ${products?.length
@@ -61,10 +61,10 @@ const ProductList = Component({
       </div>
     `;
   },
-  children: ({ props, mountChildren }) => {
-    const { products } = props;
+  children: (context) => {
+    const { products } = context.props;
     products.forEach((product) => {
-      mountChildren(ProductCard, `[data-product-id="${product.productId}"]`, { product });
+      context.mountChildren(ProductCard, `[data-product-id="${product.productId}"]`, { product });
     });
   },
 });

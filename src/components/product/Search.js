@@ -10,7 +10,8 @@ const SORT = [
 ];
 
 const Search = Component({
-  template: ({ props, state }) => {
+  template: (context) => {
+    const { props, state } = context;
     const { filters, pagination } = props;
     const { loading, categories } = state;
 
@@ -147,63 +148,58 @@ const Search = Component({
     loading: true,
   }),
 
-  onMounted: ({ props, setState }) => {
+  setEvent: (context) => {
+    const { props, addEvent } = context;
+    const { onChangePageLimit, onChangeSort, onChangeSearch, onChangeCategory } = props;
+
+    // 페이지당 개수 변경
+    addEvent("#limit-select", "change", (e) => {
+      onChangePageLimit(Number(e.target.value));
+    });
+
+    // 정렬 변경
+    addEvent("#sort-select", "change", (e) => {
+      onChangeSort(e.target.value);
+    });
+
+    // 검색어 변경
+    addEvent("#search-input", "change", (e) => {
+      onChangeSearch(e.target.value);
+    });
+
+    // 카테고리 버튼 클릭 (이벤트 위임)
+    addEvent(".category-filter-btn", "click", (e, target) => {
+      const category1 = target.dataset.category1;
+      const category2 = target.dataset.category2;
+      onChangeCategory(category1, category2);
+    });
+
+    // Breadcrumb 클릭
+    addEvent("[data-breadcrumb]", "click", (e, target) => {
+      const type = target.dataset.breadcrumb;
+
+      if (type === "reset") {
+        // 전체 클릭: 모든 카테고리 필터 제거
+        onChangeCategory("", "");
+      } else if (type === "category1") {
+        // category1 클릭: category2만 제거 (1depth 유지)
+        onChangeCategory(props.filters.category1, "");
+      }
+      // category2 클릭: 변경 없음 (아무것도 하지 않음)
+    });
+  },
+
+  setup: async (context) => {
+    const { setState } = context;
+
+    // 카테고리 데이터 가져오기
     const fetchCategories = async () => {
       setState({ loading: true });
       const categories = await getCategories();
       setState({ categories, loading: false });
     };
 
-    const { onChangePageLimit, onChangeSort, onChangeSearch, onChangeCategory } = props;
-
-    // 페이지당 개수 변경
-    const limitSelect = document.querySelector("#limit-select");
-    limitSelect.addEventListener("change", (e) => {
-      onChangePageLimit(Number(e.target.value));
-    });
-
-    // 정렬 변경
-    const sortSelect = document.querySelector("#sort-select");
-    sortSelect.addEventListener("change", (e) => {
-      onChangeSort(e.target.value);
-    });
-
-    // 검색어 변경
-    const searchInput = document.querySelector("#search-input");
-    searchInput.addEventListener("change", (e) => {
-      onChangeSearch(e.target.value);
-    });
-
-    // 카테고리 버튼 클릭 (이벤트 위임)
-    const searchContainer = document.querySelector("#search");
-    searchContainer.addEventListener("click", (e) => {
-      const categoryBtn = e.target.closest(".category-filter-btn");
-      if (categoryBtn) {
-        const category1 = categoryBtn.dataset.category1;
-        const category2 = categoryBtn.dataset.category2;
-
-        // 1depth 또는 2depth 클릭
-        onChangeCategory(category1, category2);
-        return;
-      }
-
-      // Breadcrumb 클릭
-      const breadcrumbBtn = e.target.closest("[data-breadcrumb]");
-      if (breadcrumbBtn) {
-        const type = breadcrumbBtn.dataset.breadcrumb;
-
-        if (type === "reset") {
-          // 전체 클릭: 모든 카테고리 필터 제거
-          onChangeCategory("", "");
-        } else if (type === "category1") {
-          // category1 클릭: category2만 제거 (1depth 유지)
-          onChangeCategory(props.filters.category1, "");
-        }
-        // category2 클릭: 변경 없음 (아무것도 하지 않음)
-      }
-    });
-
-    fetchCategories();
+    await fetchCategories();
   },
 });
 

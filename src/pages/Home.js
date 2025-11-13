@@ -23,54 +23,44 @@ const Home = Component({
 
   initialState: () => ({
     products: [],
-    pagination: {},
+    pagination: { limit: 10 },
     filters: {},
     loading: true,
     error: null,
   }),
 
-  children: ({ state, setState, mountChildren }) => {
+  children: (context) => {
+    const { state, mountChildren } = context;
+
     // Header와 Footer는 항상 마운트
     mountChildren(Header, "#header");
     mountChildren(Footer, "#footer");
+
     mountChildren(Search, "#search", {
       pagination: state.pagination,
       filters: state.filters,
       onChangePageLimit: (newPageLimit) => {
-        setState({
-          ...state,
+        context.setState({
           pagination: { ...state.pagination, limit: newPageLimit },
         });
       },
       onChangeSort: (newSort) => {
-        setState({
-          ...state,
-          filters: {
-            ...state.filters,
-            sort: newSort,
-          },
+        context.setState({
+          filters: { ...state.filters, sort: newSort },
         });
       },
       onChangeSearch: (newSearch) => {
-        setState({
-          ...state,
-          filters: {
-            ...state.filters,
-            search: newSearch,
-          },
+        context.setState({
+          filters: { ...state.filters, search: newSearch },
         });
       },
       onChangeCategory: (category1, category2) => {
-        setState({
-          ...state,
-          filters: {
-            ...state.filters,
-            category1,
-            category2,
-          },
+        context.setState({
+          filters: { ...state.filters, category1, category2 },
         });
       },
     });
+
     mountChildren(ProductList, "#products-list", {
       products: state.products,
       loading: state.loading,
@@ -78,13 +68,15 @@ const Home = Component({
     });
   },
 
-  onMounted: async ({ state, setState, onStateChange }) => {
-    const fetchProducts = async (state, isInitialLoad = false) => {
+  setup: async (context) => {
+    const { state, setState, onStateChange } = context;
+
+    const fetchProducts = async (currentState, isInitialLoad = false) => {
       try {
         // API 호출
         const { products, pagination } = await getProducts({
-          limit: state.pagination.limit,
-          ...state.filters,
+          limit: currentState.pagination.limit,
+          ...currentState.filters,
         });
 
         // 데이터 로드 완료 후 setState
@@ -92,7 +84,7 @@ const Home = Component({
         setState({
           products,
           pagination: {
-            limit: state.pagination.limit,
+            limit: currentState.pagination.limit,
             ...pagination,
           },
           ...(isInitialLoad && { loading: false }),
@@ -107,10 +99,13 @@ const Home = Component({
     };
 
     // 초기 로드
-    fetchProducts(state, true);
+    await fetchProducts(state, true);
 
     // 검색 파라미터가 변경되면 다시 fetch (로딩 없이)
-    onStateChange(["filters", "pagination.limit"], ({ state }) => fetchProducts(state, false));
+    onStateChange(
+      (state) => [state.filters, state.pagination.limit],
+      ({ state }) => fetchProducts(state, false),
+    );
   },
 });
 
