@@ -48,17 +48,12 @@ async function main() {
   const appState = appStore.getState();
 
   /* Initial Render */
-  // if (relativePath === homeRoute.path) {
-  //   $root.innerHTML = `
-  //     ${homeRoute.render({ loading: true, cart: appState.cart })}
-  //   `;
-  //   const props = await homeRoute.loader();
-  //   $root.innerHTML = `
-  //     ${homeRoute.render(props)}
-  //   `;
-  // } else
+  if (relativePath === homeRoute.path) {
+    $root.replaceChildren(homeRoute.render({ loading: true, cart: appState.cart }));
 
-  if (productDetailRoute.pattern.test(relativePath)) {
+    const props = await homeRoute.loader();
+    $root.replaceChildren(homeRoute.render(props));
+  } else if (productDetailRoute.pattern.test(relativePath)) {
     const id = relativePath.split("/")[2];
     $root.replaceChildren(productDetailRoute.render({ loading: true, cart: appState.cart }));
     const props = await productDetailRoute.loader({ id });
@@ -86,37 +81,13 @@ async function main() {
   $cartModalRoot.addEventListener("click", async (event) => {
     if (!event.target) return;
 
-    if (event.target.closest("#cart-modal-close-btn")) {
-      console.log("[Click Event] cart-modal-close-btn", event);
-      $cartModalRoot.replaceChildren();
-      appStore.setSelectedCartIds([]);
-    } else if (!event.target.closest("#cart-modal-container")) {
-      console.log("[Click Event] cart-modal-container", event);
-      $cartModalRoot.replaceChildren();
-      appStore.setSelectedCartIds([]);
-    } else if (event.target.closest("#quantity-decrease-btn")) {
-      console.log("[Click Event] quantity-decrease-btn", event);
-      const productId = event.target.dataset.productId;
-      if (!productId) return;
-      appStore.subtractCartItemCountByProductId(productId);
-    } else if (event.target.closest("#quantity-increase-btn")) {
-      console.log("[Click Event] quantity-increase-btn", event);
-      const productId = event.target.dataset.productId;
-      if (!productId) return;
-      appStore.addCartItemCountByProductId(productId);
-    } else if (event.target.closest("#cart-modal-remove-selected-btn")) {
+    if (event.target.closest("#cart-modal-remove-selected-btn")) {
       console.log("[Click Event] cart-modal-remove-selected-btn", event);
       appStore.removeSelectedCartItems();
       showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
     } else if (event.target.closest("#cart-modal-clear-cart-btn")) {
       console.log("[Click Event] cart-modal-clear-cart-btn", event);
       appStore.removeAllCartItems();
-      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
-    } else if (event.target.closest(".cart-item-remove-btn")) {
-      console.log("[Click Event] cart-item-remove-btn", event);
-      const productId = event.target.dataset.productId;
-      if (!productId) return;
-      appStore.removeCartItemByProductId(productId);
       showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
     }
   });
@@ -203,9 +174,14 @@ async function main() {
       appStore.setListLoading(false);
     } else if (event.target.closest("#cart-icon-btn")) {
       console.log("[Click Event] cart-icon-btn", event);
-      $cartModalRoot.innerHTML = `
-        ${CartModal({ cart: appState.cart, selectedCartIds: appState.selectedCartIds })}
-      `;
+      $cartModalRoot.replaceChildren(
+        CartModal.mount({
+          onClose: () => {
+            $cartModalRoot.replaceChildren();
+            appStore.setSelectedCartIds([]);
+          },
+        }),
+      );
     } else if (event.target.closest("[data-link]")) {
       console.log("[Click Event] link", event);
 

@@ -79,6 +79,6 @@ export const ROUTES = Object.freeze({
     name: "notFound",
     path: "/404",
     pattern: pathToRegex("/404"),
-    render: NotFoundPage,
+    render: NotFoundPage.mount,
   },
 });

@@ -145,7 +145,7 @@ const 상품목록_레이아웃_로딩 = /* HTML */ `
  */
 export default function HomePage({ loading, productListResponse, categories, cart = [] }) {
   if (loading) {
-    return PageLayout({ children: 상품목록_레이아웃_로딩 });
+    return PageLayout.mount({ children: 상품목록_레이아웃_로딩, cart });
   }
-  return PageLayout({ children: ProductList({ productListResponse, categories }), cart });
+  return PageLayout.mount({ children: ProductList.mount({ productListResponse, categories }).outerHTML, cart });
 }
