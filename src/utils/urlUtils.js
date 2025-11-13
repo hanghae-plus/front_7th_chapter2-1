@@ -60,11 +60,11 @@ export const parseUrlParams = () => {
  * URL 쿼리 파라미터를 업데이트하고 새 URL을 생성합니다.
  * @param {Object} updates - 업데이트할 파라미터 객체
  * @param {Object} options - 옵션 객체 (preserveExisting: boolean)
- * @returns {string} 업데이트된 URL
+ * @returns {string} 업데이트된 URL (base path 포함)
  */
 export const buildUpdatedUrl = (updates = {}, { preserveExisting = true } = {}) => {
   if (typeof window === "undefined") {
-    return "/";
+    return addBasePath("/");
   }
 
   const params = preserveExisting ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -81,5 +81,7 @@ export const buildUpdatedUrl = (updates = {}, { preserveExisting = true } = {}) 
   params.delete("page");
 
   const query = params.toString();
-  return query ? `/?${query}` : "/";
+  const path = query ? `/?${query}` : "/";
+  // base path를 포함한 경로 반환
+  return addBasePath(path);
 };

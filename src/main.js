@@ -62,6 +62,8 @@ class AppLifecycle {
     this.eventHandlers = null;
     this.searchKeyHandler = null;
     this.unsubscribe = null;
+    this.previousPath = null; // 이전 경로 추적
+    this.isPopState = false; // popstate 이벤트 여부
   }
 
   /**
@@ -82,6 +84,7 @@ class AppLifecycle {
 
     // 초기 경로 설정 (이것이 store.subscribe를 트리거하여 초기 렌더링이 시작됨)
     const initialPath = removeBasePath(window.location.pathname);
+    this.previousPath = initialPath; // 초기 경로 설정
     store.setState({ path: initialPath });
   }
 
@@ -210,6 +213,9 @@ class AppLifecycle {
    */
   setupPopStateHandler() {
     window.addEventListener("popstate", () => {
+      // popstate 이벤트임을 표시 (스크롤 초기화하지 않음)
+      this.isPopState = true;
+
       const params = parseUrlParams();
       const pathWithoutBase = removeBasePath(window.location.pathname);
 
@@ -388,10 +394,18 @@ class AppLifecycle {
    * 상태 변경 처리
    */
   async handleStateChange(state) {
+    // 경로가 실제로 변경되었는지 확인
+    const isPathChanged = this.previousPath !== state.path;
+
     // 404 처리
     if (state.path !== "/" && !getProductIdFromPath(state.path)) {
       this.$root.innerHTML = NotFoundPage();
-      window.scrollTo({ top: 0, behavior: "instant" });
+      // 경로가 변경되었고 popstate가 아닐 때만 스크롤 초기화
+      if (isPathChanged && !this.isPopState) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+      this.previousPath = state.path;
+      this.isPopState = false; // 플래그 리셋
       return;
     }
 
@@ -405,6 +419,11 @@ class AppLifecycle {
           this.loadProducts(1, false);
         });
       }
+      // 경로가 변경되었을 때만 이전 경로 업데이트 (스크롤은 초기화하지 않음)
+      if (isPathChanged) {
+        this.previousPath = state.path;
+        this.isPopState = false; // 플래그 리셋
+      }
       return;
     }
 
@@ -417,13 +436,23 @@ class AppLifecycle {
       } else {
         this.$root.innerHTML = NotFoundPage();
       }
-      window.scrollTo({ top: 0, behavior: "instant" });
+      // 경로가 변경되었고 popstate가 아닐 때만 스크롤 초기화
+      if (isPathChanged && !this.isPopState) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+      this.previousPath = state.path;
+      this.isPopState = false; // 플래그 리셋
       return;
     }
 
     // 404 페이지
     this.$root.innerHTML = NotFoundPage();
-    window.scrollTo({ top: 0, behavior: "instant" });
+    // 경로가 변경되었고 popstate가 아닐 때만 스크롤 초기화
+    if (isPathChanged && !this.isPopState) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    this.previousPath = state.path;
+    this.isPopState = false; // 플래그 리셋
   }
 
   /**
