@@ -145,7 +145,7 @@ export const resetCartState = () => {
   updateCart(createCartState());
 };
 
-export const appendCartProduct = ({ id, title, price, image }) => {
+export const appendCartProduct = ({ id, title, price, image, quantity = 1 }) => {
   if (!id) {
     return;
   }
@@ -158,7 +158,7 @@ export const appendCartProduct = ({ id, title, price, image }) => {
         index === existingIndex
           ? {
               ...item,
-              quantity: item.quantity + 1,
+              quantity: (item.quantity ?? 1) + quantity,
             }
           : item,
       );
@@ -174,7 +174,7 @@ export const appendCartProduct = ({ id, title, price, image }) => {
       title,
       price,
       image,
-      quantity: 1,
+      quantity: quantity || 1,
     };
 
     return {

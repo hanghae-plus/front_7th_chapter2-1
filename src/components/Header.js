@@ -8,7 +8,8 @@ const updateCartBadge = () => {
 
   let badge = cartIconButton.querySelector("[data-cart-badge]");
   const cartState = getCartState();
-  const itemCount = cartState.items.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
+  // 장바구니에 담긴 아이템 수 (고유 상품 개수)
+  const itemCount = cartState.items.length;
 
   if (itemCount > 0) {
     if (!badge) {

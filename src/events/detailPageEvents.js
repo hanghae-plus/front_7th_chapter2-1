@@ -57,15 +57,14 @@ const handleDetailPageClick = (event) => {
     const image = productImage?.getAttribute("src") ?? "";
     const quantity = Number(quantityInput?.value ?? 1);
 
-    // 수량만큼 장바구니에 추가
-    for (let i = 0; i < quantity; i++) {
-      appendCartProduct({
-        id: productId,
-        title,
-        price,
-        image,
-      });
-    }
+    // 수량을 한 번에 반영하여 장바구니에 추가 (localStorage에 자동 저장됨)
+    appendCartProduct({
+      id: productId,
+      title,
+      price,
+      image,
+      quantity,
+    });
 
     // DetailPage에서는 모달을 띄우지 않음
     return;
