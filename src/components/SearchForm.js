@@ -3,6 +3,12 @@ export const SearchForm = ({ filters = {}, categories = {} }) => {
   const category1Keys = Object.keys(categories);
   const currentLimit = filters.limit || "20";
   const currentSort = filters.sort || "price_asc";
+  const selectedCategory1 = filters.category1 || "";
+  const selectedCategory2 = filters.category2 || "";
+
+  // 선택된 category1의 category2 목록
+  const category2Keys =
+    selectedCategory1 && categories[selectedCategory1] ? Object.keys(categories[selectedCategory1]) : [];
 
   return /* HTML */ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -33,29 +39,65 @@ export const SearchForm = ({ filters = {}, categories = {} }) => {
       <div class="space-y-3">
         <!-- 카테고리 필터 -->
         <div class="space-y-2">
+          <!-- breadcrumb -->
           <div class="flex items-center gap-2">
             <label class="text-sm text-gray-600">카테고리:</label>
             <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
+            ${selectedCategory1
+              ? /* HTML */ `<span class="text-xs text-gray-500">&gt;</span
+                  ><button
+                    data-breadcrumb="category1"
+                    data-category1="${selectedCategory1}"
+                    class="text-xs hover:text-blue-800 hover:underline"
+                  >
+                    ${selectedCategory1}
+                  </button>`
+              : ""}
+            ${selectedCategory2
+              ? /* HTML */ `<span class="text-xs text-gray-500">&gt;</span
+                  ><span class="text-xs text-gray-600 cursor-default">${selectedCategory2}</span>`
+              : ""}
           </div>
-          <!-- 1depth 카테고리 -->
-          <div class="flex flex-wrap gap-2">
-            ${category1Keys.length > 0
-              ? category1Keys
-                  .map(
-                    (cat1) => /* HTML */ `
-                      <button
-                        data-category1="${cat1}"
-                        class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                               bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                      >
-                        ${cat1}
-                      </button>
-                    `,
-                  )
-                  .join("")
-              : /* HTML */ `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`}
+          <div class="space-y-2">
+            <!-- category1 선택 전: category1 버튼들 표시 -->
+            <!-- category1 선택 후: category2 버튼들 표시 -->
+            <div class="flex flex-wrap gap-2">
+              ${!selectedCategory1
+                ? // category1 버튼들
+                  category1Keys.length > 0
+                  ? category1Keys
+                      .map(
+                        (cat1) => /* HTML */ `
+                          <button
+                            data-category1="${cat1}"
+                            class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
+                                   bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            ${cat1}
+                          </button>
+                        `,
+                      )
+                      .join("")
+                  : /* HTML */ `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>`
+                : // category2 버튼들
+                  category2Keys
+                    .map(
+                      (cat2) => /* HTML */ `
+                        <button
+                          data-category1="${selectedCategory1}"
+                          data-category2="${cat2}"
+                          class="category2-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
+                                 ${selectedCategory2 === cat2
+                            ? "bg-blue-100 border-blue-300 text-blue-800"
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}"
+                        >
+                          ${cat2}
+                        </button>
+                      `,
+                    )
+                    .join("")}
+            </div>
           </div>
-          <!-- 2depth 카테고리 -->
         </div>
         <!-- 기존 필터들 -->
         <div class="flex gap-2 items-center justify-between">
