@@ -18,7 +18,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm run dev",
+    // pnpm이 있으면 pnpm 사용, 없으면 npm 사용
+    command:
+      process.env.npm_config_user_agent?.includes("pnpm") || process.env.PNPM_EXEC ? "pnpm run dev" : "npm run dev",
     port: 5173,
     reuseExistingServer: !process.env.CI,
   },
