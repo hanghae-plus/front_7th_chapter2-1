@@ -24,6 +24,22 @@ export class RouterInstance {
   init(renderCallback) {
     this.renderCallback = renderCallback;
 
+    // GitHub Pages 404.html 리다이렉트 처리
+    // 404.html에서 /?/path/to/page 형식으로 리다이렉트됨
+    const search = window.location.search;
+    if (search && search.startsWith("?/")) {
+      const redirect = search.slice(2).split("&")[0].replace(/~and~/g, "&");
+      const queryString = search.slice(2).split("&").slice(1).join("&").replace(/~and~/g, "&");
+
+      const newUrl =
+        window.location.pathname +
+        (redirect ? "/" + redirect : "") +
+        (queryString ? "?" + queryString : "") +
+        window.location.hash;
+
+      window.history.replaceState(null, "", newUrl);
+    }
+
     window.addEventListener("popstate", () => {
       this.#handleRoute();
     });
@@ -34,7 +50,9 @@ export class RouterInstance {
       // a tag 막음
       if (link) {
         e.preventDefault();
-        this.navigate(link.href);
+        // href에서 pathname만 추출 (full URL이 아닌 경우 그대로 사용)
+        const path = link.getAttribute("href") || "/";
+        this.navigate(path);
       }
     });
   }

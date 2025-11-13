@@ -37,6 +37,11 @@ const handleGetProductFetch = (productId) => {
 const handleGlobalClick = (e) => {
   const target = e.target;
 
+  // 뒤로가기 버튼
+  if (target.closest("#back-btn")) {
+    window.history.back();
+  }
+
   // 다시 시도 버튼
   if (target.closest("#retry-fetch-btn")) {
     handleRetryFetch();
@@ -75,13 +80,13 @@ const handleGlobalClick = (e) => {
     const productId = productCard.dataset.productId;
 
     handleGetProductFetch(productId);
-    router.navigate(`/product/${productId}`);
+    router.navigate(`product/${productId}`);
     return;
   }
 
   // 상품 목록으로 돌아가기
   if (target.closest(".go-to-product-list")) {
-    router.navigate("/");
+    router.navigate(import.meta.env.BASE_URL === "/" ? "/" : "");
     return;
   }
 

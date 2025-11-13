@@ -19,10 +19,11 @@ export const Header = ({ path }) => {
 };
 
 export const Title = ({ isDetail = false }) => {
+  console.log(import.meta.env.BASE_URL);
   return isDetail
     ? /*html*/ `
     <div class="flex items-center space-x-3">
-    <button onclick="window.history.back()" class="p-2 text-gray-700 hover:text-gray-900 transition-colors">
+    <button id="back-btn" class="p-2 text-gray-700 hover:text-gray-900 transition-colors">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>

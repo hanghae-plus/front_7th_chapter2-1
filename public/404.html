@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // GitHub Pages SPA 리다이렉트
+      // /front_7th_chapter2-1/product/123 -> /front_7th_chapter2-1/?/product/123
+      (function() {
+        var l = window.location;
+        var path = l.pathname;
+
+        // /front_7th_chapter2-1/ 이후의 경로를 추출
+        var basePath = '/front_7th_chapter2-1/';
+        var redirectPath = '';
+
+        if (path.startsWith(basePath) && path.length > basePath.length) {
+          redirectPath = path.slice(basePath.length);
+        } else if (!path.startsWith(basePath)) {
+          redirectPath = path.slice(1);
+        }
+
+        // 리다이렉트 URL 생성
+        var redirectUrl = l.protocol + '//' + l.hostname +
+          (l.port ? ':' + l.port : '') +
+          basePath +
+          (redirectPath ? '?/' + redirectPath.replace(/&/g, '~and~') : '') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash;
+
+        l.replace(redirectUrl);
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
