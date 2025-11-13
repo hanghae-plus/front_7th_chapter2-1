@@ -4,11 +4,101 @@ import { DetailPage } from "./pages/Detailpage.js";
 import { bindSearchFormEvents } from "./components/SearchForm.js";
 import { openCartModal } from "./app/cart/modal.js";
 import { showToast } from "./app/toast/toast.js";
-import { createAppStore, DEFAULT_PAGINATION, normalizePaginationState } from "./store.js";
+import { createAppStore, DEFAULT_FILTERS, DEFAULT_PAGINATION, normalizePaginationState } from "./store.js";
 
 const basePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const STORAGE_KEY = "shopping_cart";
 const LEGACY_STORAGE_KEYS = ["spa_cart_items"];
+
+const ALLOWED_LIMITS = new Set([10, 20, 50, 100]);
+const ALLOWED_SORTS = new Set(["price_asc", "price_desc", "name_asc", "name_desc"]);
+
+function parseFiltersFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const filters = {};
+
+  const limitParam = params.get("limit");
+  if (limitParam !== null) {
+    const limitValue = Number(limitParam);
+    if (Number.isFinite(limitValue) && ALLOWED_LIMITS.has(limitValue)) {
+      filters.limit = limitValue;
+    }
+  }
+
+  const sortParam = params.get("sort");
+  if (sortParam && ALLOWED_SORTS.has(sortParam)) {
+    filters.sort = sortParam;
+  }
+
+  const searchParam = params.get("search");
+  if (searchParam !== null) {
+    filters.search = searchParam;
+  }
+
+  const category1Param = params.get("category1");
+  if (category1Param !== null) {
+    filters.category1 = category1Param;
+  }
+
+  const category2Param = params.get("category2");
+  if (category2Param !== null) {
+    filters.category2 = category2Param;
+  }
+
+  return filters;
+}
+
+function normalizeFiltersForComparison(filters = {}) {
+  return {
+    limit: Number(filters.limit ?? DEFAULT_FILTERS.limit),
+    sort: filters.sort ?? DEFAULT_FILTERS.sort,
+    search: filters.search ?? "",
+    category1: filters.category1 ?? "",
+    category2: filters.category2 ?? "",
+  };
+}
+
+function filtersEqual(a = {}, b = {}) {
+  const normalizedA = normalizeFiltersForComparison(a);
+  const normalizedB = normalizeFiltersForComparison(b);
+  return (
+    normalizedA.limit === normalizedB.limit &&
+    normalizedA.sort === normalizedB.sort &&
+    normalizedA.search === normalizedB.search &&
+    normalizedA.category1 === normalizedB.category1 &&
+    normalizedA.category2 === normalizedB.category2
+  );
+}
+
+function buildQueryFromFilters(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.limit && filters.limit !== DEFAULT_FILTERS.limit) {
+    params.set("limit", String(filters.limit));
+  }
+  if (filters.sort && filters.sort !== DEFAULT_FILTERS.sort) {
+    params.set("sort", filters.sort);
+  }
+  if (filters.search && filters.search.trim() !== "") {
+    params.set("search", filters.search.trim());
+  }
+  if (filters.category1 && filters.category1 !== "") {
+    params.set("category1", filters.category1);
+  }
+  if (filters.category2 && filters.category2 !== "") {
+    params.set("category2", filters.category2);
+  }
+  return params.toString();
+}
+
+function buildHomeUrlFromFilters(filters = {}) {
+  const query = buildQueryFromFilters(filters);
+  const homePath = basePath ? `${basePath}/` : "/";
+  return query ? `${homePath}?${query}` : homePath;
+}
+
+function isHomePath(pathname = getNormalizedPathname()) {
+  return pathname === "/" || pathname === "";
+}
 
 const enableMocking = () =>
   import("@/mocks/browser.js").then(({ worker }) =>
@@ -34,7 +124,39 @@ function getNormalizedPathname() {
   return path || "/";
 }
 
-const appStore = createAppStore();
+const initialFilters = parseFiltersFromUrl();
+const appStore = createAppStore({ filters: initialFilters });
+
+let suppressUrlSync = false;
+let lastSyncedFilters = { ...appStore.getState().filters };
+
+appStore.subscribe((state) => {
+  const filters = state.filters;
+
+  if (suppressUrlSync) {
+    lastSyncedFilters = { ...filters };
+    return;
+  }
+
+  if (!isHomePath()) {
+    lastSyncedFilters = { ...filters };
+    return;
+  }
+
+  if (filtersEqual(filters, lastSyncedFilters)) {
+    return;
+  }
+
+  lastSyncedFilters = { ...filters };
+
+  const targetUrl = buildHomeUrlFromFilters(filters);
+  const currentUrl = new URL(location.href);
+  const targetUrlObj = new URL(targetUrl, location.origin);
+
+  if (currentUrl.pathname !== targetUrlObj.pathname || currentUrl.search !== targetUrlObj.search) {
+    history.replaceState({}, "", `${targetUrlObj.pathname}${targetUrlObj.search}`);
+  }
+});
 
 let cartBadgeUnsubscribe = null;
 let homeScrollHandler = null;
@@ -124,6 +246,15 @@ async function render() {
   const pathname = getNormalizedPathname();
 
   if (pathname === "/" || pathname === "") {
+    const urlFilters = parseFiltersFromUrl();
+    const currentFilters = appStore.getState().filters;
+    if (!filtersEqual(urlFilters, currentFilters)) {
+      suppressUrlSync = true;
+      appStore.updateFilters(urlFilters);
+      suppressUrlSync = false;
+      lastSyncedFilters = { ...appStore.getState().filters };
+    }
+
     appStore.setProductDetail(null);
     unbindInfiniteScroll();
     appStore.resetPagination();
@@ -203,7 +334,7 @@ async function render() {
     bindDetailPageEvents();
   } else {
     // fallback: 홈으로 이동
-    history.replaceState({}, "", `${basePath}/`);
+    history.replaceState({}, "", buildHomeUrlFromFilters(appStore.getState().filters));
     render();
     return;
   }
@@ -217,7 +348,8 @@ document.addEventListener("click", (event) => {
     const nextCategory1 = (category2Breadcrumb.dataset.breadcrumbCategory1 ?? "").trim();
     const nextCategory2 = (category2Breadcrumb.dataset.breadcrumbCategory2 ?? "").trim();
     appStore.updateFilters({ category1: nextCategory1, category2: nextCategory2 });
-    history.pushState({}, "", `${basePath}/`);
+    const filtersAfterUpdate = appStore.getState().filters;
+    history.pushState({}, "", buildHomeUrlFromFilters(filtersAfterUpdate));
     render();
     return;
   }
@@ -228,7 +360,8 @@ document.addEventListener("click", (event) => {
     event.stopPropagation();
     const nextCategory1 = (category1Breadcrumb.dataset.breadcrumbCategory1 ?? "").trim();
     appStore.updateFilters({ category1: nextCategory1, category2: "" });
-    history.pushState({}, "", `${basePath}/`);
+    const filtersAfterUpdate = appStore.getState().filters;
+    history.pushState({}, "", buildHomeUrlFromFilters(filtersAfterUpdate));
     render();
     return;
   }
@@ -249,7 +382,8 @@ document.addEventListener("click", (event) => {
     const targetCategory1 = (backToListButton.dataset.category1 ?? detail?.category1 ?? "").trim();
     const targetCategory2 = (backToListButton.dataset.category2 ?? detail?.category2 ?? "").trim();
     appStore.updateFilters({ category1: targetCategory1, category2: targetCategory2, search: "" });
-    history.pushState({}, "", `${basePath}/`);
+    const filtersAfterUpdate = appStore.getState().filters;
+    history.pushState({}, "", buildHomeUrlFromFilters(filtersAfterUpdate));
     render();
     return;
   }
