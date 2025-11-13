@@ -1,5 +1,6 @@
 import Home from "@pages/Home.js";
 import { initRouter } from "@/core/Router.js";
+import Product from "@/pages/Product.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -12,8 +13,12 @@ const enableMocking = () =>
   );
 
 const main = () => {
-  // router 초기화
-  initRouter([{ path: "/", page: Home }, { path: "/product", page: null }, { path: "/product/:productId" }]);
+  // MSW가 준비된 후에 router 초기화 및 페이지 렌더링
+  initRouter([
+    { path: "/", page: Home },
+    { path: "/product", page: Product },
+    { path: "/product/:productId", page: Product },
+  ]);
 };
 
 // 애플리케이션 시작
