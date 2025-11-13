@@ -127,7 +127,7 @@ export default function createComponent({
 
   return {
     mount: (_props = props) => {
-      const instanceId = `${id}-${Math.random().toString(36).substring(2, 15)}`;
+      const instanceId = _props.key ? `${id}-${_props.key}` : `${id}-${Math.random().toString(36).substring(2, 15)}`;
       let currentProps = _props;
       let isRendering = false;
 
@@ -188,6 +188,7 @@ export default function createComponent({
       const element = parseAndGetWrapperElement(html, instanceId);
 
       const observer = new MutationObserver(() => {
+        if (isRendering) return;
         if (!document.contains(element)) {
           unsubscribe();
           window.__componentEventHandlers.delete(instanceId);
