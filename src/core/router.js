@@ -44,15 +44,74 @@ export const router = {
     this.handleRouteChange();
   },
 
+  // 쿼리 파라미터 읽기
+  getQueryParams() {
+    return new URLSearchParams(window.location.search);
+  },
+
+  // 특정 쿼리 파라미터 값 가져오기
+  getQueryParam(key, defaultValue = null) {
+    const params = this.getQueryParams();
+    return params.get(key) || defaultValue;
+  },
+
+  // 쿼리 파라미터 업데이트 (기존 파라미터 유지하면서 일부만 변경)
+  updateQueryParams(newParams, options = { replace: true }) {
+    const params = this.getQueryParams();
+
+    // 새로운 파라미터로 업데이트 (null이면 삭제)
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value.toString());
+      }
+    });
+
+    const queryString = params.toString();
+    const newURL = `${window.location.pathname}${queryString ? "?" + queryString : ""}`;
+
+    if (options.replace) {
+      window.history.replaceState({}, "", newURL);
+    } else {
+      window.history.pushState({}, "", newURL);
+    }
+  },
+
+  // 쿼리 파라미터 전체 설정 (기존 것 덮어쓰기)
+  setQueryParams(params, options = { replace: true }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        searchParams.set(key, value.toString());
+      }
+    });
+
+    const queryString = searchParams.toString();
+    const newURL = `${window.location.pathname}${queryString ? "?" + queryString : ""}`;
+
+    if (options.replace) {
+      window.history.replaceState({}, "", newURL);
+    } else {
+      window.history.pushState({}, "", newURL);
+    }
+  },
+
+  // 쿼리 파라미터 제거 (경로만 남기기)
+  clearQueryParams() {
+    window.history.replaceState({}, "", window.location.pathname);
+  },
+
   // 경로 변경 시 페이지 라이프사이클 관리
   handleRouteChange() {
     const { page, props } = this.getPageConfig();
-    // 1. 이전 페이지 정리 (destroy 호출)
+    // 이전 페이지 정리 (destroy 호출)
     if (this.currentPage && this.currentPage.destroy) {
       console.log("🔄 이전 페이지 destroy 호출");
       this.currentPage.destroy();
     }
-    // 2. 새 페이지로 전환
+    // 새 페이지로 전환
     this.currentPage = page;
     console.log("🔄 새 페이지 currentPage 전환", this.currentPage);
     // 3. 새 페이지 초기화 (init 호출)
@@ -61,7 +120,7 @@ export const router = {
       this.currentPage.init(() => this.notify(), props);
     }
 
-    // 4. 렌더링
+    // 렌더링
     this.notify();
   },
 

@@ -7,7 +7,35 @@ let renderFn = null;
 let eventHandlers = [];
 
 export const HomePage = {
-  // 페이지 초기화 (처음 진입 시 한 번 실행)
+  // URL에서 필터 상태 초기화
+  initFromURL() {
+    const category1 = router.getQueryParam("category1", "");
+    const category2 = router.getQueryParam("category2", "");
+    const search = router.getQueryParam("search", "");
+    const limit = parseInt(router.getQueryParam("limit", "20"));
+    const sort = router.getQueryParam("sort", "price_asc");
+
+    if (category1) store.setState("list.category1", category1);
+    if (category2) store.setState("list.category2", category2);
+    if (search) store.setState("list.search", search);
+    if (limit !== 20) store.setState("list.limit", limit);
+    if (sort !== "price_asc") store.setState("list.sort", sort);
+  },
+
+  // Store state를 URL에 동기화
+  syncToURL() {
+    const { category1, category2, search, limit, sort } = store.state.list;
+
+    router.updateQueryParams({
+      category1: category1 || null,
+      category2: category2 || null,
+      search: search || null,
+      limit: limit !== 20 ? limit : null,
+      sort: sort !== "price_asc" ? sort : null,
+    });
+  },
+
+  // 페이지 초기화
   init(render) {
     console.log("🟢 HomePage init 호출");
     renderFn = render;
@@ -24,6 +52,9 @@ export const HomePage = {
     store.subscribe(renderFn, "list.limit");
     store.subscribe(renderFn, "list.sort");
     store.subscribe(renderFn, "list.search");
+
+    // URL에서 필터 상태 복원
+    this.initFromURL();
 
     this.setupEventListeners();
 
@@ -49,10 +80,25 @@ export const HomePage = {
       if (e.target.closest('[data-breadcrumb="reset"]')) {
         store.setState("list.category1", "");
         store.setState("list.category2", "");
+        store.fetchProducts();
+        this.syncToURL();
       }
     };
     document.addEventListener("click", resetHandler);
     eventHandlers.push({ type: "click", handler: resetHandler });
+
+    // 카테고리 브레드 크럼블 이벤트
+    const breadcrumbClickHandler = (e) => {
+      if (e.target.closest('[data-breadcrumb="category1"]')) {
+        const category = e.target.closest('[data-breadcrumb="category1"]').dataset.category1;
+        store.setState("list.category1", category);
+        store.setState("list.category2", "");
+        store.fetchProducts();
+        this.syncToURL();
+      }
+    };
+    document.addEventListener("click", breadcrumbClickHandler);
+    eventHandlers.push({ type: "click", handler: breadcrumbClickHandler });
 
     // 카테고리 클릭 이벤트 (1depth)
     const categoryClickHandler = (e) => {
@@ -60,6 +106,8 @@ export const HomePage = {
         const category = e.target.closest(".category1-filter-btn").dataset.category1;
         store.setState("list.category1", category);
         store.setState("list.category2", ""); // 초기화
+        store.fetchProducts();
+        this.syncToURL();
       }
     };
     document.addEventListener("click", categoryClickHandler);
@@ -70,6 +118,8 @@ export const HomePage = {
       if (e.target.closest(".category2-filter-btn")) {
         const category = e.target.closest(".category2-filter-btn").dataset.category2;
         store.setState("list.category2", category);
+        store.fetchProducts();
+        this.syncToURL();
       }
     };
     document.addEventListener("click", category2ClickHandler);
@@ -81,6 +131,7 @@ export const HomePage = {
         const limit = parseInt(e.target.value, 10);
         store.setState("list.limit", limit);
         store.fetchProducts();
+        this.syncToURL();
       }
     };
     document.addEventListener("change", limitChangeHandler);
@@ -92,6 +143,7 @@ export const HomePage = {
         const sort = e.target.value;
         store.setState("list.sort", sort);
         store.fetchProducts();
+        this.syncToURL();
       }
     };
     document.addEventListener("change", sortChangeHandler);
@@ -103,6 +155,7 @@ export const HomePage = {
         const keyword = e.target.value.trim();
         store.setState("list.search", keyword);
         store.fetchProducts();
+        this.syncToURL();
       }
     };
     document.addEventListener("keydown", searchKeydownHandler);
