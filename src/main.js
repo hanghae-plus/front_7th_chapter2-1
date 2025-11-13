@@ -117,7 +117,11 @@ const refreshCartModal = () => {
 const updateHeader = () => {
   const $header = document.querySelector('header');
   if ($header) {
-    $header.outerHTML = Header();
+    // 현재 페이지 타입 결정
+    const pageType = window.location.pathname.includes('/product/')
+      ? 'detail'
+      : 'home';
+    $header.outerHTML = Header({ pageType });
   }
 };
 

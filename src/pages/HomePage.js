@@ -10,6 +10,7 @@ export const HomePage = ({
   error,
 }) => {
   return Layout({
+    pageType: 'home',
     children: /* HTML */ `
       ${SearchForm({ filters, pagination, categories })}
       ${ProductList({ loading, products, total: pagination?.total, error })}
