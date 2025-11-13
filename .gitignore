@@ -26,3 +26,6 @@ dist-ssr
 /playwright-report/
 coverage
 .coverage
+
+# Documentation (개인 작업용)
+docs/
