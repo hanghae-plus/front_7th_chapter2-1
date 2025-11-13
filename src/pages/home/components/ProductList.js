@@ -137,7 +137,7 @@ export default class ProductList extends Component {
                   </svg>
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">오류가 발생했습니다</h3>
-                <p class="text-gray-600 mb-4">Failed to fetch</p>
+                <p class="text-gray-600 mb-4">${error}</p>
                 <button
                   id="retry-btn"
                   class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"

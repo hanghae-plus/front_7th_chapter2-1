@@ -25,7 +25,7 @@ export default class PageTitle extends Component {
 
     return /* HTML */ `
       <h1 class="text-xl font-bold text-gray-900">
-        <a id="home-link"" href="/" data-link="">쇼핑몰</a>
+        <a id="home-link" href="/" data-link="">쇼핑몰</a>
       </h1>
     `;
   }
