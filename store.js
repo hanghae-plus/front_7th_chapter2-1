@@ -11,6 +11,17 @@ const getInitialState = () => {
   const params = new URLSearchParams(window.location.search);
   const savedCart = localStorage.getItem("shopping_cart");
 
+  // cartList가 항상 배열이 되도록 보장
+  let cartList = [];
+  if (savedCart) {
+    try {
+      const parsed = JSON.parse(savedCart);
+      cartList = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      cartList = [];
+    }
+  }
+
   return {
     search: params.get("search") ?? "",
     limit: params.get("limit") ?? "20",
@@ -18,7 +29,7 @@ const getInitialState = () => {
     category1: params.get("category1") ?? "",
     category2: params.get("category2") ?? "",
     path: window.location.pathname,
-    cartList: savedCart ? JSON.parse(savedCart) : [],
+    cartList,
   };
 };
 

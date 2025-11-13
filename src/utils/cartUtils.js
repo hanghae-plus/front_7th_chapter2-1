@@ -10,7 +10,9 @@
  * @returns {Array} 업데이트된 장바구니 목록
  */
 export const addToCart = (cartList, product, quantity = 1) => {
-  const existingCart = [...cartList];
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  const existingCart = [...safeCartList];
   const existingItemIndex = existingCart.findIndex((item) => item.productId === product.productId);
 
   if (existingItemIndex !== -1) {
@@ -45,7 +47,9 @@ export const addToCart = (cartList, product, quantity = 1) => {
  * @returns {Array} 업데이트된 장바구니 목록
  */
 export const updateCartQuantity = (cartList, productId, delta) => {
-  const cartListCopy = [...cartList];
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  const cartListCopy = [...safeCartList];
   const itemIndex = cartListCopy.findIndex((item) => item.productId === productId);
 
   if (itemIndex === -1) return cartListCopy;
@@ -68,7 +72,9 @@ export const updateCartQuantity = (cartList, productId, delta) => {
  * @returns {Array} 업데이트된 장바구니 목록
  */
 export const removeFromCart = (cartList, productId) => {
-  return cartList.filter((item) => item.productId !== productId);
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  return safeCartList.filter((item) => item.productId !== productId);
 };
 
 /**
@@ -77,7 +83,9 @@ export const removeFromCart = (cartList, productId) => {
  * @returns {Array} 업데이트된 장바구니 목록
  */
 export const removeSelectedFromCart = (cartList) => {
-  return cartList.filter((item) => !item.isSelected);
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  return safeCartList.filter((item) => !item.isSelected);
 };
 
 /**
@@ -87,7 +95,9 @@ export const removeSelectedFromCart = (cartList) => {
  * @returns {Array} 업데이트된 장바구니 목록
  */
 export const toggleCartItemSelection = (cartList, productId) => {
-  return cartList.map((item) => (item.productId === productId ? { ...item, isSelected: !item.isSelected } : item));
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  return safeCartList.map((item) => (item.productId === productId ? { ...item, isSelected: !item.isSelected } : item));
 };
 
 /**
@@ -97,5 +107,7 @@ export const toggleCartItemSelection = (cartList, productId) => {
  * @returns {Array} 업데이트된 장바구니 목록
  */
 export const selectAllCartItems = (cartList, isSelected) => {
-  return cartList.map((item) => ({ ...item, isSelected }));
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  return safeCartList.map((item) => ({ ...item, isSelected }));
 };

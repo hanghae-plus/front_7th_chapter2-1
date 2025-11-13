@@ -81,6 +81,16 @@ const renderEmptyCart = () => {
  * 장바구니 계산 유틸리티
  */
 const calculateCartTotals = (cartList) => {
+  // cartList가 배열이 아니면 빈 배열로 처리
+  if (!Array.isArray(cartList)) {
+    return {
+      selectedCount: 0,
+      selectedTotal: 0,
+      totalPrice: 0,
+      isAllSelected: false,
+    };
+  }
+
   const selectedItems = cartList.filter((item) => item.isSelected);
   const selectedCount = selectedItems.length;
   const selectedTotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -153,8 +163,10 @@ export const CartModal = () => {
     return "";
   }
 
-  const { isAllSelected } = calculateCartTotals(cartList);
-  const hasItems = cartList.length > 0;
+  // cartList가 배열이 아니면 빈 배열로 처리
+  const safeCartList = Array.isArray(cartList) ? cartList : [];
+  const { isAllSelected } = calculateCartTotals(safeCartList);
+  const hasItems = safeCartList.length > 0;
 
   return `
     <div class="fixed inset-0 z-50 overflow-y-auto cart-modal" id="cart-modal-container">
@@ -170,7 +182,7 @@ export const CartModal = () => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 2H3m4 11v6a1 1 0 001 1h1a1 1 0 001-1v-6M13 13v6a1 1 0 001 1h1a1 1 0 001-1v-6"></path>
               </svg>
               장바구니 
-              ${hasItems ? `<span class="text-sm font-normal text-gray-600 ml-1">(${formatNumber(cartList.length)})</span>` : ""}
+              ${hasItems ? `<span class="text-sm font-normal text-gray-600 ml-1">(${formatNumber(safeCartList.length)})</span>` : ""}
             </h2>
             <button id="cart-modal-close-btn" class="text-gray-400 hover:text-gray-600 p-1">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,20 +200,20 @@ export const CartModal = () => {
               <div class="p-4 border-b border-gray-200 bg-gray-50">
                 <label class="flex items-center text-sm text-gray-700">
                   <input type="checkbox" id="cart-modal-select-all-checkbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"${isAllSelected ? " checked" : ""}>
-                  전체선택 (${formatNumber(cartList.length)}개)
+                  전체선택 (${formatNumber(safeCartList.length)}개)
                 </label>
               </div>
               <!-- 아이템 목록 -->
               <div class="flex-1 overflow-y-auto">
                 <div class="p-4 space-y-4">
-                  ${cartList.map((item) => renderCartItem(item)).join("")}
+                  ${safeCartList.map((item) => renderCartItem(item)).join("")}
                 </div>
               </div>
             `
                 : renderEmptyCart()
             }
           </div>
-          ${hasItems ? renderCartActions(cartList) : ""}
+          ${hasItems ? renderCartActions(safeCartList) : ""}
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { ProductDetailPage } from "./pages/ProductDetailPage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
 import { updateParams } from "./router.js";
 import { EventHandlers } from "./utils/eventHandlers.js";
-import { parseUrlParams, buildUpdatedUrl } from "./utils/urlUtils.js";
+import { parseUrlParams, buildUpdatedUrl, addBasePath } from "./utils/urlUtils.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -18,8 +18,30 @@ const enableMocking = () =>
   );
 
 /**
+ * Base path를 가져옵니다
+ */
+const getBasePath = () => {
+  return import.meta.env.BASE_URL || "/";
+};
+
+/**
+ * 경로에서 base path를 제거합니다
+ * @param {string} pathname - 전체 경로
+ * @returns {string} base path가 제거된 경로
+ */
+const removeBasePath = (pathname) => {
+  const base = getBasePath();
+  if (base === "/") return pathname;
+  if (pathname.startsWith(base)) {
+    const removed = pathname.slice(base.length - 1);
+    return removed || "/";
+  }
+  return pathname;
+};
+
+/**
  * 상품 ID를 경로에서 추출합니다
- * @param {string} path - 경로
+ * @param {string} path - 경로 (base path 제거된 상태)
  * @returns {string|null} 상품 ID
  */
 const getProductIdFromPath = (path) => {
@@ -59,7 +81,8 @@ class AppLifecycle {
     this.setupInputHandlers();
 
     // 초기 경로 설정 (이것이 store.subscribe를 트리거하여 초기 렌더링이 시작됨)
-    store.setState({ path: window.location.pathname });
+    const initialPath = removeBasePath(window.location.pathname);
+    store.setState({ path: initialPath });
   }
 
   /**
@@ -67,15 +90,20 @@ class AppLifecycle {
    */
   setupEventHandlers() {
     const navigate = (path) => {
+      // path가 이미 base path를 포함하고 있는지 확인
+      const fullPath = path.startsWith("http") ? path : addBasePath(path);
       const currentPath = window.location.pathname + window.location.search;
-      if (path === currentPath) return;
-      const url = new URL(path, window.location.origin);
-      history.pushState(null, "", path);
+      if (fullPath === currentPath) return;
+
+      history.pushState(null, "", fullPath);
 
       // URL 파라미터 파싱하여 store에 반영
       const params = parseUrlParams();
+      const url = new URL(fullPath, window.location.origin);
+      const pathWithoutBase = removeBasePath(url.pathname);
+
       store.setState({
-        path: url.pathname,
+        path: pathWithoutBase,
         search: params.search,
         limit: params.limit,
         sort: params.sort,
@@ -108,10 +136,13 @@ class AppLifecycle {
       const url = buildUpdatedUrl({ search: trimmed });
       this.navigate(url);
 
-      // 로딩 상태 업데이트 및 상품 로드
+      // navigate가 store를 업데이트한 후에 loadProducts를 호출하도록 queueMicrotask 사용
       store.setState({ isLoaded: false, currentPage: 1, hasMore: true, error: null });
       if (store.state.path === "/" && !this.isFetchingProducts) {
-        this.loadProducts(1, false);
+        queueMicrotask(() => {
+          // navigate가 store를 업데이트한 후에 실행되도록 보장
+          this.loadProducts(1, false);
+        });
       }
     };
 
@@ -180,9 +211,10 @@ class AppLifecycle {
   setupPopStateHandler() {
     window.addEventListener("popstate", () => {
       const params = parseUrlParams();
+      const pathWithoutBase = removeBasePath(window.location.pathname);
 
       store.setState({
-        path: window.location.pathname,
+        path: pathWithoutBase,
         search: params.search,
         limit: params.limit,
         sort: params.sort,
@@ -195,7 +227,7 @@ class AppLifecycle {
       });
 
       // 홈 페이지로 돌아온 경우 상품 로드
-      if (window.location.pathname === "/" && !this.isFetchingProducts) {
+      if (pathWithoutBase === "/" && !this.isFetchingProducts) {
         this.loadProducts(1, false);
       }
     });

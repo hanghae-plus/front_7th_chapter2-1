@@ -3,6 +3,27 @@
  */
 
 /**
+ * Base path를 가져옵니다
+ */
+const getBasePath = () => {
+  return import.meta.env.BASE_URL || "/";
+};
+
+/**
+ * 경로에 base path를 추가합니다 (링크용)
+ * @param {string} path - 경로
+ * @returns {string} base path가 추가된 경로
+ */
+export const addBasePath = (path) => {
+  const base = getBasePath();
+  if (base === "/") return path;
+  // base path가 이미 포함되어 있으면 그대로 반환
+  if (path.startsWith(base)) return path;
+  // base path를 추가
+  return base.replace(/\/$/, "") + path;
+};
+
+/**
  * URL 쿼리 파라미터를 객체로 파싱합니다
  * @returns {Object} 파싱된 쿼리 파라미터
  */
