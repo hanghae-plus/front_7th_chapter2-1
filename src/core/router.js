@@ -1,74 +1,72 @@
 import { ErrorPage } from "../pages/ErrorPage.js";
-
-// 정적 라우트 매칭
-function matchStaticRoute(route, currentPath) {
-  return route.path === currentPath;
-}
-
-// 동적 라우트 매칭
-function matchDynamicRoute(route, currentPath) {
-  if (!route.path.includes(":")) return false;
-
-  // '/product/:id' → /^\/product\/[^/]+$/
-  const regex = new RegExp("^" + route.path.replace(/:\w+/g, "[^/]+") + "$");
-  return regex.test(currentPath);
-}
-
-// 동적 파라미터 추출
-function extractParams(routePath, currentPath) {
-  const paramNames = routePath
-    .split("/")
-    .filter((p) => p.startsWith(":"))
-    .map((p) => p.slice(1));
-
-  const paramValues = currentPath.split("/").slice(-paramNames.length);
-  return Object.fromEntries(paramNames.map((n, i) => [n, paramValues[i]]));
-}
+import { matchStaticRoute, matchDynamicRoute, extractParams } from "./routerUtils.js";
 
 export function createRouter(routes) {
   // base path 설정 (프로덕션: /front_7th_chapter2-1/, 개발: /)
   const basePath = import.meta.env.BASE_URL || "/";
 
-  const initRouter = () => {
-    window.addEventListener("popstate", handleRoute);
-    handleRoute(); // 첫 화면 렌더링
+  const getCurrentPath = () => {
+    const fullPath = window.location.pathname;
+    return basePath === "/" ? fullPath : fullPath.replace(basePath, "/");
   };
 
-  const navigateTo = (path) => {
-    // base path 포함해서 URL 변경
-    const fullPath = basePath + path.replace(/^\//, "");
-    window.history.pushState({}, "", fullPath);
-    handleRoute();
+  const findMatchedRoute = (currentPath) => {
+    return (
+      routes.find((r) => matchStaticRoute(r, currentPath)) || routes.find((r) => matchDynamicRoute(r, currentPath))
+    );
+  };
+
+  const getRouteParams = (route, currentPath) => {
+    return route.path.includes(":") ? extractParams(route.path, currentPath) : {};
+  };
+
+  const render404 = () => {
+    const $root = document.querySelector("#root");
+    if ($root) {
+      $root.innerHTML = ErrorPage();
+    }
+  };
+
+  const mountComponent = async (route, params) => {
+    const $root = document.querySelector("#root");
+    if (!$root) return;
+
+    const component = route.element();
+    await component.mount({ params }, $root);
   };
 
   /**
    * 라우트 처리 (URL만 관리, 상태는 컴포넌트가 관리)
    */
   const handleRoute = async () => {
-    // 현재 URL에서 base path 제거 (프로덕션 환경 대응)
-    const fullPath = window.location.pathname;
-    const currentPath = basePath === "/" ? fullPath : fullPath.replace(basePath, "/");
+    const currentPath = getCurrentPath();
+    const matchedRoute = findMatchedRoute(currentPath);
 
-    const matchedRoute =
-      routes.find((r) => matchStaticRoute(r, currentPath)) || routes.find((r) => matchDynamicRoute(r, currentPath));
-
-    const $root = document.querySelector("#root");
     if (!matchedRoute) {
-      // 404 페이지 렌더링
-      $root.innerHTML = ErrorPage();
+      render404();
       return;
     }
-    const params = matchedRoute.path.includes(":") ? extractParams(matchedRoute.path, currentPath) : {};
 
-    const component = matchedRoute.element();
+    const params = getRouteParams(matchedRoute, currentPath);
+    await mountComponent(matchedRoute, params);
+  };
 
-    // 컴포넌트 마운트 (params만 전달, 나머지는 컴포넌트가 URL에서 직접 읽음)
-    await component.mount(
-      {
-        params,
-      },
-      $root,
-    );
+  /**
+   * 라우터 초기화 함수
+   */
+  const initRouter = () => {
+    window.addEventListener("popstate", handleRoute);
+    handleRoute(); // 첫 화면 렌더링
+  };
+
+  /**
+   * 라우팅 네비게이션 함수
+   * @param {*} path
+   */
+  const navigateTo = (path) => {
+    const fullPath = basePath + path.replace(/^\//, "");
+    window.history.pushState({}, "", fullPath);
+    handleRoute();
   };
 
   return { initRouter, navigateTo };
