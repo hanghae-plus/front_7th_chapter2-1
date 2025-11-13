@@ -106,6 +106,12 @@ export const cartStorage = {
     const items = cart.items || [];
     const filteredItems = items.filter((item) => !item.selected);
     cart.items = filteredItems;
+
+    // 모든 상품이 삭제되면 selectedAll을 false로 설정
+    if (filteredItems.length === 0) {
+      cart.selectedAll = false;
+    }
+
     this.saveCart(cart);
     return filteredItems;
   },
@@ -116,6 +122,12 @@ export const cartStorage = {
     const items = cart.items || [];
     const filteredItems = items.filter((item) => item.id !== id);
     cart.items = filteredItems;
+
+    // 모든 상품이 삭제되면 selectedAll을 false로 설정
+    if (filteredItems.length === 0) {
+      cart.selectedAll = false;
+    }
+
     this.saveCart(cart);
     return filteredItems;
   },
@@ -124,7 +136,7 @@ export const cartStorage = {
   clearCart() {
     const cart = {
       items: [],
-      selectedAll: true,
+      selectedAll: false,
     };
     this.saveCart(cart);
   },

@@ -253,6 +253,15 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
+  // 장바구니 개별 상품 삭제 버튼
+  if (e.target.classList.contains("cart-item-remove-btn")) {
+    const productId = e.target.dataset.productId;
+    cartStorage.removeItem(productId);
+    updateCartModal();
+    updateHeader();
+    return;
+  }
+
   // 선택한 상품 삭제 버튼
   if (e.target.id === "cart-modal-remove-selected-btn") {
     cartStorage.removeSelectedItems();
