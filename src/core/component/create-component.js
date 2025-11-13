@@ -85,49 +85,6 @@ export default function createComponent({
   eventHandlers = {},
   children = [],
 }) {
-  /** @type {Props} */
-  let currentProps = props;
-  const componentId = `${id}-${Math.random().toString(36).substring(2, 15)}`;
-  let isRendering = false;
-
-  /** @type {(() => void) | null} */
-  let unsubscribe = null;
-
-  /**
-   * @param {string} html
-   */
-  const parseAndGetWrapperElement = (html) => {
-    const range = document.createRange();
-    const parsedFragment = range.createContextualFragment(html);
-
-    /** @type {HTMLElement | null} */
-    const wrapperElement = parsedFragment.firstElementChild;
-    if (!wrapperElement) return null;
-    wrapperElement.dataset.component = componentId;
-    return wrapperElement;
-  };
-
-  /** @type {RenderCallback} */
-  const render = (_state) => {
-    isRendering = true;
-    const targetElement = document.querySelector(`[data-component="${componentId}"]`);
-    if (!targetElement) {
-      isRendering = false;
-      return;
-    }
-    const childrenHTML = children.map((child) => child.outerHTML).join("");
-    const wrapperElement = parseAndGetWrapperElement(templateFn(currentProps, _state, setState, childrenHTML));
-    targetElement.replaceWith(wrapperElement);
-
-    setTimeout(() => {
-      isRendering = false;
-    }, 0);
-  };
-
-  const { getState, setState, subscribe } = createStateMap(initialState(currentProps));
-
-  unsubscribe = subscribe(render);
-
   if (!window.__componentEventHandlers) {
     window.__componentEventHandlers = new Map();
   }
@@ -168,33 +125,72 @@ export default function createComponent({
     });
   }
 
-  window.__componentEventHandlers.set(
-    componentId,
-    Object.fromEntries(
-      Object.entries(eventHandlers).map(([eventName, handler]) => [
-        eventName,
-        (/** @type {Event} */ event) => {
-          if (isRendering) return;
-          handler(currentProps, getState, setState, event);
-        },
-      ]),
-    ),
-  );
-
   return {
-    mount: (_props = {}) => {
-      currentProps = _props;
+    mount: (_props = props) => {
+      const instanceId = `${id}-${Math.random().toString(36).substring(2, 15)}`;
+      let currentProps = _props;
+      let isRendering = false;
+
+      /**
+       * @param {string} html
+       * @param {string} componentId
+       */
+      const parseAndGetWrapperElement = (html, componentId) => {
+        const range = document.createRange();
+        const parsedFragment = range.createContextualFragment(html);
+
+        /** @type {HTMLElement | null} */
+        const wrapperElement = parsedFragment.firstElementChild;
+        if (!wrapperElement) return null;
+        wrapperElement.dataset.component = componentId;
+        return wrapperElement;
+      };
+
+      const { getState, setState, subscribe } = createStateMap(initialState(currentProps));
+
+      /** @type {RenderCallback} */
+      const render = (_state) => {
+        isRendering = true;
+        const targetElement = document.querySelector(`[data-component="${instanceId}"]`);
+        if (!targetElement) {
+          isRendering = false;
+          return;
+        }
+        const childrenHTML = children.map((child) => child.outerHTML).join("");
+        const wrapperElement = parseAndGetWrapperElement(
+          templateFn(currentProps, _state, setState, childrenHTML),
+          instanceId,
+        );
+        targetElement.replaceWith(wrapperElement);
+
+        setTimeout(() => {
+          isRendering = false;
+        }, 0);
+      };
+
+      const unsubscribe = subscribe(render);
+
+      window.__componentEventHandlers.set(
+        instanceId,
+        Object.fromEntries(
+          Object.entries(eventHandlers).map(([eventName, handler]) => [
+            eventName,
+            (/** @type {Event} */ event) => {
+              if (isRendering) return;
+              handler(currentProps, getState, setState, event);
+            },
+          ]),
+        ),
+      );
+
       const childrenHTML = children.map((child) => child.outerHTML).join("");
       const html = templateFn(_props, initialState(_props), setState, childrenHTML);
-      const element = parseAndGetWrapperElement(html);
+      const element = parseAndGetWrapperElement(html, instanceId);
 
       const observer = new MutationObserver(() => {
         if (!document.contains(element)) {
-          if (unsubscribe) {
-            unsubscribe();
-            unsubscribe = null;
-            window.__componentEventHandlers.delete(componentId);
-          }
+          unsubscribe();
+          window.__componentEventHandlers.delete(instanceId);
           observer.disconnect();
         }
       });
