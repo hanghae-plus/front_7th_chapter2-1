@@ -5,6 +5,9 @@ import { HomePage, DetailPage, NotFoundPage } from "./pages/index.js";
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
+      serviceWorker: {
+        url: `${import.meta.env.BASE_URL}mockServiceWorker.js`, // base 경로 추가
+      },
       onUnhandledRequest: "bypass",
     }),
   );
