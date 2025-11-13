@@ -1,13 +1,14 @@
-import { isNotNil } from "es-toolkit";
+import { isNil, isNotNil } from "es-toolkit";
 import { CompnentElementNode, ElementNode } from "../factory";
 import { renderTree } from "@core/render";
 
 export function searchCurrentNode(
   key: string,
-  targetNode: ElementNode | ElementNode[] = renderTree!,
+  targetNode: ElementNode | ElementNode[] = renderTree.tree!,
 ): CompnentElementNode | null {
   if (Array.isArray(targetNode)) {
     for (const child of targetNode) {
+      if (!(child instanceof ElementNode)) continue;
       const found = searchCurrentNode(key, child);
       if (isNotNil(found)) return found;
     }

@@ -3,6 +3,7 @@ import { useLocalStorage } from "../../../shared/hooks/useLocalStorage";
 import { Cart } from "../types";
 import { useMemo } from "@core/state/useMemo";
 import { useState } from "@core/state/useState";
+import { showToast } from "../../../shared/components/Toast";
 
 type CartModalProps = {
   onClose: () => void;
@@ -260,6 +261,7 @@ export function CartModal({ onClose }: CartModalProps) {
                                 item.product.productId,
                             ),
                           );
+                          showToast("info", "선택된 상품들이 삭제되었습니다");
                         }}
                       >
                         삭제
@@ -295,6 +297,7 @@ export function CartModal({ onClose }: CartModalProps) {
                     ),
                   );
                   setSelectedItems([]);
+                  showToast("info", "선택된 상품들이 삭제되었습니다");
                 }}
               >
                 선택한 상품 삭제 ({selectedItems.length}개)
@@ -308,6 +311,7 @@ export function CartModal({ onClose }: CartModalProps) {
                 onClick={() => {
                   setCart([]);
                   setSelectedItems([]);
+                  showToast("info", "선택된 상품들이 삭제되었습니다");
                 }}
               >
                 전체 비우기

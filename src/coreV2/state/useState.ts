@@ -3,8 +3,6 @@ import { CompnentElementNode } from "@core/jsx/factory";
 import { searchCurrentNode } from "@core/jsx/utils/searchCurrentNode";
 import { currentRenderingNode, render, renderTree } from "@core/render";
 
-export const stateMap = new Map<string, any>();
-
 export function useState<T>(
   initialValue: T,
 ): [T, (valueOrDispatcher: T | ((value: T) => T)) => void] {
@@ -19,7 +17,6 @@ export function useState<T>(
     throw new Error("parentNode.state or parentNode.stateCursor is not set");
   }
 
-  const cloned = cloneDeep(currentRenderingNode);
   const { key, state, stateCursor } = currentRenderingNode;
 
   state[stateCursor] = state[stateCursor] ?? initialValue;

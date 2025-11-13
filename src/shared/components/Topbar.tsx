@@ -1,13 +1,16 @@
 import { CartButton } from "../../domains/cart/components/CartButton";
+import { useRouter } from "../../pages/routes";
 
 export function Topbar() {
+  const router = useRouter();
+
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40">
       <div className="max-w-md mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">
             <a href="/" dataLink="">
-              쇼핑몰
+              {router?.route}
             </a>
           </h1>
           <div className="flex items-center space-x-2">

@@ -1,17 +1,14 @@
+import { Layout } from "../../shared/components/Layout";
 import { ProductDetail } from "../../domains/product/components/ProductDetail";
+import { useRouter } from "../routes";
 
-type ProductDetailPageProps = {
-  pathParams: {
-    id: string;
-  };
-};
-
-export function ProductDetailPage({ pathParams }: ProductDetailPageProps) {
-  const { id } = pathParams;
+export function ProductDetailPage() {
+  const router = useRouter();
+  const { id } = router.pathParams;
 
   return (
-    <>
-      <ProductDetail />
-    </>
+    <Layout>
+      <ProductDetail id={id} />
+    </Layout>
   );
 }

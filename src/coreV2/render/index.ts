@@ -8,8 +8,8 @@ import {
 import { searchCurrentNode } from "@core/jsx/utils/searchCurrentNode";
 import { cloneDeep, isNil, isNotNil, kebabCase, lowerCase } from "es-toolkit";
 
-export let renderTree: ElementNode | null = null;
-export let rawRenderTree: ElementNode | null = null;
+export const renderTree: { tree: ElementNode | null; raw: ElementNode | null } =
+  { tree: null, raw: null };
 
 export let currentRenderingNode: DomNode = null;
 
@@ -28,11 +28,13 @@ export function render(
     return;
   }
 
-  if (isNil(renderTree) && isNil(rawRenderTree)) {
-    renderTree = jsx as ElementNode;
+  if (isNil(renderTree.tree)) {
+    renderTree.tree = jsx as ElementNode;
     (window as any).renderTree = renderTree;
-    rawRenderTree = cloneDeep(renderTree);
-    (window as any).rawRenderTree = rawRenderTree;
+  }
+
+  if (isNil(renderTree.raw)) {
+    renderTree.raw = cloneDeep(jsx as ElementNode);
   }
 
   if (typeof jsx === "boolean" || jsx == null) {

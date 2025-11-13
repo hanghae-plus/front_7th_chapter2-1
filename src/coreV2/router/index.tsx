@@ -2,15 +2,15 @@ import { DomNode } from "@core/jsx/factory";
 import { useEffect } from "@core/state/useEffect";
 import { useMemo } from "@core/state/useMemo";
 import { useState } from "@core/state/useState";
-import { isNil, isNotNil } from "es-toolkit";
+import { cloneDeep, isNil, isNotNil } from "es-toolkit";
 import qs from "query-string";
+import { useGlobalState } from "@core/state/useGlobalState";
+import { renderTree } from "@core/render";
+import { cleanup } from "@core/render/cleanup";
 
 export type Route = {
   path: string;
-  component: (props?: {
-    pathParams?: Record<string, string>;
-    queryParams?: Record<string, string>;
-  }) => DomNode;
+  component: (...args: any[]) => DomNode;
 };
 
 type RouterProps = {
@@ -20,44 +20,33 @@ type RouterProps = {
   };
 };
 
-type PathParams<
-  Routes extends Record<string, Route>,
-  RouteName extends keyof Routes,
-> = Parameters<Routes[RouteName]["component"]>[0] extends {
-  pathParams: infer PathParams;
-}
-  ? PathParams
-  : {};
-
-type QueryParams<
-  Routes extends Record<string, Route>,
-  RouteName extends keyof Routes,
-> = Parameters<Routes[RouteName]["component"]>[0] extends {
-  queryParams: infer QueryParams;
-}
-  ? QueryParams
-  : {};
-
-export function createRouter<Routes extends Record<string, Route>>(
+export function createRouter<Routes extends Record<string, any>>(
   routes: Routes,
 ) {
   function useInternalRouter<RouteName extends keyof Routes = keyof Routes>() {
-    const [route, setRoute] = useState<RouteName | undefined>(
+    const [route, setRoute] = useGlobalState<RouteName | undefined>(
+      "route",
       detectCurrentRoute(routes) as RouteName | undefined,
     );
 
     if (isNil(route)) {
       return {
         route: undefined as unknown as RouteName,
-        pathParams: {} as PathParams<Routes, RouteName>,
-        queryParams: {} as QueryParams<Routes, RouteName>,
+        pathParams: {} as Record<string, string>,
+        queryParams: {} as Record<string, string>,
         push: (() => {}) as <NextRouteName extends keyof Routes>(
           routeName: NextRouteName,
-          options?: Parameters<Routes[NextRouteName]["component"]>[0],
+          options?: {
+            pathParams?: Record<string, string>;
+            queryParams?: Record<string, string>;
+          },
         ) => void,
         replace: (() => {}) as <NextRouteName extends keyof Routes>(
           routeName: NextRouteName,
-          options?: Parameters<Routes[NextRouteName]["component"]>[0],
+          options?: {
+            pathParams?: Record<string, string>;
+            queryParams?: Record<string, string>;
+          },
         ) => void,
         back: () => {},
         forward: () => {},
@@ -66,77 +55,76 @@ export function createRouter<Routes extends Record<string, Route>>(
 
     const path = useMemo(() => routes[route].path, [route]);
 
-    const pathParams = useMemo<PathParams<Routes, RouteName>>(
-      () => extractPathParams(path) as PathParams<Routes, RouteName>,
+    const pathParams = useMemo<Record<string, string>>(
+      () => extractPathParams(path) as Record<string, string>,
       [path],
     );
-    const queryParams = useMemo<QueryParams<Routes, RouteName>>(
-      () => qs.parse(window.location.search) as QueryParams<Routes, RouteName>,
+    const queryParams = useMemo<Record<string, string>>(
+      () => qs.parse(window.location.search) as Record<string, string>,
       [window.location.search],
     );
 
-    const [error, setError] = useState<unknown>(null);
+    console.log(queryParams);
 
-    const getUrl = (
-      routeName: keyof Routes,
-      options?: {
-        pathParams?: PathParams<Routes, keyof Routes>;
-        queryParams?: QueryParams<Routes, keyof Routes>;
-      },
-    ) => {
-      const route = routes[routeName];
-      const appliedPath = applyPathParams(
-        route.path,
-        options?.pathParams ?? {},
-      );
-      const queryString = qs.stringify(options?.queryParams ?? {});
-      return `${appliedPath}${queryString === "" ? "" : `?${queryString}`}`;
-    };
+    const [error, setError] = useGlobalState<unknown>("error", null);
 
     const push = <NextRouteName extends keyof Routes>(
       routeName: NextRouteName,
       options?: {
-        pathParams?: PathParams<Routes, NextRouteName>;
-        queryParams?: QueryParams<Routes, NextRouteName>;
+        pathParams?: Record<string, string>;
+        queryParams?: Record<string, string>;
       },
     ) => {
-      const url = getUrl(routeName, options);
+      const url = getUrl(routes, routeName, options);
       window.history.pushState({}, "", url);
+      // cleanup();
+      renderTree.tree = null;
+
       setRoute(routeName as unknown as RouteName);
     };
 
     const replace = <NextRouteName extends keyof Routes>(
       routeName: NextRouteName,
       options?: {
-        pathParams?: PathParams<Routes, NextRouteName>;
-        queryParams?: QueryParams<Routes, NextRouteName>;
+        pathParams?: Record<string, string>;
+        queryParams?: Record<string, string>;
       },
     ) => {
-      const url = getUrl(routeName, options);
+      const url = getUrl(routes, routeName, options);
       window.history.replaceState({}, "", url);
+      // cleanup();
+      renderTree.tree = null;
+
       setRoute(routeName as unknown as RouteName);
     };
 
     const back = () => {
       window.history.back();
+      // cleanup();
+      renderTree.tree = null;
       setRoute(detectCurrentRoute(routes) as RouteName);
     };
 
     const forward = () => {
       window.history.forward();
+      // cleanup();
       setRoute(detectCurrentRoute(routes) as RouteName);
     };
 
     useEffect(() => {
       window.addEventListener("popstate", () => {
+        // cleanup();
+        renderTree.tree = null;
         setRoute(detectCurrentRoute(routes) as RouteName);
       });
 
       window.addEventListener("unhandledrejection", (event) => {
+        // cleanup();
         setError(event.reason);
       });
 
       window.addEventListener("error", (event) => {
+        // cleanup();
         console.log("error", event.error);
         if (event.error === error) return;
 
@@ -156,9 +144,9 @@ export function createRouter<Routes extends Record<string, Route>>(
     };
   }
 
-  const useRouter: typeof useInternalRouter = () => {
+  function useRouter(): ReturnType<typeof useInternalRouter> {
     return (window as any).__router;
-  };
+  }
 
   function Router({ fallback }: RouterProps) {
     const router = useInternalRouter();
@@ -174,14 +162,15 @@ export function createRouter<Routes extends Record<string, Route>>(
 
     const RouteComponent = routes[route].component;
 
-    useEffect(() => {
-      (window as any).__router = router;
-    }, []);
+    (window as any).__router = router;
 
     return (
       <>
         <div>
-          <RouteComponent pathParams={pathParams} queryParams={queryParams} />
+          <RouteComponent
+            pathParams={pathParams as Record<string, string>}
+            queryParams={queryParams as Record<string, string>}
+          />
         </div>
       </>
     );
@@ -224,4 +213,18 @@ function detectCurrentRoute<Routes extends Record<string, Route>>(
           (token.startsWith(":") && isNotNil(splittedPath[idx])),
       ),
   )?.[0];
+}
+
+export function getUrl<Routes extends Record<string, Route>>(
+  routes: Routes,
+  routeName: keyof Routes,
+  options?: {
+    pathParams?: Record<string, string>;
+    queryParams?: Record<string, string>;
+  },
+) {
+  const route = routes[routeName];
+  const appliedPath = applyPathParams(route.path, options?.pathParams ?? {});
+  const queryString = qs.stringify(options?.queryParams ?? {});
+  return `${appliedPath}${queryString === "" ? "" : `?${queryString}`}`;
 }

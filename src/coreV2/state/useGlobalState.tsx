@@ -1,6 +1,8 @@
 import { cloneDeep, delay } from "es-toolkit";
+import { render, renderTree } from "@core/render";
+import { App } from "../../main";
 import { DomNode } from "@core/jsx/factory";
-import { rawRenderTree, render, renderTree } from "@core/render";
+import { nextTick } from "../../shared/components/utils/nextTick";
 
 const stateMap = new Map<string, any>();
 
@@ -22,17 +24,19 @@ export function useGlobalState<T>(
     }
 
     queueMicrotask(() => {
-      if (!enabled) return;
+      if (!enabled) {
+        return;
+      }
 
       enabled = false;
       const root = document.querySelector("#root") as HTMLElement;
 
-      [...(root.children ?? [])].forEach((child) => {
-        child.remove();
-      });
-      render(cloneDeep(rawRenderTree) as DomNode);
+      root.innerHTML = "";
+      render(cloneDeep(renderTree.raw!) as DomNode);
 
-      delay(500).then(() => (enabled = true));
+      delay(1).then(() => {
+        enabled = true;
+      });
     });
   }
 

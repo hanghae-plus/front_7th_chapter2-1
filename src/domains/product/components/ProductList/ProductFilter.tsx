@@ -3,7 +3,8 @@ import { useState } from "@core/state/useState";
 import { CategoriesResponse, SortType } from "../../../../types";
 import { getCategories } from "../../../../api/productApi";
 import { useMemo } from "@core/state/useMemo";
-import { isNil } from "es-toolkit";
+import { isNil, isNotNil } from "es-toolkit";
+import { useRouter } from "../../../../pages/routes";
 
 const limitOptions = [10, 20, 50, 100];
 
@@ -15,10 +16,6 @@ const sortOptions: Array<{ label: string; value: SortType }> = [
 ];
 
 type ProductFilterProps = {
-  search: string;
-  categories: string[];
-  sort: SortType;
-  limit: number;
   onSearch: (search: string) => void;
   onChangeCategories: (categories: string[]) => void;
   onSort: (sort: SortType) => void;
@@ -26,30 +23,29 @@ type ProductFilterProps = {
 };
 
 export function ProductFilter({
-  search,
-  categories: selectedCategories,
-  sort,
-  limit,
   onSearch,
   onChangeCategories,
   onSort,
   onLimit,
 }: ProductFilterProps) {
+  const router = useRouter();
+  const { search, category1, category2 } = router.queryParams;
+  const sort = (router.queryParams.sort as SortType) ?? "price_asc";
+  const limit = Number(router.queryParams.limit ?? 20) as number;
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<CategoriesResponse | null>(null);
 
-  const step = useMemo(
-    () => Math.min(1, selectedCategories.length),
-    [selectedCategories],
-  );
+  console.log(category1, category2);
+
+  const step = useMemo(() => (isNil(category1) ? 0 : 1), [category1]);
 
   const currentDisplayingCategories = useMemo(() => {
     if (isNil(categories)) return [];
 
-    if (selectedCategories.length === 0) return Object.keys(categories);
+    if (isNil(category1)) return Object.keys(categories);
 
-    return Object.keys(categories[selectedCategories[0]]);
-  }, [selectedCategories, categories]);
+    return Object.keys(categories[category1]);
+  }, [category1, categories]);
 
   const fetchCategories = async () => {
     setIsLoading(true);
@@ -72,6 +68,7 @@ export function ProductFilter({
             type="text"
             id="search-input"
             placeholder="상품명을 검색해보세요..."
+            value={search ?? ""}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 onSearch(e.currentTarget?.value);
@@ -101,7 +98,7 @@ export function ProductFilter({
         {/* 카테고리 필터 */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">카테고리:</label>
+            <label className="text-sm text-gray-600">카테고리: </label>
             <button
               data-breadcrumb="reset"
               className="text-xs hover:text-blue-800 hover:underline"
@@ -111,22 +108,36 @@ export function ProductFilter({
             >
               전체
             </button>
-            {selectedCategories.map((category, index) => (
+            {isNotNil(category1) && (
               <>
                 <span className="text-xs text-gray-500">&gt;</span>
                 <button
                   data-breadcrumb="category1"
-                  data-category1={category}
+                  data-category1={category1}
                   className="text-xs hover:text-blue-800 hover:underline"
                   onClick={() => {
-                    const nextCategories = [...selectedCategories];
-                    onChangeCategories(nextCategories.slice(0, index + 1));
+                    onChangeCategories([category1]);
                   }}
                 >
-                  {category}
+                  {category1}
                 </button>
               </>
-            ))}
+            )}
+            {isNotNil(category2) && (
+              <>
+                <span className="text-xs text-gray-500">&gt;</span>
+                <button
+                  data-breadcrumb="category2"
+                  data-category2={category2}
+                  className="text-xs hover:text-blue-800 hover:underline"
+                  onClick={() => {
+                    onChangeCategories([category1, category2]);
+                  }}
+                >
+                  {category2}
+                </button>
+              </>
+            )}
           </div>
           {/* 1depth 카테고리 */}
           {(() => {
@@ -146,13 +157,16 @@ export function ProductFilter({
                   <button
                     data-category1={category}
                     className={`category${step}-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
-                  ${selectedCategories[1] === category ? "bg-blue-100 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                  ${category2 === category ? "bg-blue-100 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                     onClick={() => {
-                      const nextCategories = [...selectedCategories];
+                      const nextCategories = [category1, category2].filter(
+                        isNotNil,
+                      );
                       nextCategories[step] = category;
                       onChangeCategories(nextCategories);
                     }}
                   >
+                    {" "}
                     {category}
                   </button>
                 ))}

@@ -3,8 +3,6 @@ import { currentRenderingNode } from "@core/render";
 import { cloneDeep, isEqual, isNil } from "es-toolkit";
 import { nextTick } from "../../shared/components/utils/nextTick";
 
-export const sideEffectMap = new Map<string, () => void | (() => void)>();
-
 export type CallbackReturn = any | (() => any);
 
 type VoidCallbackReturn = void | (() => void);
