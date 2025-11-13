@@ -11,21 +11,24 @@ const ensureLeadingSlash = (value = "/") => {
   return value.startsWith("/") ? value : `/${value}`;
 };
 
-const basePath = (() => {
-  const normalized = ensureLeadingSlash(import.meta.env.BASE_URL ?? "/").replace(/\/+$/, "");
-  return normalized || "/";
-})();
+const normalizePath = (value = "/") => {
+  const withLeading = ensureLeadingSlash(value.trim());
+  if (withLeading === "/") return "/";
+  return withLeading.replace(/\/+$/, "") || "/";
+};
+
+const basePath = normalizePath(import.meta.env.BASE_URL ?? "/");
 
 const toAppPath = (pathname = "/") => {
-  const normalized = ensureLeadingSlash(pathname);
+  const normalized = normalizePath(pathname);
   if (basePath === "/") return normalized;
   if (!normalized.startsWith(basePath)) return normalized;
   const stripped = normalized.slice(basePath.length) || "/";
-  return ensureLeadingSlash(stripped);
+  return normalizePath(stripped);
 };
 
 const toBrowserPath = (appPath = "/") => {
-  const normalized = ensureLeadingSlash(appPath);
+  const normalized = normalizePath(appPath);
   if (basePath === "/") return normalized;
   return normalized === "/" ? `${basePath}/` : `${basePath}${normalized}`;
 };
@@ -45,7 +48,7 @@ export const findRoute = (pathname = "/") => {
 
 export const push = (path = "/", { silent = false } = {}) => {
   const url = new URL(path, window.location.origin);
-  const appPath = toAppPath(url.pathname);
+  const appPath = normalizePath(toAppPath(url.pathname));
   const target = `${toBrowserPath(appPath)}${url.search}`;
   const current = `${location.pathname}${location.search}`;
   if (current === target) return;
