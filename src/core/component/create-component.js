@@ -49,7 +49,7 @@ const createStateMap = (state, renderCallback) => {
  * @typedef {Object} CreateComponentOptions
  * @property {string} id
  * @property {Props} [props={}]
- * @property {State} [initialState={}]
+ * @property {(props: Props) => State} [initialState=() => ({})]
  * @property {(props: Props, state: State, children?: string) => string} templateFn
  * @property {Record<string, (props: Props, getter: Getter, setter: Setter, event: Event) => void>} [eventHandlers={}]
  * @property {HTMLElement[]} [children=[]]
@@ -63,7 +63,7 @@ const createStateMap = (state, renderCallback) => {
 export default function createComponent({
   id,
   props = {}, // initial props
-  initialState = {},
+  initialState = () => ({}),
   templateFn,
   eventHandlers = {},
   children = [],
@@ -103,7 +103,7 @@ export default function createComponent({
     }, 0);
   };
 
-  const { getState, setState } = createStateMap(initialState, render);
+  const { getState, setState } = createStateMap(initialState(currentProps), render);
 
   if (!window.__componentEventHandlers) {
     window.__componentEventHandlers = new Map();
@@ -162,7 +162,7 @@ export default function createComponent({
     mount: (_props = {}) => {
       currentProps = _props;
       const childrenHTML = children.map((child) => child.outerHTML).join("");
-      const html = templateFn(_props, initialState, childrenHTML);
+      const html = templateFn(_props, initialState(_props), childrenHTML);
       return parseAndGetWrapperElement(html);
     },
   };
