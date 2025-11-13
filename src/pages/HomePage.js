@@ -2,6 +2,7 @@ import { Component } from "../components/Component";
 import { ProductCard, ProductList } from "../components/ProductList";
 import { SearchForm } from "../components/SearchForm";
 import { CartUtil } from "../utils/cart";
+import { getProducts } from "../api/productApi.js";
 import {
   getQueryString,
   getQueryStringAdding,
@@ -157,7 +158,6 @@ export class HomePage extends Component {
       const limit = params.get("limit") || "";
 
       // 다음 페이지 데이터 가져오기
-      const { getProducts } = await import("../api/productApi.js");
       const nextPageData = await getProducts({
         page: nextPage,
         search,
