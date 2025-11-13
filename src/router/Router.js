@@ -10,6 +10,23 @@ const trimSlashes = (value = "") => value.replace(/\/+$/, "") || "/";
 
 const splitPath = (pattern) => trimSlashes(pattern).split("/").filter(Boolean);
 
+const getBasePath = () => {
+  // Vite의 BASE_URL을 사용하거나, 기본값으로 "/" 사용
+  const base = import.meta.env.BASE_URL || "/";
+  return base.endsWith("/") ? base.slice(0, -1) : base;
+};
+
+const removeBasePath = (pathname) => {
+  const base = getBasePath();
+  if (base === "/") {
+    return pathname;
+  }
+  if (pathname.startsWith(base)) {
+    return pathname.slice(base.length) || "/";
+  }
+  return pathname;
+};
+
 const matchPath = (pattern, pathname) => {
   const patternParts = splitPath(pattern);
   const pathParts = splitPath(pathname);
@@ -77,7 +94,7 @@ export class Router {
       throw new Error(`Router: DOM element "${this.rootSelector}"를 찾을 수 없습니다.`);
     }
 
-    const pathname = trimSlashes(window.location.pathname);
+    const pathname = trimSlashes(removeBasePath(window.location.pathname));
     const matched = this.match(pathname);
     const context = {
       pathname,
@@ -117,10 +134,13 @@ export class Router {
   }
 
   navigate(url, { replace = false, state = {} } = {}) {
+    const base = getBasePath();
+    const fullUrl = url.startsWith("/") ? `${base}${url}` : url;
+
     if (replace) {
-      window.history.replaceState(state, "", url);
+      window.history.replaceState(state, "", fullUrl);
     } else {
-      window.history.pushState(state, "", url);
+      window.history.pushState(state, "", fullUrl);
     }
 
     return this.render(state);

@@ -1,7 +1,10 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  base: "/",
+  base: "/front-7th-chapter2-1/",
+  server: {
+    port: 5174,
+  },
   test: {
     globals: true,
     environment: "jsdom",
@@ -15,8 +18,12 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    base: "/front-7th-chapter2-1/",
   },
   preview: {
     port: 4173,
+    base: "/front-7th-chapter2-1/",
+    strictPort: false,
+    open: "/front-7th-chapter2-1/",
   },
 });
