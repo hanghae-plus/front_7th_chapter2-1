@@ -45,10 +45,12 @@ const HomePage = async (render, { toast }) => {
       category2: category2.get(),
       page: page.get(),
     });
-    products.set(
-      { products: [...products.get().products, ...productData.products], pagination: productData.pagination },
-      pageRender,
-    );
+    page.get() === 1
+      ? products.set(productData, pageRender)
+      : products.set(
+          { products: [...products.get().products, ...productData.products], pagination: productData.pagination },
+          pageRender,
+        );
     isLoading.set(false, pageRender);
   };
 
@@ -67,7 +69,7 @@ const HomePage = async (render, { toast }) => {
     // 상품수
     if (e.target.id === "limit-select") {
       const value = e.target.value;
-
+      page.set(1, pageRender);
       limit.set(value, pageRender);
       getProductsData();
     }
@@ -75,7 +77,7 @@ const HomePage = async (render, { toast }) => {
     // 정렬
     if (e.target.id === "sort-select") {
       const value = e.target.value;
-
+      page.set(1, pageRender);
       sort.set(value, pageRender);
       getProductsData();
     }
@@ -85,6 +87,7 @@ const HomePage = async (render, { toast }) => {
   addEventListener("keydown", (e) => {
     if (e.target.id === "search-input" && e.key === "Enter") {
       const value = e.target.value;
+      page.set(1, pageRender);
       search.set(value, pageRender);
       getProductsData();
     }
@@ -99,12 +102,14 @@ const HomePage = async (render, { toast }) => {
     if (e.target.dataset.category1) {
       const value = e.target.dataset.category1;
       category1.set(value, pageRender);
+      page.set(1, pageRender);
       getProductsData();
     }
 
     if (e.target.dataset.category2) {
       const value = e.target.dataset.category2;
       category2.set(value, pageRender);
+      page.set(1, pageRender);
       getProductsData();
     }
 
@@ -114,10 +119,12 @@ const HomePage = async (render, { toast }) => {
         case "reset":
           category1.set("", pageRender);
           category2.set("", pageRender);
+          page.set(1, pageRender);
           getProductsData();
           break;
         case "category1":
           category2.set("", pageRender);
+          page.set(1, pageRender);
           getProductsData();
           break;
       }
