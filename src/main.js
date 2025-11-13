@@ -249,7 +249,7 @@ const initEventListeners = () => {
       const productId = btn.dataset.productId;
 
       // 상세 페이지에서 상품 정보 가져오기
-      const productTitle = document.querySelector("h1").textContent;
+      const productTitle = document.querySelector(".text-xl.font-bold.text-gray-900.mb-3").textContent;
       const productPrice = parseInt(
         document.querySelector(".text-2xl.font-bold.text-blue-600").textContent.replace(/[^0-9]/g, ""),
       );
