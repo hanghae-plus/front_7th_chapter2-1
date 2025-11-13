@@ -6,6 +6,7 @@ import { HomePage } from "./pages/HomePage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
 import { getQueryParams } from "./utils/getQueryParams.js";
 import { ADD_CART_LIST, getLocalStorage, setLocalStorage } from "./utils/localstorage.js";
+import { showToast } from "./utils/showToast.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -291,6 +292,8 @@ function main() {
         // 장바구니 개수만 업데이트
         updateCartCount();
       }
+
+      showToast("success");
       return;
     }
 
