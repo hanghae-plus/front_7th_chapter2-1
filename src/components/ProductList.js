@@ -59,10 +59,11 @@ const ProductItem = ({ productId, title, image, lprice }) => {
 
 export const renderProductItems = (products = []) => products.map(ProductItem).join("");
 
-export const ProductList = ({ products = [], loading = false, pagination = {} } = {}) => {
+export const ProductList = ({ products = [], loading = false, pagination = {}, totalCount = 0 } = {}) => {
   const hasNext = Boolean(pagination?.hasNext);
   const currentPage = Number(pagination?.page ?? 1);
   const nextPage = currentPage + 1;
+  const displayTotal = totalCount > 0 ? totalCount : products.length;
 
   const loadingView = /*html*/ `
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
@@ -73,7 +74,7 @@ export const ProductList = ({ products = [], loading = false, pagination = {} } 
     `;
   const contentView = /*html*/ `
         <div class="mb-4 text-sm text-gray-600">
-            총 <span class="font-medium text-gray-900">${products.length}</span>의 상품
+            총 <span class="font-medium text-gray-900">${displayTotal}</span>개의 상품
         </div>
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
             ${renderProductItems(products)}
