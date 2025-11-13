@@ -1,4 +1,4 @@
-export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
+export const SearchForm = ({ filters = { search: "", limit: "20" }, categories = {} }) => {
   return `
     <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -76,7 +76,7 @@ export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
               class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="10" ${filters.limit === "10" ? "selected" : ""}>10개</option>
-              <option value="20" ${filters.limit === "20" ? "selected" : ""}>20개</option>
+              <option value="20" ${!filters.limit || filters.limit === "20" ? "selected" : ""}>20개</option>
               <option value="50" ${filters.limit === "50" ? "selected" : ""}>50개</option>
               <option value="100" ${filters.limit === "100" ? "selected" : ""}>100개</option>
             </select>

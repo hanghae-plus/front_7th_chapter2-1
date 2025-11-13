@@ -30,3 +30,17 @@ export const getQueryStringValue = (name) => {
   const currentParams = new URLSearchParams(window.location.search);
   return currentParams.get(name);
 };
+
+export const getQueryString = ({ excludes = [], adds = [] } = {}) => {
+  const params = new URLSearchParams(window.location.search);
+  const newParams = new URLSearchParams();
+  for (const [key, value] of params.entries()) {
+    if (excludes.every((ex) => ex !== key)) {
+      newParams.append(key, value);
+    }
+  }
+  for (const aParam of adds) {
+    newParams.append(aParam.key, aParam.value);
+  }
+  return "?" + newParams.toString();
+};

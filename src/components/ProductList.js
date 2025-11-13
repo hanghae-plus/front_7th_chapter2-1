@@ -24,7 +24,7 @@ const Loading = `
 </div>
 `;
 
-const ProductCard = (product) => {
+export const ProductCard = (product) => {
   return `
     <div
       class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"

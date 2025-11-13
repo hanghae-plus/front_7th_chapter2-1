@@ -1,8 +1,13 @@
 import { Component } from "../components/Component";
-import { ProductList } from "../components/ProductList";
+import { ProductCard, ProductList } from "../components/ProductList";
 import { SearchForm } from "../components/SearchForm";
 import { CartUtil } from "../utils/cart";
-import { getQueryStringAdding, getQueryStringExcluding, getQueryStringValue } from "../utils/queryString";
+import {
+  getQueryString,
+  getQueryStringAdding,
+  getQueryStringExcluding,
+  getQueryStringValue,
+} from "../utils/queryString";
 import { PageLayout } from "./PageLayout";
 
 export class HomePage extends Component {
@@ -74,15 +79,130 @@ export class HomePage extends Component {
 
   handleChange(e) {
     if (e.target.closest("#sort-select")) {
-      const newQueryString = getQueryStringAdding("sort", e.target.value);
+      const newQueryString = getQueryString({
+        excludes: ["sort", "current"],
+        adds: [
+          { key: "sort", value: e.target.value },
+          { key: "current", value: 1 },
+        ],
+      });
       window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
     } else if (e.target.closest("#limit-select")) {
-      const newQueryString = getQueryStringAdding("limit", e.target.value);
+      const newQueryString = getQueryString({
+        excludes: ["limit", "current"],
+        adds: [
+          { key: "limit", value: e.target.value },
+          { key: "current", value: 1 },
+        ],
+      });
       window.router2Instance.navigateTo(`${window.BASE_URL}${newQueryString}`);
     }
   }
 
+  setupIntersectionObserver() {
+    // DOM이 완전히 렌더링된 후 실행
+    setTimeout(() => {
+      const trigger = this.$container.querySelector("#load-next-page");
+      if (!trigger) {
+        return;
+      }
+
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
+
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && !this.isLoading) {
+              this.loadNextPage();
+            }
+          });
+        },
+        {
+          root: null,
+          rootMargin: "100px",
+          threshold: 0.1,
+        },
+      );
+
+      this.observer.observe(trigger);
+    }, 100);
+  }
+
+  async loadNextPage() {
+    if (this.props.isPending || this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const currentPage = parseInt(params.get("current") || "1");
+      const nextPage = currentPage + 1;
+
+      console.log(`현재 페이지: ${currentPage}, 다음 페이지: ${nextPage}`);
+
+      // URL 업데이트 (current 파라미터 추가/업데이트)
+      params.set("current", nextPage.toString());
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, "", newUrl);
+
+      // API 호출을 위한 파라미터 준비
+      const search = params.get("search") || "";
+      const category1 = params.get("category1") || "";
+      const category2 = params.get("category2") || "";
+      const sort = params.get("sort") || "";
+      const limit = params.get("limit") || "";
+
+      // 다음 페이지 데이터 가져오기
+      const { getProducts } = await import("../api/productApi.js");
+      const nextPageData = await getProducts({
+        page: nextPage,
+        search,
+        category1,
+        category2,
+        sort,
+        limit,
+      });
+
+      // 기존 상품 목록에 새 상품들 추가
+      const existingProducts = this.props.loaderData.products || [];
+      const newProducts = [...existingProducts, ...nextPageData.products];
+
+      // props 업데이트
+      this.props.loaderData.products = newProducts;
+      this.props.loaderData.pagination = nextPageData.pagination;
+
+      // 상품 목록만 다시 렌더링
+      this.updateProductList();
+
+      // Observer 다시 설정 (DOM이 업데이트된 후)
+      this.setupIntersectionObserver();
+    } catch (error) {
+      console.error("다음 페이지 로드 실패:", error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  updateProductList() {
+    const productListContainer = this.$container.querySelector("#products-grid");
+    if (productListContainer) {
+      const { loaderData } = this.props;
+      productListContainer.innerHTML = loaderData.products.map(ProductCard).join("");
+
+      // 총 상품 개수 업데이트
+      const totalCountElement = this.$container.querySelector(".font-medium.text-gray-900");
+      if (totalCountElement && this.props.loaderData.pagination) {
+        totalCountElement.textContent = `${this.props.loaderData.pagination.total}개`;
+      }
+    }
+  }
+
   mount() {
+    this.isLoading = false;
     this.boundHandleClick = this.handleClick.bind(this);
     this.boundHandleKeydown = this.handleKeydown.bind(this);
     this.boundHandleChange = this.handleChange.bind(this);
@@ -92,10 +212,23 @@ export class HomePage extends Component {
     this.$container.addEventListener("change", this.boundHandleChange);
   }
 
+  // Component의 render 메서드를 override
+  render() {
+    super.render();
+    // 렌더링 후 Observer 다시 설정
+    this.setupIntersectionObserver();
+  }
+
   unmount() {
     this.$container.removeEventListener("click", this.boundHandleClick);
     this.$container.removeEventListener("keydown", this.boundHandleKeydown);
     this.$container.removeEventListener("change", this.boundHandleChange);
+
+    // Observer 정리
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
   }
 
   template() {
@@ -104,7 +237,8 @@ export class HomePage extends Component {
       children: `
         ${SearchForm({ ...loaderData, filters: queryString /*, filters, pagination, categories */ })}
         ${ProductList({ products: loaderData?.products ?? [], loading, total: loaderData?.pagination?.total ?? 0 })}
-        `,
+        <div id="load-next-page" style="height:20px; margin: 20px 0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">📍 스크롤 트리거</div>
+      `,
     });
   }
 }
