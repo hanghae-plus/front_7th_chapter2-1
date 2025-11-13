@@ -1,6 +1,6 @@
 class Router {
-  constructor(routes) {
-    this.routes = [...routes];
+  constructor() {
+    this.routes = [];
   }
 
   _handleRoute() {
@@ -38,7 +38,9 @@ class Router {
     const route = getRoute(path);
 
     if (route) {
-      document.getElementById("root").innerHTML = /* HTML */ ` ${route.component()} `;
+      const root = document.getElementById("root");
+      // document.getElementById("root").innerHTML = /* HTML */ ` ${route.component().onMount()} `;
+      route.component().onMount(root);
     }
   }
 
@@ -52,7 +54,9 @@ class Router {
     this._handleRoute();
   }
 
-  init() {
+  init(routes) {
+    this.routes = [...routes];
+
     this._handleRoute();
 
     window.addEventListener("popstate", () => {
@@ -61,4 +65,6 @@ class Router {
   }
 }
 
-export default Router;
+const router = new Router();
+
+export default router;

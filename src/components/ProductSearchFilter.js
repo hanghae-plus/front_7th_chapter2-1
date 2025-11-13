@@ -1,15 +1,24 @@
 const ProductSearchFilter = () => {
-  return (
-    /* HTML */
-    `
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <!-- 검색창 -->
-        ${SearchInput()}
-        <!-- 필터 옵션 -->
-        ${FilterOptions()}
-      </div>
-    `
-  );
+  const render = (parentNode) => {
+    parentNode.innerHTML =
+      /* HTML */
+      `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+          <!-- 검색창 -->
+          ${SearchInput()}
+          <!-- 필터 옵션 -->
+          ${FilterOptions()}
+        </div>
+      `;
+  };
+
+  const onMount = (parentNode) => {
+    render(parentNode);
+  };
+
+  return {
+    onMount,
+  };
 };
 
 export default ProductSearchFilter;
