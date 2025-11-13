@@ -1,8 +1,9 @@
 import App from "./App.js";
+import { router } from "./router/Router.js";
+import { store } from "./store/store.js";
 import { render } from "./render.js";
-import { Router } from "./router/Router.js";
-import { routes } from "./router/routes.js";
 
+// import { getProduct, getCategories } from "./api/productApi.js";
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
@@ -10,32 +11,30 @@ const enableMocking = () =>
     }),
   );
 
-// 라우터 싱글톤 패턴
-/** @type {Router | null} */
-let router = null;
-
-// /**
-//  * @param {string} component
-//  * @param {Router} router
-//  */
-// export function render(component, router = null) {
-//   const $root = document.querySelector("#root");
-//   $root.innerHTML = component({ router });
-// }
-
 function main() {
-  // 라우터 초기화
-  router = new Router(routes);
+  render(App);
 
-  // const date = 'data'
-  // console.log(data)
+  // store 변경 시 렌더링 처리
+  store.subscribe(() => {
+    render(App);
+  });
 
   // 전체 앱 렌더링 처리
   router.init(() => {
-    render(App, router);
+    render(App);
   });
 
-  render(App, router);
+  // const useFetch = async () => {
+  //   try {
+  //     const products = await getProducts();
+  //     // const product = await getProduct(products[0].id);
+  //     // const categories = await getCategories();
+  //     // console.log(products);
+  //     // console.log(products, product, categories);
+  //   } catch (err) {
+  //     console.error("error>>", err);
+  //   }
+  // };
 
   // vv 탬플릿들, 작업 종료 후 삭제 예정 vv
 

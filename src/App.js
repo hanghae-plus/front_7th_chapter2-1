@@ -1,19 +1,15 @@
-import { Header } from "./components/Header.js";
-// import { Routes } from "./router/routes.js";
+import { router } from "./router/Router.js";
 
+import { Header } from "./components/Header.js";
 import { Footer } from "./components/Footer.js";
 
-/**
- * @param {{ router: Router }} props
- */
-export default function App({ router }) {
+export default function App() {
   // 비동기 데이터 처리
 
   // 현재 라우트
   const { path, render } = router.getCurrentRoute();
   // const params = router.getParams();
   // const content = route ? route.render(params) : "";
-  console.log(router.getParams());
   return /*html*/ `
     <div class="min-h-screen bg-gray-50"> 
       ${Header({ path })}

@@ -1,14 +1,17 @@
+import { store } from "../store/store.js";
+
 export const Loading = () => {
-  const stateOfHasProducts = true;
+  const { hasNext } = store.getState("pagination");
+  const className = hasNext ? "text-center py-4" : "text-center py-4 text-sm text-gray-500";
 
   return /*html*/ `
-    <div class=${`text-center py-4 ${!stateOfHasProducts ? "text-sm text-gray-500" : ""}`}>
-      ${stateOfHasProducts ? Loading.HasProducts() : "모든 상품을 확인했습니다"}
+    <div class="${className}">
+      ${hasNext ? Loading.HasNext() : "모든 상품을 확인했습니다"}
     </div>
   `;
 };
 
-Loading.HasProducts = () => {
+Loading.HasNext = () => {
   return /*html*/ `
   <div class="inline-flex items-center">
     <svg class="animate-spin h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24">

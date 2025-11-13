@@ -1,4 +1,73 @@
+import { useEffect } from "../hooks/useEffect.js";
+import { store } from "../store/store.js";
+import { getProducts } from "../api/productApi.js";
+
+const fetchNextPage = async () => {
+  const { products, pagination } = store.getState();
+
+  const { products: newProducts, pagination: newPagination } = await getProducts({
+    page: pagination.page + 1,
+    limit: pagination.limit,
+  });
+
+  console.log("fetchNextPage - page:", pagination.page + 1);
+  store.setState({
+    products: [...products, ...newProducts],
+    pagination: {
+      ...pagination,
+      ...newPagination,
+    },
+  });
+};
+
 export const Footer = () => {
+  useEffect(() => {
+    const targetElement = document.querySelector("footer");
+
+    if (!targetElement) {
+      console.warn("footer element not found");
+      return;
+    }
+
+    console.log("Setting up IntersectionObserver");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const { isLoading, pagination } = store.getState();
+
+            console.log("Footer visible - isLoading:", isLoading, "hasNext:", pagination.hasNext);
+
+            if (isLoading || !pagination.hasNext) {
+              return;
+            }
+
+            console.log("Fetching page:", pagination.page + 1);
+
+            store.setState({ isLoading: true });
+            fetchNextPage().then(() => {
+              store.setState({ isLoading: false });
+            });
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(targetElement);
+
+    // cleanup 함수 반환
+    return () => {
+      console.log("Cleaning up observer");
+      observer.disconnect();
+    };
+  }, []);
+
   return /*html*/ `
     <footer class="bg-white shadow-sm sticky top-0 z-40">
       <div class="max-w-md mx-auto py-8 text-center text-gray-500">

@@ -1,30 +1,26 @@
-import { Loading } from "./Loading";
-import { ProductSkeleton } from "./ProductSkeleton";
+import { Loading } from "./Loading.js";
+import { store } from "../store/store.js";
+import { ProductSkeleton } from "./ProductSkeleton.js";
+import { ProductItem } from "./ProductItem.js";
 
 export const ProductList = () => {
-  // 리스트 로직
-  // const products = [];
-
-  // use intersection observer to infinite scroll
-  const isLoading = true;
+  const {
+    products,
+    isLoading,
+    pagination: { hasNext },
+  } = store.getState();
 
   return /*html*/ `
   <div class="mb-6">
     <div>
       <!-- 상품 그리드 -->
+      ${isLoading || !hasNext ? Loading() : ""}
       ${ProductList.Container({
         children: /*html*/ `
-        
-        ${
-          isLoading ? ProductSkeleton({ length: 4 }) : "<div>상품</div>"
-          // : products.map((product) => {
-          //     console.log(product);
-          //     return "<div>상품</div>";
-          //   })
-        }
+        ${isLoading && products.length === 0 ? ProductSkeleton({ length: 4 }) : ProductItem()}
         `,
       })}
-      ${isLoading ? Loading() : ""}
+      ${isLoading || !hasNext ? Loading() : ""}
     </div>
   </div>
   `;

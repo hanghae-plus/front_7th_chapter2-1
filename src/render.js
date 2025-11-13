@@ -1,8 +1,15 @@
+import { flushEffects } from "./hooks/useEffect.js";
+
 /**
  * @param {string} component
- * @param {Router} router
  */
-export function render(component, router = null) {
+export function render(component) {
+  if (!component) {
+    throw new Error("Component is required");
+  }
   const $root = document.querySelector("#root");
-  $root.innerHTML = component({ router });
+  $root.innerHTML = component();
+
+  // 렌더링 후 이펙트
+  flushEffects();
 }

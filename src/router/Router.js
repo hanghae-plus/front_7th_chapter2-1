@@ -1,3 +1,5 @@
+import { routes } from "./Routes.js";
+
 /**
  * @typedef {Object} Route
  * @property {string} path
@@ -8,7 +10,7 @@
 /**
  * @param {Route[]} routes
  */
-export class Router {
+export class RouterInstance {
   constructor(routes = []) {
     this.routes = routes;
     this.basePath = import.meta.env.BASE_URL;
@@ -44,7 +46,7 @@ export class Router {
    */
   navigate(path, option = {}) {
     const { replace = false } = option;
-    const fullPath = this.basePath + path;
+    const fullPath = this.basePath === "/" ? path : this.basePath + path;
 
     if (replace) {
       window.history.replaceState(null, "", fullPath);
@@ -74,29 +76,21 @@ export class Router {
    * @returns {Route | undefined}
    */
   #matchRoute(path) {
-    console.log("🔍 Matching path:", path);
     for (const route of this.routes) {
-      console.log("  Checking route:", this.currentRoute);
-
       if (route.path === path) {
         this.params = {};
-        console.log("  ✅ Static match!");
         return route;
       }
 
       if (route.path.includes(":")) {
         const routeRegex = this.#pathToRegex(route.path);
-        console.log("  Regex pattern:", routeRegex); // 생성된 정규식 확인
         const match = path.match(routeRegex);
-        console.log("  Match result:", match); // 매칭 결과 확인
         if (match) {
           this.params = this.#extractParams(route.path, match);
-          console.log("  ✅ Dynamic match! Params:", this.params);
           return route;
         }
       }
     }
-    console.log("  ❌ No match found");
   }
 
   /**
@@ -176,3 +170,6 @@ export class Router {
     return queryParams;
   }
 }
+
+// 라우터 싱글톤 패턴
+export const router = new RouterInstance(routes);
