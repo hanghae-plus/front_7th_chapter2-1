@@ -4,11 +4,13 @@ import { Loading, ProductItem } from "./components/ProductList.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
+import { PageLayout } from "./pages/PageLayout.js";
 import { storedData, updateCartCount } from "./utils/storedData.js";
 import { getQueryParams } from "./utils/getQueryParams.js";
 import { showToast } from "./utils/showToast.js";
 import { cartState } from "./state/cartState.js";
 import { ADD_CART_LIST, getLocalStorage, setLocalStorage } from "./utils/localstorage.js";
+import { ErrorUI } from "./pages/ErrorUI.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -70,29 +72,35 @@ const setupInfiniteScroll = () => {
         current += 1;
         observerElement.innerHTML = Loading;
 
-        const newData = await getProducts({
-          category1,
-          category2,
-          search,
-          limit,
-          sort,
-          current,
-        });
+        try {
+          const newData = await getProducts({
+            category1,
+            category2,
+            search,
+            limit,
+            sort,
+            current,
+          });
 
-        if (newData.products && newData.products.length > 0) {
-          const newProductsHtml = newData.products.map(ProductItem).join("");
-          const productGrid = document.querySelector("#products-grid");
+          if (newData.products && newData.products.length > 0) {
+            const newProductsHtml = newData.products.map(ProductItem).join("");
+            const productGrid = document.querySelector("#products-grid");
 
-          if (productGrid) {
-            productGrid.insertAdjacentHTML("beforeend", newProductsHtml);
+            if (productGrid) {
+              productGrid.insertAdjacentHTML("beforeend", newProductsHtml);
+            }
+
+            observerElement.innerHTML = "";
+            isLoading = false;
+          } else {
+            if (globalObserver) globalObserver.disconnect();
+            observerElement.innerHTML =
+              "<div class='text-center py-4 text-sm text-gray-500'>모든 상품을 확인했습니다</div>";
           }
-
-          observerElement.innerHTML = "";
-          isLoading = false;
-        } else {
+        } catch (error) {
+          console.error(error);
+          observerElement.innerHTML = `<div class='text-center py-4 text-sm text-red-500'>상품을 불러오는 데 실패했습니다.</div>`;
           if (globalObserver) globalObserver.disconnect();
-          observerElement.innerHTML =
-            "<div class='text-center py-4 text-sm text-gray-500'>모든 상품을 확인했습니다</div>";
         }
       }
     },
@@ -161,52 +169,112 @@ const renderHomePage = async () => {
   // 무한 스크롤 상태 초기화
   resetInfiniteScroll();
 
-  // 로딩 상태 표시
   $root.innerHTML = HomePage({ loading: true });
 
-  // 데이터 페칭
-  const data = await getProducts({
-    category1,
-    category2,
-    search,
-    limit,
-    sort,
-    current: 1,
-  });
-  const categories = await getCategories();
+  try {
+    // 데이터 페칭
+    const data = await getProducts({
+      category1,
+      category2,
+      search,
+      limit,
+      sort,
+      current: 1,
+    });
+    const categories = await getCategories();
 
-  // 최종 렌더링
-  $root.innerHTML = HomePage({ ...data, loading: false, categories, pageTitle: "쇼핑몰" });
+    $root.innerHTML = HomePage({ ...data, loading: false, categories, pageTitle: "쇼핑몰" });
 
-  // 이벤트 리스너 등록
-  setupHomePageEvents();
+    // 이벤트 리스너 등록
+    setupHomePageEvents();
 
-  // 무한 스크롤 설정
-  setupInfiniteScroll();
+    // 무한 스크롤 설정
+    setupInfiniteScroll();
+  } catch (error) {
+    console.error(error);
+
+    const productGrid = document.querySelector("#products-grid");
+    const observerElement = document.querySelector("#observer");
+
+    if (productGrid) {
+      productGrid.classList.remove("grid", "grid-cols-2", "gap-4");
+      productGrid.innerHTML = ErrorUI("productList");
+    }
+    if (observerElement) {
+      observerElement.innerHTML = "";
+    }
+
+    const retryButton = document.querySelector("#retry-btn");
+    if (retryButton) {
+      retryButton.addEventListener("click", () => renderHomePage());
+    }
+    // ⬆️
+  }
 };
 
 // 상세 페이지 렌더링 함수
 const renderDetailPage = async () => {
   const $root = document.querySelector("#root");
 
-  // 로딩 상태 표시
-  $root.innerHTML = DetailPage({ loading: true });
+  $root.innerHTML = DetailPage({ loading: true, pageTitle: "상품 상세" });
 
-  // 데이터 페칭
-  const productId = location.pathname.split("/").pop();
-  const data = await getProduct(productId);
-  const responsiveData = await getProducts({
-    category1: data.category1,
-    category2: data.category2,
-  });
+  try {
+    // 데이터 페칭
+    const productId = location.pathname.split("/").pop();
+    const data = await getProduct(productId);
 
-  // 최종 렌더링
-  $root.innerHTML = DetailPage({
-    pageTitle: "상품 상세",
-    loading: false,
-    product: data,
-    responsiveList: responsiveData.products,
-  });
+    let responsiveList = [];
+    try {
+      const responsiveData = await getProducts({
+        category1: data.category1,
+        category2: data.category2,
+      });
+      responsiveList = responsiveData.products;
+    } catch (relatedError) {
+      console.warn("Could not fetch related products:", relatedError);
+    }
+
+    // 최종 렌더링
+    $root.innerHTML = DetailPage({
+      pageTitle: "상품 상세",
+      loading: false,
+      product: data,
+      responsiveList: responsiveList,
+    });
+  } catch (error) {
+    console.error("Failed to render detail page:", error);
+
+    const detailErrorUI = /* HTML */ `
+      <div class="py-20 flex items-center justify-center">
+        <div class="text-center">
+          <div class="text-red-500 mb-4">
+            <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              ></path>
+            </svg>
+          </div>
+          <h1 class="text-xl font-bold text-gray-900 mb-2">상품을 찾을 수 없습니다</h1>
+          <p class="text-gray-600 mb-4">Failed to fetch</p>
+          <button
+            onclick="window.history.back()"
+            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mr-2"
+          >
+            이전 페이지
+          </button>
+          <a href="/" data-link="" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"> 홈으로 </a>
+        </div>
+      </div>
+    `;
+
+    $root.innerHTML = PageLayout({
+      pageTitle: "상품을 찾을 수 없음",
+      children: detailErrorUI,
+    });
+  }
 };
 
 // 404 페이지 렌더링 함수
@@ -221,12 +289,24 @@ const render = async () => {
   const pathName = location.pathname;
   const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
-  if (relativePath === "/") {
-    await renderHomePage();
-  } else if (relativePath.startsWith("/product")) {
-    await renderDetailPage();
-  } else {
-    renderNotFoundPage();
+  const $root = document.querySelector("#root");
+  if (!$root) return;
+
+  try {
+    if (relativePath === "/") {
+      await renderHomePage();
+    } else if (relativePath.startsWith("/product")) {
+      await renderDetailPage();
+    } else {
+      renderNotFoundPage();
+    }
+  } catch (error) {
+    console.error("Global render error:", error);
+    $root.innerHTML = ErrorUI("productList");
+    const retryButton = document.querySelector("#retry-btn");
+    if (retryButton) {
+      retryButton.addEventListener("click", () => render());
+    }
   }
 };
 
