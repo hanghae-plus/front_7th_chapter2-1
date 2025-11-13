@@ -1,5 +1,16 @@
 export const Modal = () => {
   return /*html*/ `
+  <div class="fixed inset-0 z-50 overflow-y-auto cart-modal">
+      <!-- 배경 오버레이 -->
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay"></div>
+      <!-- 모달 컨테이너 -->
+      ${Modal.Contents()}
+    </div>
+  `;
+};
+
+Modal.Contents = () => {
+  return /*html*/ `
     <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
       <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
         <!-- 헤더 -->
@@ -156,5 +167,17 @@ export const Modal = () => {
         </div>
       </div>
     </div>
+  `;
+};
+
+Modal.CartItem = () => {
+  return /*html*/ `
+  <div class="flex items-center py-3 border-b border-gray-100 cart-item" data-product-id="85067212996">
+    <!-- 선택 체크박스 -->
+    <label class="flex items-center mr-3">
+      <input type="checkbox" checked="" class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded 
+    focus:ring-blue-500" data-product-id="85067212996">
+    </label>
+  </div>
   `;
 };

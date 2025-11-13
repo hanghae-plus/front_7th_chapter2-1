@@ -1,20 +1,33 @@
+import { store } from "../store/store.js";
+import { useEffect } from "../hooks/useEffect.js";
+
 /**
  * @param {'success' | 'info' | 'error'} type - 토스트 타입 (success, info, error)
  */
-export const Toast = ({ type }) => {
-  if (!type) return;
-
-  // @todo: 토스트 로직 추가
+export const Toast = () => {
+  const { isOpen, type } = store.getState("toast");
 
   const stateOfToast = {
-    success: Toast.Success(),
-    info: Toast.Info(),
-    error: Toast.Error(),
+    success: Toast.Success,
+    info: Toast.Info,
+    error: Toast.Error,
   };
 
+  useEffect(() => {
+    if (type) {
+      const timeout = setTimeout(() => {
+        store.setState({ toast: { isOpen: false } });
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen]);
+
   return /*html*/ `
-  <div class="flex flex-col gap-2 items-center justify-center mx-auto" style="width: fit-content;">
-    ${stateOfToast[type]}
+  <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 toast-container">
+    <div class="flex flex-col gap-2 items-center justify-center mx-auto" style="width: fit-content;">
+        ${stateOfToast[type]()}
+    </div>
   </div>
   `;
 };

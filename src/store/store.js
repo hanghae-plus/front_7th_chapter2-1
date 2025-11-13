@@ -1,4 +1,5 @@
 const initState = {
+  categories: new Map(),
   products: [],
   selectedProduct: {
     title: "",
@@ -15,6 +16,11 @@ const initState = {
     category2: "",
     category3: "",
     category4: "",
+    description: "",
+    rating: 0,
+    reviewCount: 0,
+    stock: 0,
+    images: [],
   },
   filters: {
     search: "",
@@ -31,6 +37,17 @@ const initState = {
     hasPrev: false,
   },
   isLoading: false,
+  cart: {
+    isOpen: false,
+    selectedAll: false,
+    quantity: 1,
+    list: new Map(),
+  },
+  toast: {
+    isOpen: false,
+    type: "success",
+  },
+  isError: false,
 };
 
 export const createStore = () => {
@@ -40,7 +57,7 @@ export const createStore = () => {
   const getState = (key) => (key ? state[key] : state);
   const setState = (newState) => {
     state = { ...state, ...newState };
-
+    console.log(state);
     listeners.forEach((listener) => listener(state));
   };
 

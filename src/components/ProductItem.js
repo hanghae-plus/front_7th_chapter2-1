@@ -6,7 +6,7 @@ export const ProductItem = () => {
     .map((product) => {
       return /*html*/ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
-        data-product-id="${product.id}">
+        data-product-id="${product.productId}">
       <!-- 상품 이미지 -->
       <div class="aspect-square bg-gray-100 overflow-hidden cursor-pointer product-image">
         <img src="${product.image}" alt="${product.title}"
@@ -26,7 +26,7 @@ export const ProductItem = () => {
         </div>
         <!-- 장바구니 버튼 -->
         <button class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md
-                hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${product.id}">
+                hover:bg-blue-700 transition-colors add-to-cart-btn" data-product-id="${product.productId}">
           장바구니 담기
         </button>
       </div>

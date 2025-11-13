@@ -1,8 +1,30 @@
 import { store } from "../store/store.js";
+import { useEffect } from "../hooks/useEffect.js";
+import { getCategories } from "../api/productApi.js";
+
+const fetchCategoriesEffect = () => {
+  const { categories } = store.getState();
+  if (categories.size === 0) {
+    store.setState({ isLoading: true });
+    getCategories().then((data) => {
+      const newCategories = new Map();
+
+      Object.entries(data).forEach(([key, v]) => {
+        const value = Object.keys(v);
+        newCategories.set(key, value);
+      });
+
+      store.setState({ categories: newCategories, isLoading: false });
+    });
+  }
+};
 
 export const Filter = () => {
   const { isLoading, products } = store.getState();
   const category1List = new Set(products.map((product) => product.category1));
+
+  // 첫 진입 시 카테고리 목록 갱신
+  useEffect(fetchCategoriesEffect, []);
 
   return /*html*/ `
   <div class="space-y-3">
@@ -14,7 +36,7 @@ export const Filter = () => {
         </div>
         <!-- 1depth 카테고리 -->
         <div class="flex flex-wrap gap-2">
-        ${isLoading ? /*html*/ `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>` : [...category1List].map((category1) => Filter.Category1(category1))}
+        ${isLoading ? /*html*/ `<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>` : [...category1List, "디지털/가전"].map((category1) => Filter.Category1(category1)).join("")}
         </div>
         <!-- 2depth 카테고리 -->
       </div>
@@ -51,33 +73,46 @@ Filter.Category1 = (category1) => {
 };
 
 Filter.Limit = () => {
+  const pagination = store.getState("pagination");
+  const limitList = [10, 20, 50, 100];
+
   return /*html*/ `
   <select id="limit-select"
           class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-    <option value="10">
-      10개
-    </option>
-    <option value="20" selected="">
-      20개
-    </option>
-    <option value="50">
-      50개
-    </option>
-    <option value="100">
-      100개
-    </option>
+          ${limitList
+            .map((limit) => {
+              return /*html*/ `
+            <option value="${limit}" ${limit === pagination.limit ? "selected" : ""}>
+              ${limit}개
+            </option>
+            `;
+            })
+            .join("")}
   </select>
   `;
 };
 
 Filter.Sort = () => {
+  const { sort } = store.getState("filters");
+  const sortList = {
+    price_asc: "가격 낮은순",
+    price_desc: "가격 높은순",
+    name_asc: "이름순",
+    name_desc: "이름 역순",
+  };
+
   return /*html*/ `
   <select id="sort-select" class="text-sm border border-gray-300 rounded px-2 py-1
                 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-    <option value="price_asc" selected="">가격 낮은순</option>
-    <option value="price_desc">가격 높은순</option>
-    <option value="name_asc">이름순</option>
-    <option value="name_desc">이름 역순</option>
+    ${Object.entries(sortList)
+      .map(([key, value]) => {
+        return /*html*/ `
+        <option value="${key}" ${key === sort ? "selected" : ""}>
+          ${value}
+        </option>
+        `;
+      })
+      .join("")}
   </select>
   `;
 };

@@ -1,6 +1,7 @@
 import { useEffect } from "../hooks/useEffect.js";
 import { store } from "../store/store.js";
 import { getProducts } from "../api/productApi.js";
+import { router } from "../router/Router.js";
 
 const fetchNextPage = async () => {
   const { products, pagination } = store.getState();
@@ -10,7 +11,6 @@ const fetchNextPage = async () => {
     limit: pagination.limit,
   });
 
-  console.log("fetchNextPage - page:", pagination.page + 1);
   store.setState({
     products: [...products, ...newProducts],
     pagination: {
@@ -25,25 +25,21 @@ export const Footer = () => {
     const targetElement = document.querySelector("footer");
 
     if (!targetElement) {
-      console.warn("footer element not found");
       return;
     }
-
-    console.log("Setting up IntersectionObserver");
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const { isLoading, pagination } = store.getState();
+            const { path } = router.getCurrentRoute();
+            if (path !== "/") return;
 
-            console.log("Footer visible - isLoading:", isLoading, "hasNext:", pagination.hasNext);
+            const { isLoading, pagination } = store.getState();
 
             if (isLoading || !pagination.hasNext) {
               return;
             }
-
-            console.log("Fetching page:", pagination.page + 1);
 
             store.setState({ isLoading: true });
             fetchNextPage().then(() => {
@@ -63,7 +59,6 @@ export const Footer = () => {
 
     // cleanup 함수 반환
     return () => {
-      console.log("Cleaning up observer");
       observer.disconnect();
     };
   }, []);
