@@ -1,9 +1,11 @@
+import { GetProductsParams, GetProductsResponse } from "../types";
+
 // 상품 목록 조회
-export async function getProducts(params = {}) {
+export async function getProducts(params: GetProductsParams): Promise<GetProductsResponse> {
   const { limit = 20, search = "", category1 = "", category2 = "", sort = "price_asc" } = params;
   const page = params.current ?? params.page ?? 1;
 
-  const searchParams = new URLSearchParams({
+  const searchParams: URLSearchParams = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
     ...(search && { search }),
