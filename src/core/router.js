@@ -61,7 +61,39 @@ export class Router {
     this.currentRoute = null;
 
     window.addEventListener('popstate', () => this.render());
+    document.addEventListener('click', this._handleLinkClick.bind(this), true);
     this.render();
+  }
+
+  /**
+   * 링크 클릭 이벤트를 전역으로 처리
+   * @param {MouseEvent} event 클릭 이벤트
+   * @private
+   */
+  _handleLinkClick(event) {
+    console.log(event);
+    const $link = /** @type {HTMLElement} */ (event.target).closest('a');
+    if (!$link) return;
+
+    const href = $link.getAttribute('href');
+    if (!href) return;
+
+    let url;
+    try {
+      url = new URL(href, location.origin);
+    } catch {
+      return;
+    }
+
+    if (url.origin !== location.origin) return;
+
+    const path = `${stripBasePath(url.pathname)}${url.search}${url.hash}`;
+    const currentPath = `${stripBasePath(location.pathname)}${location.search}${location.hash}`;
+
+    event.preventDefault();
+
+    if (path === currentPath) return;
+    this.navigate(path);
   }
 
   /**

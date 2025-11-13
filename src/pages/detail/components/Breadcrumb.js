@@ -7,9 +7,7 @@ export default class Breadcrumb extends Component {
     return /* HTML */ `<!-- 브레드크럼 -->
       <nav class="mb-4">
         <div class="flex items-center space-x-2 text-sm text-gray-600">
-          <a id="home-link" href="/" data-link="" class="hover:text-blue-600 transition-colors"
-            >홈</a
-          >
+          <a href="/" data-link="" class="hover:text-blue-600 transition-colors">홈</a>
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -33,10 +31,6 @@ export default class Breadcrumb extends Component {
   }
 
   setEvent() {
-    this.addEvent('click', '#home-link', (e) => {
-      e.preventDefault();
-      router.navigate('/');
-    });
     this.addEvent('click', '.breadcrumb-link', ({ target }) => {
       const { category1, category2 } = this.props;
 

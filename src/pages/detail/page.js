@@ -71,7 +71,6 @@ export default class DetailPage extends Component {
                   이전 페이지
                 </button>
                 <a
-                  id="home-link"
                   href="/"
                   data-link=""
                   class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
@@ -166,10 +165,6 @@ export default class DetailPage extends Component {
   }
 
   setEvent() {
-    this.addEvent('click', '#home-link', (e) => {
-      e.preventDefault();
-      router.navigate('/');
-    });
     this.addEvent('click', '.go-to-product-list', () => {
       router.navigate('/');
     });

@@ -67,7 +67,6 @@ export default class NotFound extends Component {
           </svg>
 
           <a
-            id="home-link"
             href="/"
             data-link
             class="inline-block px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -76,12 +75,5 @@ export default class NotFound extends Component {
         </div>
       </main>
     `;
-  }
-
-  setEvent() {
-    this.addEvent('click', '#home-link', (e) => {
-      e.preventDefault();
-      router.navigate('/');
-    });
   }
 }
