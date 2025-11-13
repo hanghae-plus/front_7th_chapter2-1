@@ -83,7 +83,7 @@ class Cart {
    * @param {string} productId - 제거할 상품의 ID
    */
   removeItem(productId) {
-    const updatedItems = this.#state.items.filter((item) => item.id !== productId);
+    const updatedItems = this.#state.items.filter((item) => item.productId !== productId);
     this.#setState({ items: updatedItems });
   }
 
@@ -94,7 +94,7 @@ class Cart {
    */
   updateItemQuantity(productId, newQuantity) {
     const updatedItems = this.#state.items.map((item) =>
-      item.id === productId ? { ...item, quantity: Math.max(1, newQuantity) } : item,
+      item.productId === productId ? { ...item, quantity: Math.max(1, newQuantity) } : item,
     );
     this.#setState({ items: updatedItems });
   }
@@ -105,7 +105,7 @@ class Cart {
    */
   cartItemChecked(productId) {
     const updatedItems = this.#state.items.map((item) =>
-      item.id === productId ? { ...item, isChecked: !item.isChecked } : item,
+      item.productId === productId ? { ...item, isChecked: !item.isChecked } : item,
     );
     this.#setState({ items: updatedItems });
   }
@@ -139,7 +139,7 @@ class Cart {
    * @returns {number} 총 금액
    */
   getTotalPrice() {
-    return this.#state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    return this.#state.items.reduce((total, item) => total + item.lprice * item.quantity, 0);
   }
 
   /**
@@ -147,7 +147,7 @@ class Cart {
    * @returns {number} 선택된 상품들의 총 금액
    */
   getSelectedTotalPrice() {
-    return this.#state.items.reduce((total, item) => (item.isChecked ? total + item.price * item.quantity : total), 0);
+    return this.#state.items.reduce((total, item) => (item.isChecked ? total + item.lprice * item.quantity : total), 0);
   }
 
   /**
