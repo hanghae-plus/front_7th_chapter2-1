@@ -98,6 +98,21 @@ function attachCartModalEventHandlers() {
       });
     });
   }
+
+  // 개별 체크박스 변경 시 전체 선택 체크박스 상태 업데이트
+  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+  itemCheckboxes.forEach((checkbox) => {
+    if (checkbox.dataset.listenerAttached) return;
+    checkbox.dataset.listenerAttached = "true";
+    checkbox.addEventListener("change", () => {
+      const allCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+      const checkedCount = document.querySelectorAll(".cart-item-checkbox:checked").length;
+      const selectAllCheckbox = document.getElementById("cart-modal-select-all-checkbox");
+      if (selectAllCheckbox) {
+        selectAllCheckbox.checked = checkedCount === allCheckboxes.length && allCheckboxes.length > 0;
+      }
+    });
+  });
 }
 
 /**
@@ -135,6 +150,11 @@ function renderCartModalContent() {
   if (checkoutBtn) {
     delete checkoutBtn.dataset.listenerAttached;
   }
+  // 개별 체크박스 플래그도 초기화
+  const itemCheckboxes = contentContainer.querySelectorAll(".cart-item-checkbox");
+  itemCheckboxes.forEach((checkbox) => {
+    delete checkbox.dataset.listenerAttached;
+  });
 
   // 이벤트 핸들러 다시 연결
   attachCartModalEventHandlers();
@@ -144,24 +164,42 @@ function renderCartModalContent() {
  * CartModal 표시
  */
 export function showCartModal() {
+  // 이미 모달이 열려있다면 return
+  if (document.querySelector(".cart-modal")) {
+    return;
+  }
+
+  // 모달을 #root 안에, footer 앞에 추가
   const rootContainer = document.getElementById("root");
   if (!rootContainer) return;
 
-  // 기존 모달이 있으면 제거
-  const existingModal = rootContainer.querySelector(".cart-modal");
-  if (existingModal) {
-    existingModal.remove();
-  }
+  // footer를 찾아서 그 앞에 추가
+  const footer = rootContainer.querySelector("footer");
 
-  // 모달을 #root에 추가
+  // 컴포넌트를 사용해서 모달 HTML 생성
   const modalHTML = CartModal({ items: cartState.getState().items });
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = modalHTML.trim();
-  const modalElement = tempDiv.firstElementChild;
-  if (modalElement) {
-    rootContainer.appendChild(modalElement);
+
+  // DOM에 추가 (footer가 있으면 footer 앞에, 없으면 root에 추가)
+  if (footer && footer.parentElement) {
+    footer.insertAdjacentHTML("beforebegin", modalHTML);
+  } else {
+    rootContainer.insertAdjacentHTML("beforeend", modalHTML);
   }
 
+  // DOM이 업데이트되도록 강제 (테스트에서 요소를 찾을 수 있도록)
+  const modalElement = document.querySelector(".cart-modal");
+  if (modalElement) {
+    void modalElement.offsetHeight; // reflow 강제
+  }
+
+  // 모달 이벤트 설정
+  setupModalEvents();
+}
+
+/**
+ * 모달 이벤트 설정
+ */
+function setupModalEvents() {
   // 모달 내부 이벤트 핸들러 연결
   attachCartModalEventHandlers();
 
@@ -209,9 +247,6 @@ export function showCartModal() {
  * CartModal 숨기기
  */
 export function hideCartModal() {
-  const rootContainer = document.getElementById("root");
-  if (!rootContainer) return;
-
   // 구독 해제
   if (modalUnsubscribe) {
     modalUnsubscribe();
@@ -219,7 +254,7 @@ export function hideCartModal() {
   }
 
   // 모달 제거
-  const modal = rootContainer.querySelector(".cart-modal");
+  const modal = document.querySelector(".cart-modal");
   if (modal) {
     modal.remove();
   }
