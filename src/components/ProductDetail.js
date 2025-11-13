@@ -1,4 +1,4 @@
-export const ProductDetail = ({ loading, product }) => {
+export const ProductDetail = ({ loading, product, relatedProducts = [], relatedLoading = false }) => {
   console.log("product", product);
 
   //   {
@@ -26,6 +26,7 @@ export const ProductDetail = ({ loading, product }) => {
   //         "https://shopping-phinf.pstatic.net/main_8694085/86940857379.1_3.jpg"
   //     ]
   // }
+
   if (loading) {
     return `<div class="py-20 bg-gray-50 flex items-center justify-center">
       <div class="text-center">
@@ -151,22 +152,32 @@ export const ProductDetail = ({ loading, product }) => {
         <p class="text-sm text-gray-600">같은 카테고리의 다른 상품들</p>
       </div>
       <div class="p-4">
-        <div class="grid grid-cols-2 gap-3 responsive-grid">
-          <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="86940857379">
-            <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-              <img src="https://shopping-phinf.pstatic.net/main_8694085/86940857379.1.jpg" alt="샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이" class="w-full h-full object-cover" loading="lazy">
-            </div>
-            <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이</h3>
-            <p class="text-sm font-bold text-blue-600">230원</p>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="82094468339">
-            <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-              <img src="https://shopping-phinf.pstatic.net/main_8209446/82094468339.4.jpg" alt="실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제" class="w-full h-full object-cover" loading="lazy">
-            </div>
-            <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제</h3>
-            <p class="text-sm font-bold text-blue-600">280원</p>
-          </div>
-        </div>
+        ${
+          relatedLoading
+            ? `<div class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="ml-2 text-gray-600">관련 상품을 불러오는 중...</span>
+          </div>`
+            : relatedProducts.length > 0
+              ? `<div class="grid grid-cols-2 gap-3 responsive-grid">
+              ${relatedProducts
+                .map(
+                  (relatedProduct) => `
+                <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="${relatedProduct.productId}">
+                  <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
+                    <img src="${relatedProduct.image}" alt="${relatedProduct.title}" class="w-full h-full object-cover" loading="lazy">
+                  </div>
+                  <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${relatedProduct.title}</h3>
+                  <p class="text-sm font-bold text-blue-600">${Number(relatedProduct.lprice).toLocaleString()}원</p>
+                </div>
+              `,
+                )
+                .join("")}
+            </div>`
+              : `<div class="text-center py-8 text-gray-500">
+              같은 카테고리의 다른 상품이 없습니다.
+            </div>`
+        }
       </div>
     </div>`;
   }
