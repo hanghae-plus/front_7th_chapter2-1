@@ -1,5 +1,4 @@
 const relatedProducts = ({ productId, image, title, lprice }) => {
-  console.error("relatedProducts item:", productId, title);
   return /*html*/ `
 <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id=${productId}>
   <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
@@ -12,7 +11,6 @@ const relatedProducts = ({ productId, image, title, lprice }) => {
 };
 
 export const RelatedProductList = ({ products }) => {
-  console.log(products);
   return /*html*/ `
 <div class="bg-white rounded-lg shadow-sm">
   <div class="p-4 border-b border-gray-200">

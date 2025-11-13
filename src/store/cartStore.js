@@ -31,6 +31,13 @@ export const cartStore = {
   getTotalCount() {
     return this.state.cart.length;
   },
+  getTotalAmount() {
+    let total = 0;
+    this.state.cart.forEach((item) => {
+      total += item.lprice * item.quantity;
+    });
+    return total;
+  },
   addToCart(product) {
     const existingItem = this.state.cart.find((item) => item.productId === product.productId);
     if (existingItem) {
@@ -56,10 +63,12 @@ export const cartStore = {
       this.notify();
     }
   },
-  removeFromCart(productId) {
-    this.state.cart = this.state.cart.filter((item) => item.productId !== productId);
+  removeProducts(productIds) {
+    productIds = Array.isArray(productIds) ? productIds : [productIds];
+    this.state.cart = this.state.cart.filter((item) => !productIds.includes(item.productId));
     this.notify();
   },
+
   clearCart() {
     this.state.cart = [];
     this.notify();

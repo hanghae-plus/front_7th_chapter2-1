@@ -1,14 +1,6 @@
 import { CartHeader, CartList } from "../components/cart";
 
 let isOpen = false;
-const MODAL_ROOT_ID = "cart-modal-root";
-export const CartModal = () => {
-  return /*html*/ `
-<div id="root">
-  <div>모달띄우기</div>
-</div>
-`;
-};
 
 const CartModalTemplate = () => /*html*/ `
 <div class="fixed inset-0 z-50 overflow-y-auto cart-modal">
@@ -22,31 +14,21 @@ const CartModalTemplate = () => /*html*/ `
 </div>
 `;
 
-const getModalRoot = () => {
-  let root = document.getElementById(MODAL_ROOT_ID);
-  if (!root) {
-    root = document.createElement("div");
-    root.id = MODAL_ROOT_ID;
-    document.body.appendChild(root);
-  }
-  return root;
-};
-
 export const openCartModal = () => {
-  console.log("openCartModal called");
   if (isOpen) return;
-  const root = getModalRoot();
-  console.log("Modal root:", root);
-  root.innerHTML = CartModalTemplate();
-  document.body.classList.add("overflow-hidden");
-  isOpen = true;
+  const appRoot = document.querySelector("#root > div ");
+
+  if (appRoot) {
+    appRoot.insertAdjacentHTML("beforeend", CartModalTemplate());
+    document.body.classList.add("overflow-hidden");
+    isOpen = true;
+  }
 };
 
 export const closeCartModal = () => {
-  const root = document.getElementById(MODAL_ROOT_ID);
-  if (!root) return;
-  root.innerHTML = "";
+  const modal = document.querySelector(".cart-modal");
+  if (!modal) return;
+  modal.remove();
   document.body.classList.remove("overflow-hidden");
-
   isOpen = false;
 };
