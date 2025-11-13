@@ -1,11 +1,11 @@
-import path from 'path';
+import { fileURLToPath } from 'url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? '/front_7th_chapter2-1/' : '/',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 }));
