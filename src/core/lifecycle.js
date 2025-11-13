@@ -43,10 +43,14 @@ export function withLifecycle(hooks, renderFn) {
         const key = target.toString();
         const oldValue = oldValues[key];
 
+        const newStr = JSON.stringify(newValue);
+        const oldStr = JSON.stringify(oldValue);
+
         // 객체를 JSON.stringify로 비교
-        if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-          callback(newValue, oldValue);
+        if (newStr !== oldStr) {
+          // callback 실행 전에 먼저 oldValues 업데이트! (동기 dispatch로 인한 재진입 방지)
           oldValues[key] = newValue;
+          callback(newValue, oldValue);
         }
       });
     }
