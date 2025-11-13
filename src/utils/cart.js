@@ -1,9 +1,11 @@
 import { ToastManager } from "../../../../항해99/front_7th_chapter2-1/src/utils/toast";
+import { LocalStorageUtil } from "./localstorage";
 
 export class CartUtil {
   static addCard(product) {
-    const existCartItems = JSON.parse(localStorage.getItem("shopping_cart") ?? "{}")?.items ?? [];
+    const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
     const existCartItem = existCartItems.find((item) => item.id === product.productId);
+
     if (existCartItem) {
       existCartItem.quantity = existCartItem.quantity + 1;
     } else {
@@ -16,7 +18,8 @@ export class CartUtil {
         selected: false,
       });
     }
-    localStorage.setItem(
+
+    LocalStorageUtil.setItem(
       "shopping_cart",
       JSON.stringify({
         items: existCartItems,
@@ -24,6 +27,10 @@ export class CartUtil {
     );
 
     ToastManager.show("add");
+  }
+
+  static getCartItems() {
+    return JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
   }
 
   static removeCart() {}

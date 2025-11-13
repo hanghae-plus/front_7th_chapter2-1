@@ -1,6 +1,8 @@
 import { getCategories, getProduct, getProducts } from "./api/productApi.js";
 import { DetailPage2 } from "./pages/DetailPage2.js";
 import { HomePage2 } from "./pages/HomePage2.js";
+import { CartUtil } from "./utils/cart.js";
+import { LocalStorageUtil } from "./utils/localstorage.js";
 import { Router2 } from "./utils/Router2.js";
 
 const enableMocking = () =>
@@ -64,21 +66,29 @@ router.addRoute({
   cacheKeys: ["product"],
 });
 
+const updateCartItemCount = () => {
+  const $cart = $root.querySelector("#cart-icon-btn");
+  const $count = $cart.querySelector(".bg-red-500");
+  $count.textContent = CartUtil.getCartItems().length;
+};
+
+const handler = (e) => {
+  if (e.detail.key === "shopping_cart") {
+    updateCartItemCount();
+    router.render({ withLoader: false });
+  }
+};
+
 const main = async () => {
+  LocalStorageUtil.init(handler);
   await router.render(location.pathname);
 };
 
 // 애플리케이션 시작
 if (import.meta.env.MODE !== "test") {
   enableMocking().then(async () => {
-    console.log("MSW 준비 완료, DOMContentLoaded 대기 중...");
     await main();
-    // if (document.readyState === "loading") {
-    //   document.addEventListener("DOMContentLoaded", main);
-    // } else {
-    //   await main();
-    // }
   });
 } else {
-  await main();
+  main();
 }

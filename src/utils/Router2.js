@@ -65,12 +65,11 @@ export class Router2 {
     return { component: NotFoundPage2, loader: () => Promise.resolve({}), params: {}, queryString: {}, cacheKeys: [] };
   }
 
-  async render() {
+  async render({ withLoader = true }) {
     this.isPending = true;
     const matched = this.#matchRoute(location.pathname);
 
     if (this.currentView && this.currentView.constructor !== matched.component) {
-      console.log("Router: 컴포넌트 변경 감지. 기존 뷰 unmount 시작.");
       this.currentView.unmount();
       this.currentView = null;
       this.currentLoaderData = null;
@@ -98,12 +97,10 @@ export class Router2 {
     }
 
     // 2. ⭐ 데이터 로딩 및 대기
-    if (matched.loader) {
-      console.log("2. Router: Loader 실행 및 데이터 대기 시작.");
+    if (withLoader && matched.loader) {
       try {
         this.currentLoaderData = await matched.loader({ params: matched.params, queryString: matched.queryString });
       } catch (e) {
-        console.error("Loader 실행 중 오류 발생:", e, e.message);
         this.currentLoaderData = { error: e.message };
       }
     }
