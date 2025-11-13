@@ -4,7 +4,6 @@ import { cartStore } from "@/core/store";
 class ProductCard extends Component {
   template() {
     const { product } = this.$props;
-    console.log("product :: ", product);
     return /*html*/ `
      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card" data-product-id=${product.productId}>
         <!-- 상품 이미지 -->

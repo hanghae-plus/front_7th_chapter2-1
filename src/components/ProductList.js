@@ -327,7 +327,7 @@ class ProductList extends Component {
   }
 
   goProductPage(id) {
-    navigateTo(`/product/${id}`, { productId: id });
+    navigateTo(`/product/${id}`, { productId: id, products: this.state.products });
   }
 
   unmount() {
