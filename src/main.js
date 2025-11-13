@@ -50,7 +50,7 @@ const render = async () => {
       products,
       loading: false,
     });
-  } else if (route.path === "/products/:id") {
+  } else if (route.path === "/product/:id") {
     $root.innerHTML = route.component({ loading: true });
     const productId = params[0];
     const data = await getProduct(productId);
@@ -58,7 +58,7 @@ const render = async () => {
       $root.innerHTML = NotFoundPage();
       return;
     }
-    const related = await getProducts({ category2: data.category2, limit: 5 });
+    const related = await getProducts({ category2: data.category2, limit: 13 });
     related.products = related.products.filter((p) => p.productId !== data.productId);
     $root.innerHTML = route.component({ product: data, relatedProducts: related.products });
   }
@@ -174,7 +174,7 @@ document.body.addEventListener("click", (e) => {
   const productCardToOpen = relatedProductCard || productCard;
   if (productCardToOpen) {
     console.log("open product id:", productCardToOpen.dataset.productId);
-    push(`/products/${productCardToOpen.dataset.productId}`);
+    push(`/product/${productCardToOpen.dataset.productId}`);
     return;
   }
 

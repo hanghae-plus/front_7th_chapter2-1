@@ -3,11 +3,10 @@ import { HomePage } from "../pages/HomePage";
 
 const routes = [
   { path: "/", component: HomePage },
-  { path: "/products/:id", component: DetailPage },
+  { path: "/product/:id", component: DetailPage },
 ];
 
 const pathToRegex = (path) => {
-  // '/products/:id' → '/products/([^/]+)'
   return new RegExp("^" + path.replace(/:\w+/g, "([^/]+)") + "$");
 };
 
