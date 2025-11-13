@@ -51,7 +51,7 @@ const createStateMap = (state, renderCallback) => {
  * @property {Props} [props={}]
  * @property {State} [initialState={}]
  * @property {(props: Props, state: State, children?: string) => string} templateFn
- * @property {Record<string, (getter: Getter, setter: Setter) => void>} [eventHandlers={}]
+ * @property {Record<string, (props: Props, getter: Getter, setter: Setter, event: Event) => void>} [eventHandlers={}]
  * @property {HTMLElement[]} [children=[]]
  * @returns {{ mount: (props: Props) => HTMLElement }}
  */
@@ -71,7 +71,7 @@ export default function createComponent({
   /** @type {Props} */
   let currentProps = props;
   const componentId = `${id}-${Math.random().toString(36).substring(2, 15)}`;
-  let isRendering = false; // 렌더링 상태 추적
+  let isRendering = false;
 
   /**
    * @param {string} html
@@ -98,7 +98,6 @@ export default function createComponent({
     const wrapperElement = parseAndGetWrapperElement(templateFn(currentProps, _state, childrenHTML));
     targetElement.replaceWith(wrapperElement);
 
-    // 다음 이벤트 루프에서 렌더링 완료
     setTimeout(() => {
       isRendering = false;
     }, 0);
@@ -108,6 +107,10 @@ export default function createComponent({
 
   if (!window.__componentEventHandlers) {
     window.__componentEventHandlers = new Map();
+  }
+
+  if (!window.__componentEventListenersRegistered) {
+    window.__componentEventListenersRegistered = true;
 
     const EVENT_TYPES = ["click", "change", "input", "submit", "keydown", "focus", "blur"];
 
@@ -119,14 +122,21 @@ export default function createComponent({
           const eventTarget = event.target.closest("[data-event]");
           if (!eventTarget) return;
 
-          const componentId = eventTarget.closest("[data-component]")?.dataset.component;
+          const componentElement = eventTarget.closest("[data-component]");
+          if (!componentElement) return;
+
+          const componentId = componentElement.dataset.component;
           const eventName = eventTarget.dataset.event;
 
           if (!componentId || !eventName) return;
 
+          const eventTypeAttr = eventTarget.dataset.eventType;
+          if (eventTypeAttr !== event.type) return;
+
           const handlers = window.__componentEventHandlers.get(componentId);
           if (handlers?.[eventName]) {
-            event.stopPropagation(); // 이벤트 전파 막기
+            event.stopPropagation();
+            event.stopImmediatePropagation();
             handlers[eventName](event);
           }
         },
@@ -142,7 +152,7 @@ export default function createComponent({
         eventName,
         (/** @type {Event} */ event) => {
           if (isRendering) return;
-          handler(getState, setState, event);
+          handler(currentProps, getState, setState, event);
         },
       ]),
     ),
