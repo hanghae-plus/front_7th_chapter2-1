@@ -51,5 +51,17 @@ export class CartUtil {
     );
   }
 
+  static checkCartItem(productId) {
+    const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
+    const existCartItem = existCartItems.find((prod) => prod.id === productId);
+    existCartItem.selected = existCartItem.selected === true ? false : true;
+    LocalStorageUtil.setItem(
+      "shopping_cart",
+      JSON.stringify({
+        items: existCartItems,
+      }),
+    );
+  }
+
   static removeCart() {}
 }

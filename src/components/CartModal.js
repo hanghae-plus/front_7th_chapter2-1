@@ -10,6 +10,7 @@ const CartItem = (product) => {
       <label class="flex items-center mr-3">
         <input
           type="checkbox"
+          ${product.selected ? "checked" : ""}
           class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           data-product-id="${product.id}"
         />
@@ -72,6 +73,7 @@ const CartItem = (product) => {
 
 export const CartModal = () => {
   const products = CartUtil.getCartItems();
+
   return `<div hidden class="fixed inset-0 z-50 overflow-y-auto cart-modal">
       <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay"></div>
       <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">

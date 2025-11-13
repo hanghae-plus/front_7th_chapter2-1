@@ -77,9 +77,15 @@ const handleQuantityChange = (e) => {
 
 const main = async () => {
   LocalStorageUtil.init(() => {
-    router.render({ withLoader: false }); // Observer 기능
+    const $existingModal = document.body.querySelector(".cart-modal");
+    const isModalOpen = $existingModal && !$existingModal.hasAttribute("hidden");
+    if (!isModalOpen) {
+      router.render({ withLoader: false }); // Observer 기능
+    }
+    window.updateCartModal();
   });
 
+  // init cart modal (모달은 router 안에다가 두지 않았음, 안그럼 자꾸 리렌더링 됨... 근데 모달 관련한 렌더링 로직을 또 따로 작성)
   const cartModalHTML = CartModal();
   document.body.insertAdjacentHTML("afterbegin", cartModalHTML);
   document.body.addEventListener("click", (e) => {
@@ -94,6 +100,9 @@ const main = async () => {
       $modal.hidden = true;
     } else if (e.target.closest(".quantity-increase-btn") || e.target.closest(".quantity-decrease-btn")) {
       handleQuantityChange(e);
+    } else if (e.target.closest(".cart-item-checkbox")) {
+      const $checkbox = e.target.closest(".cart-item-checkbox");
+      CartUtil.checkCartItem($checkbox.dataset.productId);
     }
   });
 
@@ -103,6 +112,22 @@ const main = async () => {
       $modal.hidden = true;
     }
   });
+
+  window.updateCartModal = () => {
+    const $existingModal = document.body.querySelector(".cart-modal");
+    const isModalOpen = $existingModal && !$existingModal.hasAttribute("hidden");
+
+    // 새로운 HTML로 덮어쓰기
+    const cartModalHTML = CartModal();
+    document.body.insertAdjacentHTML("afterbegin", cartModalHTML);
+
+    // 덮어쓰기 후, 모달이 이전에 열려있었다면 다시 열어줍니다.
+    const $newModal = document.body.querySelector(".cart-modal");
+    if (isModalOpen && $newModal) {
+      $newModal.removeAttribute("hidden");
+    }
+    $existingModal.remove();
+  };
 
   await router.render(location.pathname);
 };
