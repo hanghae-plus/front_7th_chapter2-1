@@ -58,9 +58,13 @@ const renderCart = () => {
 };
 
 const render = async () => {
+  const basePath = import.meta.env.BASE_URL; // vite 제공
+  const pathName = window.location.pathname;
+  const relativePath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
+
   const $root = document.getElementById("root");
 
-  if (window.location.pathname === "/") {
+  if (relativePath === "/") {
     const data = await getProducts(filters.getState());
     $root.innerHTML = HomePage({ ...data, categories, isLoading: false });
   } else {
