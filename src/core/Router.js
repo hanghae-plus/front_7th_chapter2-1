@@ -117,6 +117,40 @@ export const createRouter = (routers) => {
     return params;
   };
 
+  // URL 쿼리스트링에서 파라미터 추출
+  const getQuery = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const query = {};
+
+    for (const [key, value] of searchParams.entries()) {
+      query[key] = value;
+    }
+
+    return query;
+  };
+
+  // URL 쿼리스트링 업데이트 (현재 경로 유지)
+  const updateQuery = (queryParams, replace = false) => {
+    const currentPath = window.location.pathname;
+    const searchParams = new URLSearchParams();
+
+    // 빈 값이나 undefined는 제외
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        searchParams.set(key, value);
+      }
+    });
+
+    const queryString = searchParams.toString();
+    const newUrl = queryString ? `${currentPath}?${queryString}` : currentPath;
+
+    if (replace) {
+      window.history.replaceState(null, null, newUrl);
+    } else {
+      window.history.pushState(null, null, newUrl);
+    }
+  };
+
   // setup()은 initRouter에서 호출하도록 나중으로 연기
-  return { push, destroy, getParams, setup };
+  return { push, destroy, getParams, getQuery, updateQuery, setup };
 };

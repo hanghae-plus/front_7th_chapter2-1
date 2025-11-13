@@ -35,17 +35,19 @@ const Skelleton = () => {
 
 const ProductList = Component({
   template: (context) => {
-    const { products, pagination, loading } = context.props;
+    const { products, pagination, loading, loadingMore, hasNext } = context.props;
     return /* HTML */ `
       <div>
-        ${products?.length
+        ${products?.length && !loading
           ? /* HTML */ ` <div class="mb-4 text-sm text-gray-600">
               총 <span class="font-medium text-gray-900">${Number(pagination?.total).toLocaleString()}개</span>의 상품
             </div>`
           : ""}
         <!-- 상품 그리드 -->
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-          <!-- 로딩 스켈레톤 -->
+          <!-- 초기 로딩 스켈레톤 -->
+          ${loading ? Skelleton().repeat(4) : ""}
+          <!-- 상품 카드 -->
           ${products
             .map(
               (product) => /* HTML */ `
@@ -56,8 +58,17 @@ const ProductList = Component({
               `,
             )
             .join("")}
-          ${loading ? Skelleton().repeat(4) : ""} ${loading ? Loading() : ""}
+          <!-- 추가 로딩 스켈레톤 -->
+          ${loadingMore ? Skelleton().repeat(4) : ""}
         </div>
+        <!-- IntersectionObserver 타겟 -->
+        ${hasNext && !loading ? /* HTML */ `<div id="infinite-scroll-trigger" class="h-10"></div>` : ""}
+        <!-- 로딩 인디케이터 -->
+        ${loadingMore ? Loading() : ""}
+        <!-- 더 이상 데이터 없음 -->
+        ${!hasNext && !loading && products.length > 0
+          ? /* HTML */ `<div class="text-center py-4 text-gray-500 text-sm">모든 상품을 불러왔습니다.</div>`
+          : ""}
       </div>
     `;
   },
@@ -66,6 +77,41 @@ const ProductList = Component({
     products.forEach((product) => {
       context.mountChildren(ProductCard, `[data-product-id="${product.productId}"]`, { product });
     });
+  },
+  setup: (context) => {
+    const { props } = context;
+    const { onLoadMore, hasNext, loadingMore } = props;
+
+    if (!onLoadMore || !hasNext || loadingMore) return;
+
+    // IntersectionObserver 설정
+    const observerCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && hasNext && !loadingMore) {
+          onLoadMore();
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      root: null,
+      rootMargin: "100px",
+      threshold: 0.1,
+    });
+
+    // 타겟 요소 관찰 시작
+    const target = document.getElementById("infinite-scroll-trigger");
+    if (target) {
+      observer.observe(target);
+    }
+
+    // cleanup 함수 반환 (컴포넌트 언마운트 시 실행)
+    return () => {
+      if (target) {
+        observer.unobserve(target);
+      }
+      observer.disconnect();
+    };
   },
 });
 
