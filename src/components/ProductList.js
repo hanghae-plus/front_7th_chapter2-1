@@ -61,7 +61,9 @@ const ProductItem = ({ title, image, lprice, productId }) => {
   `;
 };
 
-export const ProductList = ({ products, loading }) => {
+export const ProductList = ({ products, loading, pagination = {} }) => {
+  const totalCount = pagination.total || products.length;
+
   return /* HTML */ `
     <div class="mb-6">
       <div>
@@ -72,7 +74,7 @@ export const ProductList = ({ products, loading }) => {
             `
           : /* HTML */ `
               <div class="mb-4 text-sm text-gray-600">
-                총 <span class="font-medium text-gray-900">${products.length}개</span>의 상품
+                총 <span class="font-medium text-gray-900">${totalCount}개</span>의 상품
               </div>
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
             `}
