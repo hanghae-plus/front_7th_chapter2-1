@@ -60,6 +60,30 @@ jobs:
             echo "✓ 404.html created"
           fi
 
+      - name: Prepare for GitHub Pages
+        run: |
+          # GitHub Pages는 dist 폴더를 루트에 배포하므로
+          # base URL 경로에 맞게 파일 구조를 조정
+          mkdir -p dist/front-7th-chapter2-1
+          # assets 폴더를 base 경로로 이동
+          if [ -d dist/assets ]; then
+            mv dist/assets dist/front-7th-chapter2-1/
+          fi
+          # index.html과 404.html을 base 경로로 이동
+          mv dist/index.html dist/front-7th-chapter2-1/
+          if [ -f dist/404.html ]; then
+            mv dist/404.html dist/front-7th-chapter2-1/
+          fi
+          # mockServiceWorker.js도 이동
+          if [ -f dist/mockServiceWorker.js ]; then
+            mv dist/mockServiceWorker.js dist/front-7th-chapter2-1/
+          fi
+          # 루트에 index.html 생성 (리다이렉트용)
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=/front-7th-chapter2-1/"></head><body><script>window.location.href="/front-7th-chapter2-1/";</script></body></html>' > dist/index.html
+          echo "=== After restructuring ==="
+          ls -la dist/
+          ls -la dist/front-7th-chapter2-1/ || echo "No front-7th-chapter2-1 folder"
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
