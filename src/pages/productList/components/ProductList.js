@@ -1,27 +1,27 @@
-import { Loading } from "../../../components/index.js";
+export const ProductList = (loading, productList) => {
+  const products = productList;
+  console.log("products", products);
+  console.log("loading", loading);
 
-export const ProductList = (loading) => {
   return `
     <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
     ${
       loading
         ? CardSkeleton() + CardSkeleton() + CardSkeleton() + CardSkeleton()
-        : ProductCard() + ProductCard() + ProductCard() + ProductCard()
+        : products.map((product) => ProductCard(product)).join("")
     }
     </div>
-    ${loading ? Loading() : ""}
     `;
 };
 
-const ProductCard = () => {
+const ProductCard = (product) => {
+  console.log("product", product);
   return `
-    <div class="mb-6">
-          <div>
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
                    data-product-id="85067212996">
                 <!-- 상품 이미지 -->
                 <div class="aspect-square bg-gray-100 overflow-hidden cursor-pointer product-image">
-                  <img src="https://shopping-phinf.pstatic.net/main_8506721/85067212996.1.jpg"
+                  <img src=${product.image}
                        alt="PVC 투명 젤리 쇼핑백 1호 와인 답례품 구디백 비닐 손잡이 미니 간식 선물포장"
                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                        loading="lazy">
@@ -30,11 +30,11 @@ const ProductCard = () => {
                 <div class="p-3">
                   <div class="cursor-pointer product-info mb-3">
                     <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                      PVC 투명 젤리 쇼핑백 1호 와인 답례품 구디백 비닐 손잡이 미니 간식 선물포장
+                      ${product.title}
                     </h3>
                     <p class="text-xs text-gray-500 mb-2"></p>
                     <p class="text-lg font-bold text-gray-900">
-                      220원
+                      ${product.lprice}
                     </p>
                   </div>
                   <!-- 장바구니 버튼 -->
@@ -44,8 +44,6 @@ const ProductCard = () => {
                   </button>
                 </div>
               </div>
-              </div>
-        </div>
     `;
 };
 
