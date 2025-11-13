@@ -1,5 +1,5 @@
 import { Component } from "../components/Component";
-import { ProductCard, ProductList } from "../components/ProductList";
+import { ProductList } from "../components/ProductList";
 import { SearchForm } from "../components/SearchForm";
 import { CartUtil } from "../utils/cart";
 import { getProducts } from "../api/productApi.js";
@@ -144,6 +144,7 @@ export class HomePage extends Component {
       const nextPage = currentPage + 1;
 
       console.log(`현재 페이지: ${currentPage}, 다음 페이지: ${nextPage}`);
+      this.updateProductList();
 
       // URL 업데이트 (current 파라미터 추가/업데이트)
       params.set("current", nextPage.toString());
@@ -184,20 +185,21 @@ export class HomePage extends Component {
       console.error("다음 페이지 로드 실패:", error);
     } finally {
       this.isLoading = false;
+      this.updateProductList();
     }
   }
 
   updateProductList() {
-    const productListContainer = this.$container.querySelector("#products-grid");
-    if (productListContainer) {
-      const { loaderData } = this.props;
-      productListContainer.innerHTML = loaderData.products.map(ProductCard).join("");
-
-      // 총 상품 개수 업데이트
-      const totalCountElement = this.$container.querySelector(".font-medium.text-gray-900");
-      if (totalCountElement && this.props.loaderData.pagination) {
-        totalCountElement.textContent = `${this.props.loaderData.pagination.total}개`;
-      }
+    // ProductList 전체 컨테이너 찾기
+    const productListContainer = this.$container.querySelector(".mb-6");
+    if (productListContainer && this.props.loaderData) {
+      const { loaderData, isPending } = this.props;
+      // ProductList 컴포넌트 다시 렌더링 (로딩 상태까지 포함)
+      productListContainer.innerHTML = ProductList({
+        products: loaderData.products || [],
+        loading: isPending || this.isLoading,
+        total: loaderData.pagination?.total || 0,
+      });
     }
   }
 
@@ -232,12 +234,12 @@ export class HomePage extends Component {
   }
 
   template() {
-    const { loaderData, isPending: loading, queryString } = this.props;
+    const { loaderData, isPending, queryString } = this.props;
     return PageLayout({
       children: `
         ${SearchForm({ ...loaderData, filters: queryString /*, filters, pagination, categories */ })}
-        ${ProductList({ products: loaderData?.products ?? [], loading, total: loaderData?.pagination?.total ?? 0 })}
-        <div id="load-next-page" style="height:20px; margin: 20px 0; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">📍 스크롤 트리거</div>
+        ${ProductList({ products: loaderData?.products ?? [], loading: isPending || this.isLoading, total: loaderData?.pagination?.total ?? 0 })}
+        <div id="load-next-page" style="height:20px"></div>
       `,
     });
   }
