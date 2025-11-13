@@ -1,5 +1,6 @@
 import { router } from "../App";
 import { setUpInfiniteScroll } from "./infiniteScroll";
+import { showToast } from "./toast";
 
 function itemLimitSelectEventListener() {
   const itemLimitSelector = document.querySelector("#limit-select");
@@ -136,6 +137,26 @@ function clickProductItem() {
   });
 }
 
+function clickAddToCart() {
+  const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
+
+  addToCartButtons.forEach((button) => {
+    if (button.dataset.listenerAttached) return;
+    button.dataset.listenerAttached = "true";
+
+    button.addEventListener("click", (event) => {
+      event.stopPropagation(); // 상품 클릭 이벤트 전파 방지
+      const productId = event.currentTarget.dataset.productId;
+      console.log(`상품 ${productId}번이 장바구니에 추가되었습니다.`);
+
+      // TODO 장바구니 스토어에 추가
+
+      // Toast 표시
+      showToast();
+    });
+  });
+}
+
 export function attachHomePageEventListeners() {
   itemLimitSelectEventListener();
   itemSortSelectEventListener();
@@ -145,6 +166,7 @@ export function attachHomePageEventListeners() {
   clickBreadcrumbBtn();
   clickProductItem();
   setUpInfiniteScroll();
+  clickAddToCart();
 }
 
 function onClickIncreaseCounter() {
@@ -188,11 +210,6 @@ function onClickAddToCart() {
 
   addToCartButton.addEventListener("click", addToCartEventHandler);
 }
-
-/**
- * Toast 메시지 표시
- */
-function showToast() {}
 
 export function attachDetailPageHandlers() {
   onClickIncreaseCounter();
