@@ -42,9 +42,14 @@ export const Component = (component) => {
     let children = [];
     let stateChangeListeners = [];
     let eventListeners = [];
+    let setupCleanup = null;
 
-    const setState = (newState) => {
+    const setState = (updater) => {
       const prevState = { ...state };
+
+      // 함수형 업데이트 지원
+      const newState = typeof updater === "function" ? updater(prevState) : updater;
+
       state = { ...prevState, ...newState };
 
       // stateChange 리스너 실행
@@ -140,12 +145,18 @@ export const Component = (component) => {
     const mount = () => {
       render();
       component.setEvent?.(eventContext);
-      component.setup?.(context);
+      setupCleanup = component.setup?.(context);
     };
 
     const destroy = () => {
       clearEventListeners();
       destroyChildren();
+
+      // Call setup cleanup function if it exists
+      if (typeof setupCleanup === "function") {
+        setupCleanup();
+      }
+
       component.onDestroy?.();
     };
 

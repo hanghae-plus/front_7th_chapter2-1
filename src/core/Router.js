@@ -65,8 +65,9 @@ export const createRouter = (routers) => {
     handleRoute();
   };
 
-  const push = (path) => {
-    window.history.pushState(null, null, getBaseUrl() + path);
+  const push = (path, replace = false) => {
+    if (replace) window.history.replaceState(null, null, getBaseUrl() + path);
+    else window.history.pushState(null, null, getBaseUrl() + path);
     handleRoute();
   };
 
