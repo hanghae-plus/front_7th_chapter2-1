@@ -89,7 +89,10 @@ export const ProductList = ({ products, loading, pagination = {} }) => {
               </div>
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">${products.map(ProductItem).join("")}</div>
               ${isLoadingMore
-                ? Loading
+                ? /* HTML */ `
+                    <div class="grid grid-cols-2 gap-4 mb-4">${Skeleton.repeat(4)}</div>
+                    ${Loading}
+                  `
                 : !hasNext && products.length > 0
                   ? /* HTML */ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`
                   : ""}
