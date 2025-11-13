@@ -289,8 +289,19 @@ export const initCartDialog = () => {
     closeBtn.addEventListener("click", window.closeCartDialog);
   }
 
-  // 오버레이 클릭 이벤트 (오버레이 닫기, 삭제 버튼, 수량 조절 버튼 처리)
+  // 오버레이 클릭 이벤트 (오버레이 닫기, 삭제 버튼, 수량 조절 버튼, 전체 비우기 버튼 처리)
   modalOverlay.addEventListener("click", (e) => {
+    // 전체 비우기 버튼 클릭 처리
+    const clearCartBtn = e.target.closest("#cart-modal-clear-cart-btn");
+    if (clearCartBtn) {
+      const cartData = getCartData();
+      cartData.items = [];
+      cartData.selectedAll = false;
+      saveCartData(cartData);
+      window.updateCartContent();
+      return;
+    }
+
     // 수량 증가 버튼 클릭 처리
     const increaseBtn = e.target.closest(".quantity-increase-btn");
     if (increaseBtn) {
