@@ -3,6 +3,7 @@ import { createStore } from "./core/store";
 import { attachDetailPageHandlers, attachHomePageEventListeners } from "./handlers";
 import { DetailPage } from "./pages/DetailPage";
 import { HomePage } from "./pages/HomePage";
+import { getCartStateFromStorage, saveCartStateToStorage } from "./utils/storage";
 
 const state = createStore({
   loading: true,
@@ -15,8 +16,12 @@ const state = createStore({
   sort: "price_asc",
 });
 
-export const cartState = createStore({
-  items: [],
+// localStorage에서 cartState 복원하여 초기화
+export const cartState = createStore(getCartStateFromStorage());
+
+// cartState 변경 시 localStorage에 저장
+cartState.subscribe((state) => {
+  saveCartStateToStorage(state);
 });
 
 export const router = createRouter(
