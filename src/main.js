@@ -1,10 +1,6 @@
 import { ProductList } from "./components/ProductList.js";
 import layout from "./page/PageLayout.js";
-import { CategoryFilter1Depth, CategoryFilter2Depth } from "./components/CategoryFilter.js";
-import { ToastDemo } from "./components/Toast.js";
-import { CartModal } from "./components/Cart.js";
-import NotFound from "./components/NotFound.js";
-import { ProductDetailLoading, ProductDetailLoaded } from "./components/ProductDetail.js";
+import { getProducts, getCategories } from "./api/productApi.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -13,35 +9,47 @@ const enableMocking = () =>
     }),
   );
 
-function main() {
-  const 상품목록_레이아웃_로딩 = layout({
+async function main() {
+  // 1. 먼저 로딩 상태 표시
+  const loadingHTML = layout({
     children: ProductList,
   });
+  document.querySelector("#root").innerHTML = loadingHTML;
 
-  const 상품목록_레이아웃_로딩완료 = layout({
-    children: () =>
-      ProductList({
-        isLoading: false,
-        products: [
-          {
-            id: "85067212996",
-            name: "PVC 투명 젤리 쇼핑백 1호 와인 답례품 구디백 비닐 손잡이 미니 간식 선물포장",
-            price: 220,
-            imageUrl: "https://shopping-phinf.pstatic.net/main_8506721/85067212996.1.jpg",
-            mallName: "",
-          },
-          {
-            id: "86940857379",
-            name: "샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이",
-            price: 230,
-            imageUrl: "https://shopping-phinf.pstatic.net/main_8694085/86940857379.1.jpg",
-            mallName: "이지웨이건축자재",
-          },
-        ],
-        totalCount: 340,
-      }),
-  });
+  // 2. 데이터 로드
+  try {
+    // 상품과 카테고리를 동시에 로드
+    const [productsData, categoriesData] = await Promise.all([getProducts({ limit: 20, page: 1 }), getCategories()]);
 
+    // API 응답 데이터를 ProductList가 기대하는 형식으로 변환
+    const products = productsData.products.map((item) => ({
+      id: item.productId,
+      name: item.title,
+      price: parseInt(item.lprice),
+      imageUrl: item.image,
+      mallName: item.mallName,
+    }));
+
+    // 3. 데이터 로드 완료 후 상품 목록 렌더링
+    const productsHTML = layout({
+      children: () =>
+        ProductList({
+          isLoading: false,
+          products: products,
+          totalCount: productsData.pagination.total,
+          categories: categoriesData,
+        }),
+    });
+    document.querySelector("#root").innerHTML = productsHTML;
+  } catch (error) {
+    console.error("상품 목록을 불러오는데 실패했습니다:", error);
+    // 에러 처리 로직 추가 가능
+  }
+
+  // ============================================
+  // 아래는 컴포넌트 데모 코드 (개발 참고용)
+  // ============================================
+  /*
   const 상품목록_레이아웃_카테고리_1Depth = CategoryFilter1Depth({
     category1: "생활/건강",
     subCategories: ["생활용품", "주방용품", "문구/사무용품"],
@@ -179,6 +187,7 @@ function main() {
     <br />
     ${_404_}
   `;
+  */
 }
 
 // 애플리케이션 시작

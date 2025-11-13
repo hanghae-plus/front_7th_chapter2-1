@@ -59,7 +59,18 @@ const ProductItem = ({ id, name, price, imageUrl, mallName = "" }) => {
   `;
 };
 
-const ProductList = ({ isLoading = true, products = [], totalCount = 0 } = {}) => {
+const ProductList = ({ isLoading = true, products = [], totalCount = 0, categories = {} } = {}) => {
+  // 1depth 카테고리 버튼들 생성
+  const category1Buttons = Object.keys(categories)
+    .map(
+      (cat1) => `
+    <button data-category1="${cat1}" class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+      ${cat1}
+    </button>
+  `,
+    )
+    .join("");
+
   return `
         <!-- 검색 및 필터 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -85,8 +96,8 @@ const ProductList = ({ isLoading = true, products = [], totalCount = 0 } = {}) =
                 <button data-breadcrumb="reset" class="text-xs hover:text-blue-800 hover:underline">전체</button>
               </div>
               <!-- 1depth 카테고리 -->
-              <div class="flex flex-wrap gap-2">
-                <div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>
+              <div class="flex flex-wrap gap-2" id="category1-container">
+                ${category1Buttons || '<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>'}
               </div>
               <!-- 2depth 카테고리 -->
             </div>
