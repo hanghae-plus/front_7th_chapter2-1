@@ -1,6 +1,7 @@
 import { router } from "../App";
 import { setUpInfiniteScroll } from "./infiniteScroll";
 import { showToast } from "./toast";
+import { showCartModal } from "./cart";
 
 function itemLimitSelectEventListener() {
   const itemLimitSelector = document.querySelector("#limit-select");
@@ -157,6 +158,17 @@ function clickAddToCart() {
   });
 }
 
+function clickCartIcon() {
+  const cartIcon = document.querySelector("#cart-icon-btn");
+
+  if (!cartIcon || cartIcon.dataset.listenerAttached) return;
+
+  cartIcon.dataset.listenerAttached = "true";
+  cartIcon.addEventListener("click", () => {
+    showCartModal();
+  });
+}
+
 export function attachHomePageEventListeners() {
   itemLimitSelectEventListener();
   itemSortSelectEventListener();
@@ -165,6 +177,7 @@ export function attachHomePageEventListeners() {
   clickCategory2EventListener();
   clickBreadcrumbBtn();
   clickProductItem();
+  clickCartIcon();
   setUpInfiniteScroll();
   clickAddToCart();
 }
@@ -215,4 +228,5 @@ export function attachDetailPageHandlers() {
   onClickIncreaseCounter();
   onClickDecreaseCounter();
   onClickAddToCart();
+  clickCartIcon();
 }
