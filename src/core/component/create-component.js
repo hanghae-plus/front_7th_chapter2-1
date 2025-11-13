@@ -13,12 +13,16 @@
 
 /**
  * @param {State} state
- * @param {RenderCallback} renderCallback
- * @returns {{ getState: (key: string) => any, setState: (key: string, value: any | ((prev: any) => any)) => void }}
+ * @returns {{ getState: (key: string) => any, setState: (key: string, value: any | ((prev: any) => any)) => void, subscribe: (observer: (args: any) => void) => () => void }}
  */
-const createStateMap = (state, renderCallback) => {
+const createStateMap = (state) => {
   /** @type {Map<string, any>} */
   const stateMap = new Map(Object.entries(state));
+
+  /** @type {Set<(args: any) => void>} */
+  const observers = new Set();
+  /** @type {boolean} */
+  let pendingNotify = false;
 
   const getValueMap = () => {
     /** @type {Record<string, any>} */
@@ -27,6 +31,17 @@ const createStateMap = (state, renderCallback) => {
       valueMap[key] = value;
     });
     return valueMap;
+  };
+
+  const notifyObservers = () => {
+    if (pendingNotify) return;
+    pendingNotify = true;
+
+    Promise.resolve().then(() => {
+      pendingNotify = false;
+      const currentState = getValueMap();
+      observers.forEach((observer) => observer(currentState));
+    });
   };
 
   return {
@@ -38,9 +53,11 @@ const createStateMap = (state, renderCallback) => {
         value = value(stateMap.get(key));
       }
       stateMap.set(key, value);
-      if (renderCallback) {
-        renderCallback(getValueMap());
-      }
+      notifyObservers();
+    },
+    subscribe: (observer) => {
+      observers.add(observer);
+      return () => observers.delete(observer);
     },
   };
 };
@@ -50,7 +67,7 @@ const createStateMap = (state, renderCallback) => {
  * @property {string} id
  * @property {Props} [props={}]
  * @property {(props: Props) => State} [initialState=() => ({})]
- * @property {(props: Props, state: State, children?: string) => string} templateFn
+ * @property {(props: Props, state: State, setState: Setter, children?: string) => string} templateFn
  * @property {Record<string, (props: Props, getter: Getter, setter: Setter, event: Event) => void>} [eventHandlers={}]
  * @property {HTMLElement[]} [children=[]]
  * @returns {{ mount: (props: Props) => HTMLElement }}
@@ -73,6 +90,9 @@ export default function createComponent({
   const componentId = `${id}-${Math.random().toString(36).substring(2, 15)}`;
   let isRendering = false;
 
+  /** @type {(() => void) | null} */
+  let unsubscribe = null;
+
   /**
    * @param {string} html
    */
@@ -80,8 +100,9 @@ export default function createComponent({
     const range = document.createRange();
     const parsedFragment = range.createContextualFragment(html);
 
-    /** @type {HTMLElement} */
+    /** @type {HTMLElement | null} */
     const wrapperElement = parsedFragment.firstElementChild;
+    if (!wrapperElement) return null;
     wrapperElement.dataset.component = componentId;
     return wrapperElement;
   };
@@ -95,7 +116,7 @@ export default function createComponent({
       return;
     }
     const childrenHTML = children.map((child) => child.outerHTML).join("");
-    const wrapperElement = parseAndGetWrapperElement(templateFn(currentProps, _state, childrenHTML));
+    const wrapperElement = parseAndGetWrapperElement(templateFn(currentProps, _state, setState, childrenHTML));
     targetElement.replaceWith(wrapperElement);
 
     setTimeout(() => {
@@ -103,7 +124,9 @@ export default function createComponent({
     }, 0);
   };
 
-  const { getState, setState } = createStateMap(initialState(currentProps), render);
+  const { getState, setState, subscribe } = createStateMap(initialState(currentProps));
+
+  unsubscribe = subscribe(render);
 
   if (!window.__componentEventHandlers) {
     window.__componentEventHandlers = new Map();
@@ -162,8 +185,27 @@ export default function createComponent({
     mount: (_props = {}) => {
       currentProps = _props;
       const childrenHTML = children.map((child) => child.outerHTML).join("");
-      const html = templateFn(_props, initialState(_props), childrenHTML);
-      return parseAndGetWrapperElement(html);
+      const html = templateFn(_props, initialState(_props), setState, childrenHTML);
+      const element = parseAndGetWrapperElement(html);
+
+      const observer = new MutationObserver(() => {
+        if (!document.contains(element)) {
+          if (unsubscribe) {
+            unsubscribe();
+            unsubscribe = null;
+            window.__componentEventHandlers.delete(componentId);
+          }
+          observer.disconnect();
+        }
+      });
+
+      setTimeout(() => {
+        if (element.parentNode) {
+          observer.observe(element.parentNode, { childList: true });
+        }
+      }, 0);
+
+      return element;
     },
   };
 }
