@@ -1,6 +1,4 @@
 export const SearchForm = ({ filters = { search: "" }, categories = {} }) => {
-  console.log("queryString", filters);
-
   return `
     <!-- 검색 및 필터 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
