@@ -4,7 +4,7 @@ class State {
   }
   set(newState, render) {
     this.state = newState;
-    render();
+    render?.();
   }
   get() {
     return this.state;

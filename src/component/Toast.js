@@ -53,7 +53,7 @@ const Error = ({ message }) => /*HTML*/ `
  */
 const Toast = ({ type, message }) => {
   return /*HTML*/ `
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 items-center justify-center" style="width: fit-content;">
+    <div class="toast fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center justify-center" style="width: fit-content;">
         ${type === "success" ? Success({ message }) : type === "info" ? Info({ message }) : Error({ message })}
     </div>
     `;

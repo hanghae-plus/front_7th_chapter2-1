@@ -3,7 +3,6 @@ import { getProduct, getProducts } from "../api/productApi";
 import Product from "../component/Product";
 import RelatedList from "../component/RelatedList";
 import BreadCrumb from "../component/BreadCrumb";
-import Toast from "../component/Toast";
 import { addToCart } from "../module/cartModule";
 
 const Loading = /*HTML*/ `
@@ -15,7 +14,7 @@ const Loading = /*HTML*/ `
 </div>
 `;
 
-const ProductPage = async (render, { toast }) => {
+const ProductPage = async (render, { showToast }) => {
   const productId = window.location.pathname.split("/").pop();
 
   const isLoading = new State(true);
@@ -38,8 +37,6 @@ const ProductPage = async (render, { toast }) => {
       </button>
     </div>
     ${RelatedList({ relatedProducts: relatedProducts.get().products })}
-    ${toast.get().show ? Toast({ type: toast.get().type, message: toast.get().message }) : ""}
-  
 `);
 
   const getProductData = async () => {
@@ -68,7 +65,7 @@ const ProductPage = async (render, { toast }) => {
     // 장바구니 담기
     if (e.target.closest("#add-to-cart-btn")) {
       addToCart(product.get(), quantity.get());
-      toast.set({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
+      showToast({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
     }
 
     //수량 증가/감소

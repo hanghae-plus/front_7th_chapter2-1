@@ -1,7 +1,10 @@
 import HomePage from "./page/HomePage";
-import toastStore from "./store/toastStore";
 import layout from "./page/PageLayout";
 import ProductPage from "./page/ProductPage";
+import CartModal from "./component/CartModal";
+import stateStore from "./store/stateStore";
+import { removeAllFromCart, removeFromCart, getCart, editCartQuantity } from "./module/cartModule.js";
+import toastModule from "./module/toastModule.js";
 
 const basePath = import.meta.env.BASE_URL;
 const pathName = window.location.pathname;
@@ -19,19 +22,122 @@ const enableMocking = () =>
 
 async function main() {
   const $root = document.querySelector("#root");
-  const toast = toastStore();
+  const checkedCartItems = new stateStore([]);
+  const { showToast } = toastModule($root);
 
   const render = (HTML) => ($root.innerHTML = layout({ children: () => HTML }));
 
-  if (relativePath === "/") {
-    // 상대경로로 바꿔줌
-    await HomePage(render, { toast });
-  }
+  const renderHome = async () => await HomePage(render, { showToast });
+  const renderProduct = async () => await ProductPage(render, { showToast });
 
-  if (relativePath.includes("/product")) {
-    // 상대경로로 바꿔줌
-    await ProductPage(render, { toast });
-  }
+  const routeRender = async () => {
+    if (relativePath === "/") {
+      // 상대경로로 바꿔줌
+      renderHome();
+    }
+
+    if (relativePath.includes("/product")) {
+      // 상대경로로 바꿔줌
+      renderProduct();
+    }
+  };
+
+  routeRender();
+
+  const showCartModal = () =>
+    $root.insertAdjacentHTML("beforeend", CartModal({ checkedCartItems: checkedCartItems.get() }));
+
+  const hideCartModal = () => {
+    document.querySelector(".cart-modal").remove();
+  };
+
+  const renderCartModal = () => {
+    hideCartModal();
+    showCartModal();
+  };
+
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      hideCartModal();
+    }
+  });
+
+  addEventListener("click", (e) => {
+    // 카트 열기
+    if (e.target.closest("#cart-icon-btn")) {
+      console.log("카트열기");
+      showCartModal();
+    }
+
+    // 카트 닫기
+    if (e.target.closest("#cart-modal-close-btn")) {
+      hideCartModal();
+    }
+
+    // 카트 수량 증가
+    if (e.target.closest(".quantity-increase-btn")) {
+      editCartQuantity(e.target.dataset.productId, "increase");
+      renderCartModal();
+    }
+
+    // 카트 수량 감소
+    if (e.target.closest(".quantity-decrease-btn")) {
+      editCartQuantity(e.target.dataset.productId, "decrease");
+      renderCartModal();
+    }
+
+    // 카트 전체 비우기
+    if (e.target.closest("#cart-modal-clear-cart-btn")) {
+      removeAllFromCart();
+      checkedCartItems.set([]);
+      showToast({ message: "장바구니가 비워졌습니다", type: "info" });
+      renderCartModal();
+    }
+
+    // 선택한 상품 삭제
+    if (e.target.closest("#cart-modal-remove-selected-btn")) {
+      checkedCartItems.get().forEach((productId) => {
+        removeFromCart(productId);
+      });
+      checkedCartItems.set([]);
+      showToast({ message: "선택한 상품들이 삭제되었습니다", type: "info" });
+      renderCartModal();
+    }
+
+    // 단일 상품 삭제
+    if (e.target.closest(".cart-item-remove-btn")) {
+      removeFromCart(e.target.dataset.productId);
+      checkedCartItems.set(checkedCartItems.get().filter((id) => id !== e.target.dataset.productId));
+      showToast({ message: "선택한 상품이 삭제되었습니다", type: "info" });
+      renderCartModal();
+    }
+  });
+
+  addEventListener("change", (e) => {
+    if (e.target.classList.contains("cart-item-checkbox")) {
+      const isChecked = e.target.checked;
+      const productId = e.target.dataset.productId;
+
+      if (isChecked) {
+        checkedCartItems.set([...checkedCartItems.get(), productId]);
+      } else {
+        checkedCartItems.set(checkedCartItems.get().filter((id) => id !== productId));
+      }
+      renderCartModal();
+    }
+
+    if (e.target.id === "cart-modal-select-all-checkbox") {
+      const isChecked = e.target.checked;
+      const cart = getCart();
+
+      if (isChecked) {
+        checkedCartItems.set(cart.flatMap((item) => item.productId));
+      } else {
+        checkedCartItems.set([]);
+      }
+      renderCartModal();
+    }
+  });
 }
 
 // const 상품목록_레이아웃_로딩완료 = /*html*/ `
@@ -574,35 +680,35 @@ async function main() {
 //           </div>
 //         </div>
 //         <!-- 하단 액션 -->
-//         <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-//           <!-- 선택된 아이템 정보 -->
-//           <div class="flex justify-between items-center mb-3 text-sm">
-//             <span class="text-gray-600">선택한 상품 (1개)</span>
-//             <span class="font-medium">440원</span>
-//           </div>
-//           <!-- 총 금액 -->
-//           <div class="flex justify-between items-center mb-4">
-//             <span class="text-lg font-bold text-gray-900">총 금액</span>
-//             <span class="text-xl font-bold text-blue-600">670원</span>
-//           </div>
-//           <!-- 액션 버튼들 -->
-//           <div class="space-y-2">
-//             <button id="cart-modal-remove-selected-btn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md
-//                        hover:bg-red-700 transition-colors text-sm">
-//               선택한 상품 삭제 (1개)
-//             </button>
-//             <div class="flex gap-2">
-//               <button id="cart-modal-clear-cart-btn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md
-//                        hover:bg-gray-700 transition-colors text-sm">
-//                 전체 비우기
-//               </button>
-//               <button id="cart-modal-checkout-btn" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md
-//                        hover:bg-blue-700 transition-colors text-sm">
-//                 구매하기
-//               </button>
-//             </div>
-//           </div>
-//         </div>
+// <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+//   <!-- 선택된 아이템 정보 -->
+//   <div class="flex justify-between items-center mb-3 text-sm">
+//     <span class="text-gray-600">선택한 상품 (1개)</span>
+//     <span class="font-medium">440원</span>
+//   </div>
+//   <!-- 총 금액 -->
+//   <div class="flex justify-between items-center mb-4">
+//     <span class="text-lg font-bold text-gray-900">총 금액</span>
+//     <span class="text-xl font-bold text-blue-600">670원</span>
+//   </div>
+//   <!-- 액션 버튼들 -->
+//   <div class="space-y-2">
+//     <button id="cart-modal-remove-selected-btn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md
+//                hover:bg-red-700 transition-colors text-sm">
+//       선택한 상품 삭제 (1개)
+//     </button>
+//     <div class="flex gap-2">
+//       <button id="cart-modal-clear-cart-btn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md
+//                hover:bg-gray-700 transition-colors text-sm">
+//         전체 비우기
+//       </button>
+//       <button id="cart-modal-checkout-btn" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md
+//                hover:bg-blue-700 transition-colors text-sm">
+//         구매하기
+//       </button>
+//     </div>
+//   </div>
+// </div>
 //       </div>
 //     </div>
 //   `;

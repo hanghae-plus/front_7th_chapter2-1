@@ -2,10 +2,9 @@ import SearchForm from "../component/SearchForm";
 import ProductList from "../component/ProductList";
 import { getProducts, getCategories } from "../api/productApi";
 import { addToCart } from "../module/cartModule";
-import Toast from "../component/Toast";
 import State from "../store/stateStore";
 
-const HomePage = async (render, { toast }) => {
+const HomePage = async (render, { showToast }) => {
   const isLoading = new State(true);
   const products = new State({ products: [], pagination: {} });
 
@@ -23,13 +22,12 @@ const HomePage = async (render, { toast }) => {
 
   function pageRender() {
     render(/*HTML*/ `
-         <!-- 검색 및 필터 -->
-        ${SearchForm({ isLoading: isCategoryLoading.get(), limit: limit.get(), sort: sort.get(), search: search.get(), categories: categories.get(), category1: category1.get(), category2: category2.get() })}
-         <!-- 상품 목록 -->
-        ${ProductList({ isLoading: isLoading.get(), products: products.get() })}
-        <div height="100px" id="end-of-list"/>
-        ${toast.get().show ? Toast({ type: toast.get().type, message: toast.get().message }) : ""}
-       `);
+      <!-- 검색 및 필터 -->
+     ${SearchForm({ isLoading: isCategoryLoading.get(), limit: limit.get(), sort: sort.get(), search: search.get(), categories: categories.get(), category1: category1.get(), category2: category2.get() })}
+      <!-- 상품 목록 -->
+     ${ProductList({ isLoading: isLoading.get(), products: products.get() })}
+     <div height="100px" id="end-of-list"/>
+    `);
   }
 
   pageRender();
@@ -135,11 +133,7 @@ const HomePage = async (render, { toast }) => {
       const productId = e.target.dataset.productId;
       const product = products.get().products.find((product) => product.productId === productId);
       addToCart(product);
-      toast.set({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
-    }
-
-    if (e.target.closest("#toast-close-btn")) {
-      toast.close(pageRender);
+      showToast({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
     }
   });
 
