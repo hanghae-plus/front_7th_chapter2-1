@@ -2,7 +2,7 @@ import { CartToast } from "../components/CartToast.js";
 
 const DEFAULT_TIMEOUT = 2500;
 export class ToastManager {
-  static show(type = "add", duration = DEFAULT_TIMEOUT) {
+  static show({ type = "info", duration = DEFAULT_TIMEOUT, message = "" }) {
     // 기존 토스트가 있다면 제거
     const existingToast = document.querySelector(".toast-container");
     if (existingToast) {
@@ -14,7 +14,7 @@ export class ToastManager {
     toastContainer.className = "toast-container fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50";
 
     // CartToast 컴포넌트 사용
-    toastContainer.innerHTML = CartToast(type);
+    toastContainer.innerHTML = CartToast({ type, message });
 
     // 문서에 추가
     document.body.appendChild(toastContainer);
@@ -41,17 +41,5 @@ export class ToastManager {
     if (toastContainer && toastContainer.parentNode) {
       toastContainer.remove();
     }
-  }
-
-  static add(duration = DEFAULT_TIMEOUT) {
-    return this.show("add", duration);
-  }
-
-  static delete(duration = DEFAULT_TIMEOUT) {
-    return this.show("delete", duration);
-  }
-
-  static error(duration = DEFAULT_TIMEOUT) {
-    return this.show("error", duration);
   }
 }

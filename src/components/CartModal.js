@@ -73,12 +73,20 @@ const CartItem = (product) => {
 
 export const CartModal = () => {
   const products = CartUtil.getCartItems();
+  const totalPrice = products.reduce((acc, cur) => {
+    return acc + +cur.price * +cur.quantity;
+  }, 0);
+
+  const selectedProducts = products.filter((prd) => prd.selected);
+  const selectedTotalPrice = selectedProducts.reduce((acc, cur) => {
+    return acc + +cur.price * +cur.quantity;
+  }, 0);
 
   return `<div hidden class="fixed inset-0 z-50 overflow-y-auto cart-modal">
       <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay"></div>
       <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
         <div
-          class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden"
+          class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh]"
         >
           <!-- 헤더 -->
           <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
@@ -131,10 +139,11 @@ export const CartModal = () => {
                       <label class="flex items-center text-sm text-gray-700">
                         <input
                           type="checkbox"
+                          ${products.every((item) => item.selected) ? "checked" : ``}
                           id="cart-modal-select-all-checkbox"
                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
                         />
-                        전체선택 (2개)
+                        전체선택 (${products.length}개)
                       </label>
                     </div>
                     <!-- 아이템 목록 -->
@@ -145,24 +154,38 @@ export const CartModal = () => {
                   <!-- 하단 액션 -->
                   <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
                     <!-- 선택된 아이템 정보 -->
+                    ${
+                      selectedProducts.length
+                        ? `
+                      
                     <div class="flex justify-between items-center mb-3 text-sm">
-                      <span class="text-gray-600">선택한 상품 (1개)</span>
-                      <span class="font-medium">440원</span>
+                      <span class="text-gray-600">선택한 상품 (${selectedProducts.length}개)</span>
+                      <span class="font-medium">${selectedTotalPrice.toLocaleString()}원</span>
                     </div>
+                      `
+                        : ``
+                    }
                     <!-- 총 금액 -->
                     <div class="flex justify-between items-center mb-4">
                       <span class="text-lg font-bold text-gray-900">총 금액</span>
-                      <span class="text-xl font-bold text-blue-600">670원</span>
+                      <span class="text-xl font-bold text-blue-600">${totalPrice.toLocaleString()}원</span>
                     </div>
                     <!-- 액션 버튼들 -->
                     <div class="space-y-2">
+                      ${
+                        selectedProducts.length
+                          ? `
+                        
                       <button
                         id="cart-modal-remove-selected-btn"
                         class="w-full bg-red-600 text-white py-2 px-4 rounded-md
                        hover:bg-red-700 transition-colors text-sm"
-                      >
-                        선택한 상품 삭제 (1개)
+                      >선택한 상품 삭제 (${selectedProducts.length}개)
                       </button>
+                        `
+                          : ``
+                      }
+                      
                       <div class="flex gap-2">
                         <button
                           id="cart-modal-clear-cart-btn"

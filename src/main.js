@@ -1,5 +1,7 @@
+import { ToastManager } from "../../../항해99/front_7th_chapter2-1/src/utils/toast.js";
 import { getCategories, getProduct, getProducts } from "./api/productApi.js";
 import { CartModal } from "./components/CartModal.js";
+import { CartButton } from "./components/Header.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { CartUtil } from "./utils/cart.js";
@@ -77,12 +79,8 @@ const handleQuantityChange = (e) => {
 
 const main = async () => {
   LocalStorageUtil.init(() => {
-    const $existingModal = document.body.querySelector(".cart-modal");
-    const isModalOpen = $existingModal && !$existingModal.hasAttribute("hidden");
-    if (!isModalOpen) {
-      router.render({ withLoader: false }); // Observer 기능
-    }
     window.updateCartModal();
+    window.updateCartCount();
   });
 
   // init cart modal (모달은 router 안에다가 두지 않았음, 안그럼 자꾸 리렌더링 됨... 근데 모달 관련한 렌더링 로직을 또 따로 작성)
@@ -103,6 +101,18 @@ const main = async () => {
     } else if (e.target.closest(".cart-item-checkbox")) {
       const $checkbox = e.target.closest(".cart-item-checkbox");
       CartUtil.checkCartItem($checkbox.dataset.productId);
+    } else if (e.target.closest("#cart-modal-select-all-checkbox")) {
+      const checked = e.target.closest("#cart-modal-select-all-checkbox").checked;
+      CartUtil.checkAllCartItems(checked);
+    } else if (e.target.closest(".cart-item-remove-btn")) {
+      const productId = e.target.closest(".cart-item-remove-btn").dataset.productId;
+      CartUtil.removeCartItem(productId);
+    } else if (e.target.closest("#cart-modal-remove-selected-btn")) {
+      CartUtil.removeSelectedCartItems();
+    } else if (e.target.closest("#cart-modal-clear-cart-btn")) {
+      CartUtil.removeAllCartItems();
+    } else if (e.target.closest("#cart-modal-checkout-btn")) {
+      ToastManager.show({ type: "info", message: "구매 기능은 추후 구현 예정입니다." });
     }
   });
 
@@ -127,6 +137,15 @@ const main = async () => {
       $newModal.removeAttribute("hidden");
     }
     $existingModal.remove();
+  };
+
+  window.updateCartCount = () => {
+    const $count = $root.querySelector("#cart-icon-btn");
+    const $newCount = CartButton();
+
+    if ($count) {
+      $count.outerHTML = $newCount;
+    }
   };
 
   await router.render(location.pathname);

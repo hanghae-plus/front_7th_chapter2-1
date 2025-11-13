@@ -26,7 +26,7 @@ export class CartUtil {
       }),
     );
 
-    ToastManager.show("add");
+    ToastManager.show({ type: "success", message: "장바구니에 추가되었습니다" });
   }
 
   static updateQuantity(productId, count) {
@@ -63,5 +63,45 @@ export class CartUtil {
     );
   }
 
-  static removeCart() {}
+  static checkAllCartItems(checked) {
+    const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
+    existCartItems.forEach((item) => {
+      item.selected = checked;
+    });
+    LocalStorageUtil.setItem(
+      "shopping_cart",
+      JSON.stringify({
+        items: existCartItems,
+      }),
+    );
+  }
+
+  static removeCartItem(productId) {
+    const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
+    const filteredItems = existCartItems.filter((item) => item.id !== productId);
+    LocalStorageUtil.setItem(
+      "shopping_cart",
+      JSON.stringify({
+        items: filteredItems,
+      }),
+    );
+  }
+
+  static removeSelectedCartItems() {
+    const existCartItems = JSON.parse(LocalStorageUtil.getItem("shopping_cart") ?? "{}")?.items ?? [];
+    const filteredItems = existCartItems.filter((item) => !item.selected);
+    LocalStorageUtil.setItem(
+      "shopping_cart",
+      JSON.stringify({
+        items: filteredItems,
+      }),
+    );
+
+    ToastManager.show({ type: "info", message: "선택된 상품들이 삭제되었습니다" });
+  }
+
+  static removeAllCartItems() {
+    LocalStorageUtil.clear();
+    ToastManager.show({ type: "info", message: "장바구니가 비워졌습니다" });
+  }
 }
