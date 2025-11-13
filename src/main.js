@@ -16,13 +16,6 @@ import {
 } from '@/utils';
 import { showToast, CartModal, Header } from '@/components';
 
-//TODO: 캐싱 전략 고민
-//TODO: 라이프사이클 관리 고민
-
-// 만약 캐시한다면?? (임시)
-// let categoriesCache = null;
-// let productsCache = {}; // 필터별 products 캐시
-
 const enableMocking = () =>
   import('@/mocks/browser.js').then(({ worker }) =>
     worker.start({
@@ -512,6 +505,27 @@ document.body.addEventListener('click', (e) => {
     return;
   }
 
+  // 상품 상세 페이지 - Breadcrumb 클릭
+  if ($target.closest('.breadcrumb-link')) {
+    e.stopPropagation();
+    const button = $target.closest('.breadcrumb-link');
+    const category1 = button.dataset.category1;
+    const category2 = button.dataset.category2;
+
+    const url = new URL(window.location.origin + import.meta.env.BASE_URL);
+    if (category1) {
+      url.searchParams.set('category1', category1);
+    }
+    if (category2) {
+      url.searchParams.set('category1', category1);
+      url.searchParams.set('category2', category2);
+    }
+    url.searchParams.set('current', '1');
+
+    push(url.pathname + url.search);
+    return;
+  }
+
   // 관련 상품 카드 클릭
   if ($target.closest('.related-product-card')) {
     const productId = $target.closest('.related-product-card').dataset
@@ -523,6 +537,7 @@ document.body.addEventListener('click', (e) => {
   if ($target.closest('.product-card')) {
     const productId = $target.closest('.product-card').dataset.productId;
     push(`${import.meta.env.BASE_URL}product/${productId}`);
+    return;
   }
 });
 
@@ -591,6 +606,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
     push(url);
+    return;
   }
 
   // 2depth 카테고리 필터
@@ -602,6 +618,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.set('category2', category2);
     url.searchParams.set('current', '1');
     push(url);
+    return;
   }
 
   // 브레드크럼 리셋
@@ -611,6 +628,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
     push(url);
+    return;
   }
 
   // 브레드크럼 category1
@@ -621,6 +639,7 @@ document.body.addEventListener('click', (e) => {
     url.searchParams.delete('category2');
     url.searchParams.set('current', '1');
     push(url);
+    return;
   }
 });
 

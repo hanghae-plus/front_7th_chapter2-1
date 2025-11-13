@@ -34,7 +34,11 @@ export const Breadcrumb = ({ category1, category2 }) => {
             d="M9 5l7 7-7 7"
           ></path>
         </svg>
-        <button class="breadcrumb-link" data-category2="${category2}">
+        <button
+          class="breadcrumb-link"
+          data-category1="${category1}"
+          data-category2="${category2}"
+        >
           ${category2}
         </button>
       </div>
