@@ -53,7 +53,7 @@ export function showToast(message, type = "success") {
 
   // 토스트 요소 생성
   const toast = document.createElement("div");
-  toast.className = `${style.bg} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm animate-slide-down`;
+  toast.className = `${style.bg} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm`;
   toast.innerHTML = /* HTML */ `
     <div class="flex-shrink-0">${style.icon}</div>
     <p class="text-sm font-medium">${message}</p>
