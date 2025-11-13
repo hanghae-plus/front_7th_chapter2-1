@@ -183,6 +183,73 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
+  // 상세 페이지 - 수량 증가
+  const $quantityIncrease = e.target.closest("#quantity-increase");
+  if ($quantityIncrease) {
+    const $quantityInput = document.getElementById("quantity-input");
+    if ($quantityInput) {
+      const currentValue = parseInt($quantityInput.value);
+      const maxValue = parseInt($quantityInput.max);
+      if (currentValue < maxValue) {
+        $quantityInput.value = currentValue + 1;
+      }
+    }
+    return;
+  }
+
+  // 상세 페이지 - 수량 감소
+  const $quantityDecrease = e.target.closest("#quantity-decrease");
+  if ($quantityDecrease) {
+    const $quantityInput = document.getElementById("quantity-input");
+    if ($quantityInput) {
+      const currentValue = parseInt($quantityInput.value);
+      const minValue = parseInt($quantityInput.min);
+      if (currentValue > minValue) {
+        $quantityInput.value = currentValue - 1;
+      }
+    }
+    return;
+  }
+
+  // 상세 페이지 - 장바구니 담기
+  const $detailAddToCartBtn = e.target.closest("#add-to-cart-btn");
+  if ($detailAddToCartBtn) {
+    const $quantityInput = document.getElementById("quantity-input");
+    const quantity = $quantityInput ? parseInt($quantityInput.value) : 1;
+    const productId = $detailAddToCartBtn.dataset.productId;
+
+    // store에서 현재 상품 정보 가져오기
+    const { product } = store.getState().detail;
+    if (product) {
+      // 장바구니에 추가 (또는 기존 수량 업데이트)
+      const cart = store.getState().cart;
+      const existingItem = cart.find((item) => item.id === productId);
+
+      if (existingItem) {
+        // 이미 있으면 수량 업데이트
+        store.dispatch({
+          type: "updateQuantity",
+          payload: { productId, quantity: existingItem.quantity + quantity },
+        });
+      } else {
+        // 없으면 새로 추가
+        store.dispatch({
+          type: "addToCart",
+          payload: {
+            id: productId,
+            title: product.title,
+            image: product.image,
+            lprice: product.lprice,
+            brand: product.brand,
+            quantity: quantity,
+          },
+        });
+      }
+      showToast(`${quantity}개 상품이 장바구니에 추가되었습니다`, "success");
+    }
+    return;
+  }
+
   // 카테고리 필터 - 1depth
   const $category1Btn = e.target.closest(".category1-filter-btn");
   if ($category1Btn) {

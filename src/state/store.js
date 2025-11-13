@@ -140,11 +140,11 @@ export const store = createStore({
       const existing = cart.find((item) => item.id === product.id);
 
       if (existing) {
-        // 수량만 증가
-        existing.quantity += 1;
+        // 수량만 증가 (product.quantity가 있으면 그만큼, 없으면 1)
+        existing.quantity += product.quantity || 1;
       } else {
-        // 새로 추가
-        cart.push({ ...product, quantity: 1 });
+        // 새로 추가 (product.quantity가 있으면 그대로, 없으면 1)
+        cart.push({ ...product, quantity: product.quantity || 1 });
       }
 
       // localStorage에 저장
