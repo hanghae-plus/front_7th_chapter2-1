@@ -3,6 +3,7 @@ import createComponent from "../core/component/create-component";
 import appStore from "../store/app-store";
 import { showToastMessage } from "../utils/toast-utils.js";
 import { TOAST_MESSAGE_MAP } from "../constants/toast-constant.js";
+import Router from "../core/router/index.js";
 
 /**
  * @typedef {import('../types.js').ProductDetailProps} ProductDetailProps
@@ -227,6 +228,16 @@ const ProductDetail = createComponent({
       );
       showToastMessage(TOAST_MESSAGE_MAP.ADD_TO_CART, "success");
     },
+    "navigate-to-home": (props, getter, setter, event) => {
+      if (!event.target) return;
+      Router.push("/");
+    },
+    "navigate-to-detail": (props, getter, setter, event) => {
+      if (!event.target) return;
+      const productId = event.target.closest("[data-link]")?.dataset.productId;
+      if (!productId) return;
+      Router.push(`/product/${productId}`);
+    },
   },
   templateFn: ({ productDetailResponse, productDetailListResponse }, { count }) => {
     const categoryPath = [
@@ -376,6 +387,8 @@ const ProductDetail = createComponent({
         hover:bg-gray-200 transition-colors go-to-product-list"
             data-link
             data-link-href="/"
+            data-event="navigate-to-home"
+            data-event-type="click"
           >
             상품 목록으로 돌아가기
           </button>
@@ -396,6 +409,8 @@ const ProductDetail = createComponent({
                       data-product-id="${product.productId}"
                       data-link
                       data-link-href="/product/${product.productId}"
+                      data-event="navigate-to-detail"
+                      data-event-type="click"
                     >
                       <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
                         <img
