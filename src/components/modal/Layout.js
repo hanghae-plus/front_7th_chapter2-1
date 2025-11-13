@@ -32,9 +32,15 @@ export const ModalLayout = () => {
         </div>
 
         <!-- 컨텐츠 -->
-        <div class="flex flex-col max-h-[calc(90vh-120px)]">${carts.length ? `${CartItems()}` : `${EmptyCart()}`}</div>
-
-        ${CartFooter()}
+        ${carts.length
+          ? html`<div class="flex flex-col max-h-[calc(90vh-120px)]">
+              ${CartItems()}
+              <!-- 하단 액션 -->
+              <div id="cart-modal-footer" class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+                ${CartFooter()}
+              </div>
+            </div>`
+          : html`<div class="flex flex-col max-h-[calc(90vh-120px)]">${EmptyCart()}</div>`}
       </div>
     </div>
   `;

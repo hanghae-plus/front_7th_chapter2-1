@@ -1,4 +1,4 @@
-import { carts } from "./core";
+import { carts, selectedItems } from "./core";
 
 export const CartItems = () => {
   return html`
@@ -7,6 +7,7 @@ export const CartItems = () => {
       <label class="flex items-center text-sm text-gray-700">
         <input
           type="checkbox"
+          checked="${selectedItems.size === carts.length ? true : false}"
           id="cart-modal-select-all-checkbox"
           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
         />
@@ -21,15 +22,14 @@ export const CartItems = () => {
             ({ productId, title, image, lprice, quantity }) =>
               html` <div
                 class="flex items-center py-3 border-b border-gray-100 cart-item"
-                data-product-id="85067212996"
+                data-product-id="${productId}"
               >
                 <!-- 선택 체크박스 -->
                 <label class="flex items-center mr-3">
                   <input
                     type="checkbox"
-                    checked=""
-                    class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded 
-              focus:ring-blue-500"
+                    checked="${selectedItems.has(productId) ? true : false}"
+                    class="cart-item-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     data-product-id="${productId}"
                   />
                 </label>
@@ -66,8 +66,7 @@ export const CartItems = () => {
                       type="number"
                       value="${quantity}"
                       min="1"
-                      class="quantity-input w-12 h-7 text-center text-sm border-t border-b 
-              border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      class="quantity-input w-12 h-7 text-center text-sm border-t border-b border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       disabled=""
                       data-product-id="${productId}"
                     />

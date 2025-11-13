@@ -6,6 +6,7 @@ import { actions, dispatch, store } from "@/store/store.js";
 
 export function ProductListPage(router) {
   let unsubscribe = null;
+  let observer = null;
 
   function create() {
     return html`${Layout()}`;
@@ -19,6 +20,12 @@ export function ProductListPage(router) {
     }
 
     container.innerHTML = `${Filter()}${ProductList()}`;
+    const sentinel = document.createElement("div");
+    sentinel.id = "product-list-sentinel";
+    sentinel.setAttribute("aria-hidden", "true");
+    sentinel.className = "h-1";
+    container.appendChild(sentinel);
+    setupInfiniteScroll(sentinel);
   }
 
   function update(state) {
@@ -37,23 +44,48 @@ export function ProductListPage(router) {
     });
   }
 
+  function setupInfiniteScroll(sentinel) {
+    if (!sentinel) return;
+
+    if (observer) {
+      observer.disconnect();
+    }
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+
+        const { pagination, isFetching } = store.state;
+        if (isFetching) return;
+        const currentPage = pagination?.page ?? 1;
+        if (!(pagination?.hasNext ?? false)) return;
+
+        dispatch.fetchProducts({ page: currentPage + 1 });
+      },
+      { root: null, rootMargin: "0px 0px 200px 0px", threshold: 0 },
+    );
+
+    observer.observe(sentinel);
+  }
+
   function handleClick(e) {
     const target = e.target;
     const { category1, category2, breadcrumb } = target.dataset;
 
     if (category1) {
       // actions.setFilters({ category1 });
-      dispatch.fetchProducts({ category1 });
+      dispatch.fetchProducts({ category1, page: 1 });
     }
 
     if (category2) {
       // actions.setFilters({ category2 });
-      dispatch.fetchProducts({ category2 });
+      dispatch.fetchProducts({ category2, page: 1 });
     }
 
     if (breadcrumb) {
       // actions.setFilters({ category1: "", category2: "" });
-      dispatch.fetchProducts({ category1: "", category2: "" });
+      dispatch.fetchProducts({ category1: "", category2: "", page: 1 });
     }
 
     console.log("breadcrumb-->", target.dataset);
@@ -73,7 +105,7 @@ export function ProductListPage(router) {
 
   const handleChange = (e) => {
     if (!["limit-select", "sort-select"].includes(e.target.id)) return;
-    let filter = {};
+    let filter = { page: 1 };
     switch (e.target.id) {
       case "limit-select":
         filter.limit = Number(e.target.value);
@@ -91,7 +123,11 @@ export function ProductListPage(router) {
     if (!e.target.matches("#search-input")) return;
     if (e.key !== "Enter") return;
     // actions.setFilters({ search: e.target.value });
-    dispatch.fetchProducts({ search: e.target.value });
+    dispatch.fetchProducts({ search: e.target.value, page: 1 });
+  };
+
+  const scrollHandler = (e) => {
+    console.log(e);
   };
 
   function mount() {
@@ -106,14 +142,20 @@ export function ProductListPage(router) {
     container?.addEventListener("click", handleClick);
     container?.addEventListener("keydown", handleKeydown);
     container?.addEventListener("change", handleChange);
+    window.addEventListener("scroll", scrollHandler);
   }
 
   function unmount() {
     if (unsubscribe) unsubscribe();
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
     const container = document.querySelector("main");
     container?.removeEventListener("click", handleClick);
     container?.removeEventListener("keydown", handleKeydown);
     container?.removeEventListener("change", handleChange);
+    window.removeEventListener("scroll", scrollHandler);
     closeModal();
     unsubscribe = null;
   }

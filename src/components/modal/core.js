@@ -1,9 +1,15 @@
 // src/modal/modalManager.js
 import { ModalLayout } from "@/components/modal/Layout.js";
+import { CartFooter } from "./Footer";
 
 let currentModal = null;
 export let carts = [];
 export let selectedItems = new Set();
+
+export function closeModalOnEscape(event) {
+  if (event.key !== "Escape") return;
+  closeModal();
+}
 
 export function openModal(product) {
   if (currentModal) {
@@ -30,9 +36,115 @@ export function openModal(product) {
   currentModal = document.createElement("div");
   currentModal.className = "fixed inset-0 z-50 overflow-y-auto cart-modal";
   currentModal.innerHTML = ModalLayout();
+  currentModal.querySelector("#cart-modal-select-all-checkbox").checked = false;
+  currentModal.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+  currentModal.addEventListener("click", handelClick);
   document.querySelector("#root").appendChild(currentModal);
+  document.addEventListener("keydown", closeModalOnEscape);
 
   defaultModalEvents();
+}
+
+export function handelClick(event) {
+  const { productId } = event.target.dataset;
+
+  console.log(event.target.closest("#cart-modal-close-btn"));
+
+  if (event.target.closest("#cart-modal-close-btn")) {
+    closeModal();
+    return;
+  }
+
+  if (event.target.closest("#cart-modal-remove-selected-btn")) {
+    carts = carts.filter((cart) => !selectedItems.has(cart.productId));
+    selectedItems.clear();
+    currentModal.innerHTML = ModalLayout();
+    currentModal.querySelector("#cart-modal-select-all-checkbox").checked = false;
+    currentModal.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+    return;
+  }
+
+  if (event.target.closest("#cart-modal-select-all-checkbox")) {
+    const checkbox = event.target.closest("#cart-modal-select-all-checkbox");
+    const checked = checkbox.checked;
+    console.log(checked);
+    selectedItems.clear();
+    if (checked) {
+      carts.map((cart) => selectedItems.add(cart.productId));
+    } else {
+      // selectedItems.clear();
+    }
+
+    currentModal.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
+      checkbox.checked = checked;
+    });
+
+    currentModal.querySelector("#cart-modal-footer").innerHTML = CartFooter();
+    return;
+  }
+
+  if (event.target.closest(".cart-item-checkbox")) {
+    const checkbox = event.target.closest(".cart-item-checkbox");
+    const { productId: id } = checkbox.dataset;
+    if (!id) return;
+
+    if (selectedItems.has(id)) {
+      selectedItems.delete(id);
+    } else {
+      selectedItems.add(id);
+    }
+
+    checkbox.checked = selectedItems.has(id);
+
+    currentModal?.querySelectorAll(".cart-item-checkbox").forEach((input) => {
+      const { productId: inputId } = input.dataset;
+      if (!inputId) return;
+      input.checked = selectedItems.has(inputId);
+    });
+
+    currentModal.querySelector("#cart-modal-footer").innerHTML = CartFooter();
+    return;
+  }
+
+  if (event.target.matches(".cart-item-remove-btn")) {
+    carts = carts.filter((cart) => cart.productId !== productId);
+    selectedItems.delete(productId);
+  }
+
+  if (event.target.closest(".quantity-decrease-btn")) {
+    const id = event.target.closest(".quantity-decrease-btn").dataset.productId;
+    const target = carts.find((cart) => cart.productId === id);
+
+    if (target.quantity > 1) {
+      target.quantity--;
+    } else {
+      target.quantity = 1;
+    }
+  }
+
+  if (event.target.closest(".quantity-increase-btn")) {
+    const id = event.target.closest(".quantity-increase-btn").dataset.productId;
+    carts.find((cart) => cart.productId === id).quantity++;
+  }
+
+  if (event.target.closest("#cart-modal-clear-cart-btn")) {
+    carts = [];
+    selectedItems.clear();
+    // currentModal.innerHTML = ModalLayout();
+  }
+
+  if (carts.length === 0) {
+    const count = document.querySelector("#cart-icon-btn");
+    count.removeChild(count.lastChild);
+  }
+
+  console.log(currentModal);
+  if (!currentModal) return;
+  currentModal.innerHTML = ModalLayout();
 }
 
 export function defaultModalEvents() {
@@ -44,6 +156,7 @@ export function defaultModalEvents() {
 }
 
 export function closeModal() {
+  document.removeEventListener("keydown", closeModalOnEscape);
   if (!currentModal) return;
   currentModal.remove();
   currentModal = null;

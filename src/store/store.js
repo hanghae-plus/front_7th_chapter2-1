@@ -113,7 +113,13 @@ export const dispatch = {
         const data = await getCategories(params);
         actions.setCategories(data);
       }
-      actions.setProducts(products);
+
+      if (pagination.page === 1 || store.state.pagination.page === pagination.page) {
+        actions.setProducts(products);
+      } else {
+        actions.setProducts(store.state.products.concat(products));
+      }
+
       actions.setFilters(filters);
       actions.setPagination(pagination);
     } catch (error) {
