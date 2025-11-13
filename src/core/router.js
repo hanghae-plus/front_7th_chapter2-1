@@ -26,7 +26,6 @@ export const router = {
 
   navigate(path) {
     history.pushState(null, null, path);
-    console.log("🔄 navigate 호출", path);
     this.currentPath = path;
     this.handleRouteChange();
   },
@@ -63,7 +62,7 @@ export const router = {
     } else if (path.startsWith("/product/")) {
       const productId = path.split("/").pop();
       return {
-        page: this.routes["/products/:id"].page,
+        page: this.routes["/product/:id"].page,
         props: { productId },
       };
     } else {

@@ -8,7 +8,6 @@ const $root = document.querySelector("#root");
 export const render = () => {
   // 현재 페이지의 render 메서드 호출
   const currentPage = router.getCurrentPage();
-  console.log("currentPage", currentPage);
 
   if (currentPage && currentPage.render) {
     $root.innerHTML = currentPage.render();

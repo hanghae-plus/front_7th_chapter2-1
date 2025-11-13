@@ -1,6 +1,6 @@
 // 전역 상태 관리
 import { createObserver } from "./observer.js";
-import { getProducts, getProduct } from "../api/productApi.js";
+import { getProducts, getProduct, getCategories } from "../api/productApi.js";
 
 const observer = createObserver(); // 옵저버 인스턴스 생성
 
@@ -36,7 +36,7 @@ export const store = {
       // 중첩된 경로: list.products
       this.state[topKey] = { ...this.state[topKey], [nestedKey]: value };
     } else {
-      // 최상위 경로 (거의 사용 안 됨)
+      // 최상위 경로 (거의 사용 X)
       this.state[key] = value;
     }
 
@@ -49,7 +49,6 @@ export const store = {
       this.setState("list.loading", true);
       this.setState("list.error", null);
       const response = await getProducts(this.state.list);
-      console.log("products response", response);
       // response의 각 필드를 개별적으로 업데이트
       Object.keys(response).forEach((key) => {
         this.setState(`list.${key}`, response[key]);
@@ -66,17 +65,24 @@ export const store = {
       this.setState("detail.loading", true);
       this.setState("detail.error", null);
       const response = await getProduct(productId);
-      console.log("detail response", response);
-      // response의 각 필드를 개별적으로 업데이트
-      // Object.keys(response).forEach((key) => {
-      //   this.setState(`detail.${key}`, response[key]);
-      // });
       this.setState("detail.product", response);
       this.setState("detail.loading", false);
-      console.log("detail state", this.state.detail);
     } catch (error) {
       this.setState("detail.error", error);
       this.setState("detail.loading", false);
+    }
+  },
+
+  async fetchCategories() {
+    try {
+      this.setState("list.categories", true);
+      this.setState("list.error", null);
+      const response = await getCategories();
+      this.setState("list.categories", response);
+      this.setState("list.loading", false);
+    } catch (error) {
+      this.setState("list.error", error);
+      this.setState("list.loading", false);
     }
   },
 };
