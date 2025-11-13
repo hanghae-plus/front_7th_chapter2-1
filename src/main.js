@@ -1,12 +1,13 @@
 import { getCategories, getProduct, getProducts } from "./api/productApi.js";
-import { CartModal } from "./components/CartModal.js";
+import { CartModal, renderCartModal } from "./components/CartModal.js";
 import { Loading, ProductItem } from "./components/ProductList.js";
 import { DetailPage } from "./pages/DetailPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { NotFoundPage } from "./pages/NotFoundPage.js";
+import { storedData } from "./utils/storedData.js";
 import { getQueryParams } from "./utils/getQueryParams.js";
-import { ADD_CART_LIST, getLocalStorage, setLocalStorage } from "./utils/localstorage.js";
 import { showToast } from "./utils/showToast.js";
+import { cartState } from "./state/cartState.js";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
@@ -39,39 +40,6 @@ const closeCartModal = () => {
 const handleCartModalEscape = (e) => {
   if (e.key === "Escape") {
     closeCartModal();
-  }
-};
-
-// 장바구니 개수만 업데이트하는 함수
-const updateCartCount = () => {
-  const cartData = getLocalStorage(ADD_CART_LIST);
-  const count = cartData.length;
-  const cartIconBtn = document.querySelector("#cart-icon-btn");
-
-  if (!cartIconBtn) return;
-
-  // 기존 span 찾기
-  let cartCountElement = document.querySelector("#cart-count");
-
-  if (count === 0) {
-    // 개수가 0이면 span 제거
-    if (cartCountElement) {
-      cartCountElement.remove();
-    }
-  } else {
-    // 개수가 1 이상이면
-    if (cartCountElement) {
-      // span이 있으면 숫자만 업데이트
-      cartCountElement.textContent = count;
-    } else {
-      // span이 없으면 새로 생성 (처음 추가할 때)
-      const newSpan = document.createElement("span");
-      newSpan.id = "cart-count";
-      newSpan.className =
-        "absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center";
-      newSpan.textContent = count;
-      cartIconBtn.appendChild(newSpan);
-    }
   }
 };
 
@@ -262,18 +230,17 @@ const render = async () => {
 };
 
 function main() {
+  // ========================================
+  // 장바구니 상태 관리 구독 설정
+  // ========================================
+  // cartState가 변경될 때마다 모달 자동 재렌더링
+  cartState.subscribe(renderCartModal);
+  console.log("[main] 장바구니 상태 구독 완료");
+
   // popstate 이벤트 등록
   window.addEventListener("popstate", () => render());
 
   // 이벤트 위임 방식으로 클릭 이벤트 처리
-  // render 함수 내에서 클릭 이벤트를 추가했던 기존 방식에서 main 함수에서 클릭 이벤트를 추가하는 방식으로 수정
-  // render 함수 내에서 추가 시 render 함수 호출 할 때마다 root에 클릭 이벤트가 추가되어 중복되는 문제 발생 =>
-  // 제품 카드 1번 눌렀는데 여러 번 등록된 클릭 이벤트 때문에 /products/82094468339/products/82094468339 이런 식으로 되어버리는 문제 발생
-
-  // 이벤트 위임 방식으로 해결
-  // => 각 엘리먼트에 이벤트를 추가하게 되면 render ($root에 출력될 요소 갈아 끼우기) 함수 실행 시 해당 엘리먼트가 제거됨 => 클릭 이벤트 날아감
-  // => root 요소가 바뀔 때 클릭 이벤트 핸들러가 추가되지 않음 ! (main 함수는 최초 렌더링 시에만 실행되기 때문)
-  // => 따라서 이벤트 위임 방식으로 $root에 클릭 이벤트 추가 ($root는 없어지지 않으니깐 !)
   const $root = document.querySelector("#root");
 
   $root.addEventListener("click", async (e) => {
@@ -285,12 +252,7 @@ function main() {
 
       const productCard = e.target.closest(".product-card");
       if (productCard) {
-        const storedData = getLocalStorage(ADD_CART_LIST);
-        const addToCartTarget = await getProduct(productCard.dataset.productId);
-        setLocalStorage(ADD_CART_LIST, [...storedData, addToCartTarget]);
-
-        // 장바구니 개수만 업데이트
-        updateCartCount();
+        storedData({ id: productCard.dataset.productId });
       }
 
       showToast("success");
@@ -341,13 +303,10 @@ function main() {
     const detailAddToCartBtn = e.target.closest("#add-to-cart-btn");
     if (detailAddToCartBtn) {
       const quantityInput = document.querySelector("#quantity-input");
+      const productId = location.pathname.split("/").pop();
       if (quantityInput) {
-        const storedData = getLocalStorage(ADD_CART_LIST);
-        const productId = location.pathname.split("/").pop();
-        const addToCartTarget = await getProduct(productId);
-        setLocalStorage(ADD_CART_LIST, [...storedData, addToCartTarget]);
-
-        updateCartCount();
+        console.log(quantityInput.value);
+        storedData({ id: productId, datailPageQuantity: quantityInput.value });
       }
 
       showToast("success");
@@ -357,8 +316,6 @@ function main() {
     const relatedProductCard = e.target.closest(".related-product-card");
     if (relatedProductCard) {
       const productId = relatedProductCard.dataset.productId;
-      // TODO : /products/:id 절대 방식으로 수정
-      // /front_7th_chapter2-1/ 이걸 로컬 환경에서 환경 변수 선언해서 쓰거나, 로컬에선 url에 제거하기
       push(`${productId}`);
       return;
     }
@@ -412,6 +369,63 @@ function main() {
           return;
         }
       }
+    }
+
+    // ========================================
+    // 장바구니 모달 이벤트 (cartState 사용)
+    // ========================================
+
+    // 장바구니 모달 전체 선택 체크
+    const selectAllCheckbox = e.target.closest("#cart-modal-select-all-checkbox");
+    if (selectAllCheckbox) {
+      cartState.toggleSelectAll(); // 상태 변경 → 자동 재렌더링
+      return;
+    }
+
+    // 장바구니 전체 비우기
+    const cartClearButton = e.target.closest("#cart-modal-clear-cart-btn");
+    if (cartClearButton) {
+      cartState.clearCart(); // 상태 변경 → 자동 재렌더링
+      return;
+    }
+
+    // 단일 항목 삭제
+    const cartItemRemoveBtn = e.target.closest(".cart-item-remove-btn");
+    if (cartItemRemoveBtn) {
+      const targetId = cartItemRemoveBtn.dataset.productId;
+      cartState.removeItem(targetId); // 상태 변경 → 자동 재렌더링
+      return;
+    }
+
+    // 장바구니 모달 수량 감소
+    const quantityDecreaseBtn = e.target.closest(".quantity-decrease-btn");
+    if (quantityDecreaseBtn) {
+      const targetId = quantityDecreaseBtn.dataset.productId;
+      cartState.decreaseQuantity(targetId); // 상태 변경 → 자동 재렌더링
+      return;
+    }
+
+    // 장바구니 모달 수량 증가
+    const quantityIncreaseBtn = e.target.closest(".quantity-increase-btn");
+    if (quantityIncreaseBtn) {
+      const targetId = quantityIncreaseBtn.dataset.productId;
+      cartState.increaseQuantity(targetId); // 상태 변경 → 자동 재렌더링
+      return;
+    }
+
+    // 선택한 상품 삭제
+    const removeSelectedBtn = e.target.closest("#cart-modal-remove-selected-btn");
+    if (removeSelectedBtn) {
+      cartState.removeSelectedItems(); // 상태 변경 → 자동 재렌더링
+      return;
+    }
+
+    // 선택 체크박스
+    const cartItemCheckbox = e.target.closest(".cart-item-checkbox");
+    if (cartItemCheckbox) {
+      const targetId = cartItemCheckbox.dataset.productId;
+      cartState.toggleItemSelect(targetId); // 상태 변경 → 자동 재렌더링
+      return;
     }
   });
 

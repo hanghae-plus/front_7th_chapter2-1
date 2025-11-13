@@ -1,10 +1,10 @@
 import { ADD_CART_LIST, getLocalStorage } from "../utils/localstorage";
 
 export const Header = ({ pageTitle }) => {
-  const storedCartData = getLocalStorage(ADD_CART_LIST);
+  const storedCartData = getLocalStorage(ADD_CART_LIST).items;
 
   const storedCartDataCount = () => {
-    if (storedCartData.length === 0) return "";
+    if (!storedCartData || storedCartData.length === 0) return "";
 
     return /* HTML */ `
       <span
