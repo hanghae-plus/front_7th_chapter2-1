@@ -17,6 +17,7 @@ export const store = {
       error: null,
       limit: 20,
       sort: "price_asc",
+      search: "",
     },
     detail: {
       product: null,

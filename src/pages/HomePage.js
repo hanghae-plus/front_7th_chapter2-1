@@ -23,6 +23,7 @@ export const HomePage = {
     store.subscribe(renderFn, "list.category2");
     store.subscribe(renderFn, "list.limit");
     store.subscribe(renderFn, "list.sort");
+    store.subscribe(renderFn, "list.search");
 
     this.setupEventListeners();
 
@@ -95,6 +96,17 @@ export const HomePage = {
     };
     document.addEventListener("change", sortChangeHandler);
     eventHandlers.push({ type: "change", handler: sortChangeHandler });
+
+    // 검색 이벤트 (엔터 키)
+    const searchKeydownHandler = (e) => {
+      if (e.target.id === "search-input" && e.key === "Enter") {
+        const keyword = e.target.value.trim();
+        store.setState("list.search", keyword);
+        store.fetchProducts();
+      }
+    };
+    document.addEventListener("keydown", searchKeydownHandler);
+    eventHandlers.push({ type: "keydown", handler: searchKeydownHandler });
   },
 
   // 페이지 정리 (다른 페이지로 이동 시 실행)
@@ -113,6 +125,7 @@ export const HomePage = {
       store.unsubscribe(renderFn, "list.category2");
       store.unsubscribe(renderFn, "list.limit");
       store.unsubscribe(renderFn, "list.sort");
+      store.unsubscribe(renderFn, "list.search");
       renderFn = null;
 
       // 이벤트 핸들러 해제
@@ -126,10 +139,11 @@ export const HomePage = {
   // 렌더링 (state 변경 시마다 실행)
   render() {
     console.log("🎨 HomePage render 호출");
-    const { loading, products, filters, pagination, categories, category1, category2, limit, sort } = store.state.list;
+    const { loading, products, filters, pagination, categories, category1, category2, limit, sort, search } =
+      store.state.list;
     return PageLayout({
       children: `
-        ${SearchForm({ loading, filters, pagination, categories, category1, category2, limit, sort })}
+        ${SearchForm({ loading, filters, pagination, categories, category1, category2, limit, sort, search })}
         ${ProductList({ loading, products })}
       `,
     });
