@@ -210,9 +210,13 @@ const renderDetailPage = async () => {
   // 데이터 페칭
   const productId = location.pathname.split("/").pop();
   const data = await getProduct(productId);
+  const responsiveData = await getProducts({
+    category1: data.category1,
+    category2: data.category2,
+  });
 
   // 최종 렌더링
-  $root.innerHTML = DetailPage({ loading: false, product: data });
+  $root.innerHTML = DetailPage({ loading: false, product: data, responsiveList: responsiveData.products });
 };
 
 // 404 페이지 렌더링 함수
@@ -301,6 +305,28 @@ function main() {
     if (goToProductList) {
       e.preventDefault();
       push("/front_7th_chapter2-1/");
+      return;
+    }
+
+    const detailAddToCartBtn = e.target.closest("#add-to-cart-btn");
+    if (detailAddToCartBtn) {
+      const quantityInput = document.querySelector("#quantity-input");
+      if (quantityInput) {
+        const storedData = getLocalStorage(ADD_CART_LIST);
+        const productId = location.pathname.split("/").pop();
+        const addToCartTarget = await getProduct(productId);
+        setLocalStorage(ADD_CART_LIST, [...storedData, addToCartTarget]);
+
+        updateCartCount();
+      }
+    }
+
+    const relatedProductCard = e.target.closest(".related-product-card");
+    if (relatedProductCard) {
+      const productId = relatedProductCard.dataset.productId;
+      // TODO : /products/:id 절대 방식으로 수정
+      // /front_7th_chapter2-1/ 이걸 로컬 환경에서 환경 변수 선언해서 쓰거나, 로컬에선 url에 제거하기
+      push(`${productId}`);
       return;
     }
   });

@@ -9,7 +9,31 @@ const Loading = /* HTML */ `
   </div>
 `;
 
-const Detail = ({ title, category1, category2, image, rating, reviewCount, lprice, description, stock }) => {
+const ResponsiveGrid = ({ productId, image, lprice, title }) => {
+  return /* HTML */ `
+    <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id=${productId}>
+      <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
+        <img src=${image} alt=${title} class="w-full h-full object-cover" loading="lazy" />
+      </div>
+      <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${title}</h3>
+      <p class="text-sm font-bold text-blue-600">${Number(lprice).toLocaleString()}원</p>
+    </div>
+  `;
+};
+
+const Detail = ({
+  title,
+  category1,
+  category2,
+  image,
+  rating,
+  reviewCount,
+  lprice,
+  description,
+  stock,
+  productId,
+  responsiveList,
+}) => {
   return /* HTML */ ` <!-- 브레드크럼 -->
     <nav class="mb-4">
       <div class="flex items-center space-x-2 text-sm text-gray-600">
@@ -142,42 +166,17 @@ const Detail = ({ title, category1, category2, image, rating, reviewCount, lpric
       </div>
       <div class="p-4">
         <div class="grid grid-cols-2 gap-3 responsive-grid">
-          <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="86940857379">
-            <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-              <img
-                src="https://shopping-phinf.pstatic.net/main_8694085/86940857379.1.jpg"
-                alt="샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이"
-                class="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-              샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이
-            </h3>
-            <p class="text-sm font-bold text-blue-600">230원</p>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="82094468339">
-            <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-              <img
-                src="https://shopping-phinf.pstatic.net/main_8209446/82094468339.4.jpg"
-                alt="실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제"
-                class="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-              실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제
-            </h3>
-            <p class="text-sm font-bold text-blue-600">280원</p>
-          </div>
+          ${responsiveList
+            .filter((product) => product.productId !== productId)
+            .map((product) => ResponsiveGrid(product))
+            .join("")}
         </div>
       </div>
     </div>`;
 };
 
-export const DetailPage = ({ loading, product }) => {
-  console.log({ ...product });
+export const DetailPage = ({ loading, product, responsiveList }) => {
   return PageLayout({
-    children: loading ? Loading : Detail({ ...product }),
+    children: loading ? Loading : Detail({ ...product, responsiveList }),
   });
 };
