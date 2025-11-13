@@ -1,3 +1,5 @@
+import { HeaderCart } from "./HeaderCart";
+
 export const Header = () => {
   return `
     <header class="bg-white shadow-sm sticky top-0 z-40">
@@ -6,6 +8,10 @@ export const Header = () => {
           <h1 class="text-xl font-bold text-gray-900">
             <a href="/" data-link="">쇼핑몰</a>
           </h1>
+          <div class="flex items-center space-x-2">
+                <!-- 장바구니 아이콘 -->
+                ${HeaderCart()}
+              </div>
         </div>
       </div>
     </header>

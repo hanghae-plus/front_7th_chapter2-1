@@ -21,7 +21,7 @@ const Loading = `<div class="text-center py-4">
                 </div>
               </div>`;
 
-const ProductItem = ({ title, lprice, image, productId }) => {
+const ProductItem = ({ title, lprice, image, productId, brand }) => {
   return `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
                      data-product-id="${productId}">
@@ -38,7 +38,7 @@ const ProductItem = ({ title, lprice, image, productId }) => {
                       <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
                         ${title}
                       </h3>
-                      <p class="text-xs text-gray-500 mb-2"></p>
+                      <p class="text-xs text-gray-500 mb-2">${brand || ""}</p>
                       <p class="text-lg font-bold text-gray-900">
                         ${Number(lprice).toLocaleString()}원
                       </p>
@@ -68,10 +68,10 @@ ${Skeleton.repeat(4)}
               </div> 
               ${Loading}`
                 : `<div class="mb-4 text-sm text-gray-600">
-                총 <span class="font-medium text-gray-900">${pagination.total}개</span>의 상품
+                총 <span class="font-medium text-gray-900">${pagination?.total || 0}개</span>의 상품
               </div>
                             <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
-                            ${products.map(ProductItem).join("")}
+                            ${products?.map(ProductItem).join("") || ""}
                             </div>
               `
             }      
