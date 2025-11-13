@@ -50,11 +50,14 @@ jobs:
       
       - name: Output deployment URL
         run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          OWNER=$(echo ${{ github.repository }} | cut -d'/' -f1)
+          
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🚀 GitHub Pages Deployment Complete"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "✅ Status: Success"
-          echo "📄 Live URL: ${{ steps.deployment.outputs.pages_url }}"
+          echo "📄 Live URL: https://${OWNER}.github.io/${REPO_NAME}/"
           echo "📌 Repository: ${{ github.repository }}"
           echo "📝 Branch: ${{ github.ref_name }}"
           echo "🔗 Commit: ${{ github.sha }}"
