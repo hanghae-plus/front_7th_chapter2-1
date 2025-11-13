@@ -58,7 +58,7 @@ export function saveCartToStorage() {
   }
 
   try {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(this.cartItems));
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(this.store.state.cart.items));
   } catch (error) {
     console.error("장바구니 정보를 저장하는 중 오류가 발생했습니다.", error);
   }
@@ -114,11 +114,11 @@ export function saveCartSelectionToStorage() {
 
 export function ensureSelectedIdsSet() {
   // Store에서 항상 Set으로 관리되므로 검증만 수행
-  const selectedIds = this.cartState.selectedIds;
+  const selectedIds = this.store.state.cart.selectedIds;
   if (!(selectedIds instanceof Set)) {
     console.warn("selectedIds is not a Set, initializing to empty Set");
     cartActions.setCartSelection(this.store, new Set());
-    return this.cartState.selectedIds;
+    return this.store.state.cart.selectedIds;
   }
   return selectedIds;
 }
@@ -166,7 +166,7 @@ export function setSelectedIds(nextIds) {
 
 export function getCartCount() {
   // 장바구니에 담긴 상품의 종류 수 반환 (전체 개수가 아님)
-  return this.cartItems.length;
+  return this.store.state.cart.items.length;
 }
 
 export function updateCartIcon() {
@@ -200,7 +200,8 @@ export function openCartModal() {
     return;
   }
 
-  if (this.cartModalElement) {
+  const modalElement = this.store.state.cart.modalElement;
+  if (modalElement) {
     this.closeCartModal(false);
   }
 
@@ -243,15 +244,17 @@ export function openCartModal() {
 }
 
 export function closeCartModal(restoreFocus = true) {
-  if (!this.cartModalElement) {
+  const modalElement = this.store.state.cart.modalElement;
+  if (!modalElement) {
     return;
   }
 
-  if (this.cartState.escListener) {
-    document.removeEventListener("keydown", this.cartState.escListener);
+  const escListener = this.store.state.cart.escListener;
+  if (escListener) {
+    document.removeEventListener("keydown", escListener);
   }
 
-  this.cartModalElement.remove();
+  modalElement.remove();
   document.body.style.overflow = "";
 
   // 모달이 닫힐 때 메인 콘텐츠를 다시 보이게 함
@@ -260,7 +263,7 @@ export function closeCartModal(restoreFocus = true) {
     root.removeAttribute("aria-hidden");
   }
 
-  const lastFocusedElement = this.cartState.lastFocusedElement;
+  const lastFocusedElement = this.store.state.cart.lastFocusedElement;
 
   // Actions를 통한 상태 업데이트
   cartActions.closeCartModal(this.store);
@@ -273,7 +276,10 @@ export function closeCartModal(restoreFocus = true) {
 }
 
 export function updateCartModalView() {
-  if (!this.cartModalElement || !this.cartState.isOpen) {
+  const modalElement = this.store.state.cart.modalElement;
+  const isOpen = this.store.state.cart.isOpen;
+
+  if (!modalElement || !isOpen) {
     return;
   }
 
@@ -281,7 +287,7 @@ export function updateCartModalView() {
   const selectedIds = this.ensureSelectedIdsSet();
   const totals = this.calculateCartTotals();
 
-  const items = this.cartItems.map((item) => {
+  const items = this.store.state.cart.items.map((item) => {
     const quantity = this.getCartItemQuantity(item);
     return {
       productId: item.productId,
@@ -302,14 +308,14 @@ export function updateCartModalView() {
     allSelected: items.length > 0 && selectedIds.size === items.length,
   };
 
-  this.cartModalElement.innerHTML = renderCartModal({ items, summary });
+  modalElement.innerHTML = renderCartModal({ items, summary });
   this.attachCartModalEventHandlers();
 }
 
 export function normalizeCartSelections() {
   const currentSelections = this.ensureSelectedIdsSet();
   const validSelections = new Set();
-  this.cartItems.forEach((item) => {
+  this.store.state.cart.items.forEach((item) => {
     if (currentSelections.has(item.productId)) {
       validSelections.add(item.productId);
     }
@@ -318,11 +324,12 @@ export function normalizeCartSelections() {
 }
 
 export function attachCartModalEventHandlers() {
-  if (!this.cartModalElement) {
+  const modalElement = this.store.state.cart.modalElement;
+  if (!modalElement) {
     return;
   }
 
-  const overlay = this.cartModalElement;
+  const overlay = modalElement;
 
   const closeButton = overlay.querySelector("#cart-modal-close-btn");
   if (closeButton) {
@@ -334,7 +341,7 @@ export function attachCartModalEventHandlers() {
 
   const selectAllCheckbox = overlay.querySelector("#cart-modal-select-all-checkbox");
   if (selectAllCheckbox instanceof HTMLInputElement) {
-    const totalCount = this.cartItems.length;
+    const totalCount = this.store.state.cart.items.length;
     const currentSelected = this.ensureSelectedIdsSet();
     const selectedCount = currentSelected.size;
     selectAllCheckbox.checked = totalCount > 0 && selectedCount === totalCount;
@@ -347,7 +354,7 @@ export function attachCartModalEventHandlers() {
       }
 
       if (target.checked) {
-        this.setSelectedIds(new Set(this.cartItems.map((item) => item.productId)));
+        this.setSelectedIds(new Set(this.store.state.cart.items.map((item) => item.productId)));
       } else {
         this.setSelectedIds(new Set());
       }
@@ -440,7 +447,7 @@ export function changeCartItemQuantity(productId, delta) {
     return;
   }
 
-  const item = this.cartItems.find((item) => item.productId === productId);
+  const item = this.store.state.cart.items.find((item) => item.productId === productId);
   if (!item) {
     return;
   }
@@ -461,7 +468,7 @@ export function changeCartItemQuantity(productId, delta) {
 }
 
 export function removeCartItem(productId) {
-  const initialLength = this.cartItems.length;
+  const initialLength = this.store.state.cart.items.length;
 
   if (initialLength === 0) {
     return;
@@ -469,7 +476,7 @@ export function removeCartItem(productId) {
 
   cartActions.removeCartItem(this.store, productId);
 
-  if (this.cartItems.length === initialLength) {
+  if (this.store.state.cart.items.length === initialLength) {
     return;
   }
 
@@ -485,11 +492,11 @@ export function removeSelectedCartItems() {
     return;
   }
 
-  const initialLength = this.cartItems.length;
+  const initialLength = this.store.state.cart.items.length;
 
   cartActions.removeSelectedCartItems(this.store);
 
-  if (this.cartItems.length === initialLength) {
+  if (this.store.state.cart.items.length === initialLength) {
     return;
   }
 
@@ -500,7 +507,7 @@ export function removeSelectedCartItems() {
 }
 
 export function clearCartItems() {
-  if (!this.cartItems.length) {
+  if (!this.store.state.cart.items.length) {
     return;
   }
 
@@ -517,7 +524,7 @@ export function calculateCartTotals() {
   let selectedPrice = 0;
   const selectedIds = this.ensureSelectedIdsSet();
 
-  this.cartItems.forEach((item) => {
+  this.store.state.cart.items.forEach((item) => {
     const unitPrice = this.getCartItemUnitPrice(item);
     const quantity = this.getCartItemQuantity(item);
     const lineTotal = unitPrice * quantity;

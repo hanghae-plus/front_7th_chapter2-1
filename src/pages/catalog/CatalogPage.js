@@ -25,16 +25,16 @@ export class CatalogPage {
     this.app.resetObserver();
     this.app.render(
       renderProductsContent({
-        products: this.app.state.products,
-        pagination: this.app.state.pagination,
-        selectedLimit: this.app.lastParams.limit,
-        selectedSort: this.app.lastParams.sort,
-        searchValue: this.app.lastParams.search ?? "",
-        categoryState: this.app.categoriesState,
-        selectedCategory1: this.app.lastParams.category1 ?? "",
-        selectedCategory2: this.app.lastParams.category2 ?? "",
-        isLoadingMore: this.app.state.isLoadingMore,
-        loadMoreError: this.app.state.loadMoreError,
+        products: this.app.store.state.catalog.products,
+        pagination: this.app.store.state.catalog.pagination,
+        selectedLimit: this.app.store.state.filters.limit,
+        selectedSort: this.app.store.state.filters.sort,
+        searchValue: this.app.store.state.filters.search ?? "",
+        categoryState: this.app.store.state.categories,
+        selectedCategory1: this.app.store.state.filters.category1 ?? "",
+        selectedCategory2: this.app.store.state.filters.category2 ?? "",
+        isLoadingMore: this.app.store.state.catalog.isLoadingMore,
+        loadMoreError: this.app.store.state.catalog.loadMoreError,
       }),
     );
     window.scrollTo({ top: previousScrollY });
@@ -48,19 +48,19 @@ export class CatalogPage {
       catalogActions.setInitialLoading(this.app.store);
       this.app.render(
         renderLoadingContent({
-          selectedLimit: this.app.lastParams.limit,
-          selectedSort: this.app.lastParams.sort,
-          searchValue: this.app.lastParams.search ?? "",
-          categoryState: this.app.categoriesState,
-          selectedCategory1: this.app.lastParams.category1 ?? "",
-          selectedCategory2: this.app.lastParams.category2 ?? "",
+          selectedLimit: this.app.store.state.filters.limit,
+          selectedSort: this.app.store.state.filters.sort,
+          searchValue: this.app.store.state.filters.search ?? "",
+          categoryState: this.app.store.state.categories,
+          selectedCategory1: this.app.store.state.filters.category1 ?? "",
+          selectedCategory2: this.app.store.state.filters.category2 ?? "",
         }),
       );
       this.attachMainHandlers();
     }
 
     try {
-      const data = await getProducts({ ...this.app.lastParams, page: 1 });
+      const data = await getProducts({ ...this.app.store.state.filters, page: 1 });
       filterActions.setPage(this.app.store, data.pagination?.page ?? 1);
 
       catalogActions.setProducts(this.app.store, data.products, data.pagination);
@@ -88,15 +88,15 @@ export class CatalogPage {
       console.error("카테고리를 불러오는 중 오류가 발생했습니다.", error);
       categoryActions.setCategoriesError(this.app.store, error?.message ?? "카테고리를 불러오지 못했습니다.");
     } finally {
-      if (this.app.state.isLoading) {
+      if (this.app.store.state.catalog.isLoading) {
         this.app.render(
           renderLoadingContent({
-            selectedLimit: this.app.lastParams.limit,
-            selectedSort: this.app.lastParams.sort,
-            searchValue: this.app.lastParams.search ?? "",
-            categoryState: this.app.categoriesState,
-            selectedCategory1: this.app.lastParams.category1 ?? "",
-            selectedCategory2: this.app.lastParams.category2 ?? "",
+            selectedLimit: this.app.store.state.filters.limit,
+            selectedSort: this.app.store.state.filters.sort,
+            searchValue: this.app.store.state.filters.search ?? "",
+            categoryState: this.app.store.state.categories,
+            selectedCategory1: this.app.store.state.filters.category1 ?? "",
+            selectedCategory2: this.app.store.state.filters.category2 ?? "",
           }),
         );
         this.attachMainHandlers();
@@ -107,11 +107,11 @@ export class CatalogPage {
   }
 
   async loadMoreProducts() {
-    if (this.app.state.isLoadingMore) {
+    if (this.app.store.state.catalog.isLoadingMore) {
       return;
     }
 
-    const pagination = this.app.state.pagination;
+    const pagination = this.app.store.state.catalog.pagination;
     if (!pagination?.hasNext) {
       return;
     }
@@ -122,7 +122,7 @@ export class CatalogPage {
     this.updateView();
 
     try {
-      const data = await getProducts({ ...this.app.lastParams, page: nextPage });
+      const data = await getProducts({ ...this.app.store.state.filters, page: nextPage });
       filterActions.setPage(this.app.store, data.pagination?.page ?? nextPage);
       catalogActions.loadMoreSuccess(this.app.store, data.products, data.pagination);
       this.updateView();
@@ -138,7 +138,7 @@ export class CatalogPage {
       return;
     }
 
-    const product = this.app.state.products.find((item) => item.productId === productId);
+    const product = this.app.store.state.catalog.products.find((item) => item.productId === productId);
     if (!product) {
       return;
     }
@@ -157,7 +157,7 @@ export class CatalogPage {
     this.app.saveCartToStorage();
     this.app.updateCartIcon();
 
-    if (this.app.cartState.isOpen) {
+    if (this.app.store.state.cart.isOpen) {
       this.app.updateCartModalView();
     }
 
@@ -166,7 +166,7 @@ export class CatalogPage {
 
   handleSearch(value) {
     const nextSearch = value.trim();
-    if (nextSearch === (this.app.lastParams.search ?? "")) {
+    if (nextSearch === (this.app.store.state.filters.search ?? "")) {
       return;
     }
 
@@ -179,8 +179,8 @@ export class CatalogPage {
     const nextCategory1 = category1;
     const nextCategory2 = nextCategory1 ? category2 : "";
 
-    const currentCategory1 = this.app.lastParams.category1 ?? "";
-    const currentCategory2 = this.app.lastParams.category2 ?? "";
+    const currentCategory1 = this.app.store.state.filters.category1 ?? "";
+    const currentCategory2 = this.app.store.state.filters.category2 ?? "";
 
     if (nextCategory1 === currentCategory1 && nextCategory2 === currentCategory2) {
       return;
@@ -232,7 +232,7 @@ export class CatalogPage {
     });
 
     if (searchInput instanceof HTMLInputElement) {
-      searchInput.value = this.app.lastParams.search ?? "";
+      searchInput.value = this.app.store.state.filters.search ?? "";
       searchInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") {
           return;
@@ -247,7 +247,7 @@ export class CatalogPage {
     }
 
     if (limitSelect) {
-      limitSelect.value = String(this.app.lastParams.limit);
+      limitSelect.value = String(this.app.store.state.filters.limit);
       limitSelect.addEventListener("change", (event) => {
         const select = event.target;
         if (!(select instanceof HTMLSelectElement)) {
@@ -255,7 +255,7 @@ export class CatalogPage {
         }
 
         const nextLimit = Number.parseInt(select.value, 10);
-        if (Number.isNaN(nextLimit) || nextLimit === this.app.lastParams.limit) {
+        if (Number.isNaN(nextLimit) || nextLimit === this.app.store.state.filters.limit) {
           return;
         }
 
@@ -265,7 +265,7 @@ export class CatalogPage {
     }
 
     if (sortSelect) {
-      sortSelect.value = this.app.lastParams.sort;
+      sortSelect.value = this.app.store.state.filters.sort;
       sortSelect.addEventListener("change", (event) => {
         const select = event.target;
         if (!(select instanceof HTMLSelectElement)) {
@@ -273,7 +273,7 @@ export class CatalogPage {
         }
 
         const nextSort = select.value;
-        if (nextSort === this.app.lastParams.sort) {
+        if (nextSort === this.app.store.state.filters.sort) {
           return;
         }
 
@@ -355,11 +355,11 @@ export class CatalogPage {
   }
 
   setupInfiniteScroll() {
-    if (this.app.state.loadMoreError) {
+    if (this.app.store.state.catalog.loadMoreError) {
       return;
     }
 
-    const pagination = this.app.state.pagination;
+    const pagination = this.app.store.state.catalog.pagination;
     if (!pagination?.hasNext) {
       return;
     }
@@ -371,7 +371,7 @@ export class CatalogPage {
 
     this.app.observer = new IntersectionObserver(
       (entries) => {
-        if (this.app.state.isLoadingMore || this.app.state.loadMoreError) {
+        if (this.app.store.state.catalog.isLoadingMore || this.app.store.state.catalog.loadMoreError) {
           return;
         }
 

@@ -94,7 +94,7 @@ export class ProductDetailPage {
       <div class="max-w-4xl mx-auto px-4 py-6">
         <div class="py-20 bg-red-50 rounded-lg">
           <div class="text-center">
-            <p class="text-red-600 mb-4">${escapeHtml(this.app.detailState.error || "오류가 발생했습니다.")}</p>
+            <p class="text-red-600 mb-4">${escapeHtml(this.app.store.state.productDetail.error || "오류가 발생했습니다.")}</p>
             <button onclick="window.history.back()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
               목록으로 돌아가기
             </button>
@@ -114,10 +114,10 @@ export class ProductDetailPage {
   }
 
   renderContent() {
-    const product = this.app.detailState.product;
+    const product = this.app.store.state.productDetail.product;
     if (!product) return;
 
-    const quantity = this.app.detailState.quantity;
+    const quantity = this.app.store.state.productDetail.quantity;
 
     const detailHeaderLeft = /*html*/ `
       <div class="flex items-center space-x-3">
@@ -156,7 +156,7 @@ export class ProductDetailPage {
       `;
     }
 
-    const relatedProductsHtml = this.app.detailState.relatedProducts
+    const relatedProductsHtml = this.app.store.state.productDetail.relatedProducts
       .map(
         (p) => /*html*/ `
       <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer hover:bg-gray-100 transition-colors" data-product-id="${escapeHtml(p.productId)}">
@@ -229,7 +229,7 @@ export class ProductDetailPage {
         </div>
         
         ${
-          this.app.detailState.relatedProducts.length > 0
+          this.app.store.state.productDetail.relatedProducts.length > 0
             ? /*html*/ `
           <div class="bg-white rounded-lg shadow-sm">
             <div class="p-4 border-b border-gray-200">
@@ -317,18 +317,19 @@ export class ProductDetailPage {
 
     if (quantityDecrease) {
       quantityDecrease.addEventListener("click", () => {
-        const currentQuantity = this.app.detailState.quantity;
+        const currentQuantity = this.app.store.state.productDetail.quantity;
         if (currentQuantity > 1) {
-          this.app.detailState.quantity = currentQuantity - 1;
-          if (quantityInput) quantityInput.value = String(this.app.detailState.quantity);
+          productDetailActions.setQuantity(this.app.store, currentQuantity - 1);
+          if (quantityInput) quantityInput.value = String(this.app.store.state.productDetail.quantity);
         }
       });
     }
 
     if (quantityIncrease) {
       quantityIncrease.addEventListener("click", () => {
-        this.app.detailState.quantity += 1;
-        if (quantityInput) quantityInput.value = String(this.app.detailState.quantity);
+        const newQuantity = this.app.store.state.productDetail.quantity + 1;
+        productDetailActions.setQuantity(this.app.store, newQuantity);
+        if (quantityInput) quantityInput.value = String(this.app.store.state.productDetail.quantity);
       });
     }
 
@@ -336,9 +337,9 @@ export class ProductDetailPage {
       quantityInput.addEventListener("change", (e) => {
         const value = Number.parseInt(e.target.value, 10);
         if (!Number.isNaN(value) && value >= 1) {
-          this.app.detailState.quantity = value;
+          productDetailActions.setQuantity(this.app.store, value);
         } else {
-          this.app.detailState.quantity = 1;
+          productDetailActions.setQuantity(this.app.store, 1);
           e.target.value = "1";
         }
       });
@@ -348,7 +349,7 @@ export class ProductDetailPage {
       addToCartBtn.addEventListener("click", () => {
         const productId = addToCartBtn.dataset.productId;
         if (productId) {
-          this.handleAddToCart(productId, this.app.detailState.quantity);
+          this.handleAddToCart(productId, this.app.store.state.productDetail.quantity);
         }
       });
     }
@@ -370,18 +371,18 @@ export class ProductDetailPage {
   }
 
   handleAddToCart(productId, quantity) {
-    if (!productId || !this.app.detailState.product) {
+    if (!productId || !this.app.store.state.productDetail.product) {
       return;
     }
 
-    const product = this.app.detailState.product;
+    const product = this.app.store.state.productDetail.product;
 
     // 기존 장바구니 아이템 확인
-    const existingIndex = this.app.cartItems.findIndex((item) => item.productId === productId);
+    const existingIndex = this.app.store.state.cart.items.findIndex((item) => item.productId === productId);
 
     if (existingIndex >= 0) {
       // 기존 아이템의 수량에 추가
-      const existingItem = this.app.cartItems[existingIndex];
+      const existingItem = this.app.store.state.cart.items[existingIndex];
       const newQuantity = this.app.getCartItemQuantity(existingItem) + quantity;
       cartActions.updateCartItemQuantity(this.app.store, productId, newQuantity);
     } else {
@@ -406,7 +407,7 @@ export class ProductDetailPage {
     this.app.saveCartToStorage();
     this.app.updateCartIcon();
 
-    if (this.app.cartState.isOpen) {
+    if (this.app.store.state.cart.isOpen) {
       this.app.updateCartModalView();
     }
 

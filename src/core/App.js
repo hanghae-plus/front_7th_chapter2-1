@@ -48,67 +48,9 @@ export class App {
     // IntersectionObserver 인스턴스
     this.observer = null;
 
-    // 🔄 하위 호환성을 위한 getter/setter
-    // 점진적 마이그레이션을 위해 기존 방식도 지원
-    Object.defineProperty(this, "state", {
-      get: () => this.store.state.catalog,
-      set: (value) => {
-        this.store.updateSlice("catalog", value);
-      },
-    });
-
-    Object.defineProperty(this, "categoriesState", {
-      get: () => this.store.state.categories,
-      set: (value) => {
-        this.store.updateSlice("categories", value);
-      },
-    });
-
-    Object.defineProperty(this, "cartState", {
-      get: () => this.store.state.cart,
-      set: (value) => {
-        this.store.updateSlice("cart", value);
-      },
-    });
-
-    Object.defineProperty(this, "detailState", {
-      get: () => this.store.state.productDetail,
-      set: (value) => {
-        this.store.updateSlice("productDetail", value);
-      },
-    });
-
-    Object.defineProperty(this, "currentPage", {
-      get: () => this.store.state.ui.currentPage,
-      set: (value) => {
-        this.store.updateSlice("ui", { currentPage: value });
-      },
-    });
-
-    Object.defineProperty(this, "lastParams", {
-      get: () => this.store.state.filters,
-      set: (value) => {
-        this.store.updateSlice("filters", value);
-      },
-    });
-
-    // 장바구니 관련 (레거시 호환)
-    Object.defineProperty(this, "cartModalElement", {
-      get: () => this.store.state.cart.modalElement,
-      set: (value) => {
-        this.store.updateSlice("cart", { modalElement: value });
-      },
-    });
-
-    Object.defineProperty(this, "cartItems", {
-      get: () => this.store.state.cart.items,
-      set: (value) => {
-        this.store.updateSlice("cart", { items: value });
-      },
-    });
-
     this.bindCartModule();
-    this.cartItems = this.loadCartFromStorage();
+    const loadedCartItems = this.loadCartFromStorage();
+    this.store.updateSlice("cart", { items: loadedCartItems });
     const storedSelection = this.loadCartSelectionFromStorage();
     if (storedSelection instanceof Set) {
       this.store.updateSlice("cart", { selectedIds: storedSelection });
@@ -192,8 +134,8 @@ export class App {
   }
 
   async showProductList() {
-    this.currentPage = "list";
-    if (this.state.products.length === 0) {
+    this.store.updateSlice("ui", { currentPage: "list" });
+    if (this.store.state.catalog.products.length === 0) {
       const { CatalogPage } = await import("../pages/catalog/CatalogPage.js");
       this.catalogPage = new CatalogPage(this);
       await this.catalogPage.init();
@@ -207,7 +149,7 @@ export class App {
   }
 
   async showProductDetail(productId) {
-    this.currentPage = "detail";
+    this.store.updateSlice("ui", { currentPage: "detail" });
     this.resetObserver();
 
     const { ProductDetailPage } = await import("../pages/product/ProductDetailPage.js");
@@ -216,7 +158,7 @@ export class App {
   }
 
   async showNotFoundPage() {
-    this.currentPage = "notFound";
+    this.store.updateSlice("ui", { currentPage: "notFound" });
     this.resetObserver();
 
     const { NotFoundPage } = await import("../pages/NotFoundPage.js");
