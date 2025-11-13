@@ -183,6 +183,27 @@ document.body.addEventListener("click", (e) => {
     return;
   }
 
+  // 상세 페이지 브레드크럼 - 카테고리 클릭
+  const $breadcrumbLink = e.target.closest(".breadcrumb-link");
+  if ($breadcrumbLink) {
+    const category1 = $breadcrumbLink.dataset.category1;
+    const category2 = $breadcrumbLink.dataset.category2;
+
+    // category2 클릭 시: category1 + category2 필터
+    if (category2) {
+      // category1도 함께 전달해야 하므로 상위 요소에서 찾기
+      const $nav = $breadcrumbLink.closest("nav");
+      const $category1Btn = $nav.querySelector("[data-category1]");
+      const cat1Value = $category1Btn ? $category1Btn.dataset.category1 : "";
+      router.push(`/?category1=${cat1Value}&category2=${category2}`);
+    }
+    // category1 클릭 시: category1만 필터
+    else if (category1) {
+      router.push(`/?category1=${category1}`);
+    }
+    return;
+  }
+
   // 상세 페이지 - 수량 증가
   const $quantityIncrease = e.target.closest("#quantity-increase");
   if ($quantityIncrease) {
