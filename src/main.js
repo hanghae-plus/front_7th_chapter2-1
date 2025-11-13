@@ -7,24 +7,31 @@ import { cartStore } from "./store/cartStore.js";
 import { updateCategoryUI } from "./utils/categoryUI.js";
 import { findRoute, initRouter, push } from "./utils/router.js";
 
-const enableMocking = () =>
-  import("./mocks/browser.js").then(({ worker }) =>
+const enableMocking = () => {
+  const workerScriptUrl = `${import.meta.env.BASE_URL ?? "/"}mockServiceWorker.js`;
+  return import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
+      serviceWorker: {
+        url: workerScriptUrl,
+      },
       onUnhandledRequest: "bypass",
     }),
   );
+};
 const productCache = new Map();
 
 const render = async () => {
   const $root = document.querySelector("#root");
 
-  const { route, params } = findRoute(location.pathname);
-  console.log("main.js", location.pathname, route, params);
+  const match = findRoute(location.pathname);
+  console.log("main.js", location.pathname, match?.route, match?.params);
 
-  if (!route) {
+  if (!match) {
     $root.innerHTML = NotFoundPage();
     return;
   }
+
+  const { route, params } = match;
 
   if (route.path === "/") {
     $root.innerHTML = route.component({ loading: true });
@@ -81,7 +88,8 @@ const refreshProducts = async () => {
 };
 
 const pushWithNoRender = ({ path, selectedCat1 = null, selectedCat2 = null }) => {
-  const isHome = location.pathname === "/";
+  const currentRoute = findRoute(location.pathname)?.route;
+  const isHome = currentRoute?.path === "/";
   push(path, { silent: isHome });
   if (isHome) {
     refreshProducts();
