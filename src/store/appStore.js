@@ -5,13 +5,43 @@ const createHomepageState = () => ({
   isLoadingMore: false,
 });
 
+const CART_STORAGE_KEY = "cart";
+
 const createCartState = () => ({
   items: [],
 });
 
+const loadCartFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    if (!stored) {
+      return createCartState();
+    }
+
+    const parsed = JSON.parse(stored);
+    if (parsed && Array.isArray(parsed.items)) {
+      return {
+        items: parsed.items,
+      };
+    }
+  } catch (error) {
+    console.error("Failed to load cart from localStorage:", error);
+  }
+
+  return createCartState();
+};
+
+const saveCartToStorage = (cartState) => {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartState));
+  } catch (error) {
+    console.error("Failed to save cart to localStorage:", error);
+  }
+};
+
 let state = {
   homepage: createHomepageState(),
-  cart: createCartState(),
+  cart: loadCartFromStorage(),
 };
 
 const listeners = new Set();
@@ -55,6 +85,7 @@ const updateCart = (updater) => {
     cart: nextCart,
   };
 
+  saveCartToStorage(nextCart);
   notify();
 };
 
