@@ -57,16 +57,31 @@ const renderCartItem = ({ id, title, price, image, quantity }) => {
   `;
 };
 
+const calculateTotalPrice = (items = []) => {
+  if (!Array.isArray(items) || !items.length) {
+    return 0;
+  }
+
+  return items.reduce((total, item) => {
+    const price = Number(item.price) || 0;
+    const quantity = Number(item.quantity) || 1;
+    return total + price * quantity;
+  }, 0);
+};
+
 const renderCartItems = (items = []) => {
   if (!Array.isArray(items) || !items.length) {
     return EMPTY_VIEW;
   }
 
+  const itemCount = items.length;
+  const totalPrice = calculateTotalPrice(items);
+
   return /*html*/ `
     <div class="p-4 border-b border-gray-200 bg-gray-50">
       <label class="flex items-center text-sm text-gray-700">
         <input type="checkbox" id="cart-modal-select-all-checkbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2">
-        전체선택 (2개)
+        전체선택 (${itemCount}개)
       </label>
     </div>
     <div class="flex-1 overflow-y-auto">
@@ -79,7 +94,7 @@ const renderCartItems = (items = []) => {
       <!-- 총 금액 -->
       <div class="flex justify-between items-center mb-4">
         <span class="text-lg font-bold text-gray-900">총 금액</span>
-        <span class="text-xl font-bold text-blue-600">670원</span>
+        <span id="cart-modal-total-price" class="text-xl font-bold text-blue-600">${totalPrice.toLocaleString()}원</span>
       </div>
       <!-- 액션 버튼들 -->
       <div class="space-y-2">
@@ -119,7 +134,57 @@ const updateCartModalContent = () => {
   }
 
   const cartState = getCartState();
+  const itemCount = cartState.items.length;
+  const totalPrice = calculateTotalPrice(cartState.items);
+
+  // 장바구니 아이템 개수 업데이트
+  const itemCountSpan = cartModal.querySelector("#cart-modal-item-count");
+  if (itemCountSpan) {
+    itemCountSpan.textContent = itemCount > 0 ? `(${itemCount})` : "";
+  }
+
+  // 총금액 업데이트
+  const totalPriceSpan = cartModal.querySelector("#cart-modal-total-price");
+  if (totalPriceSpan) {
+    totalPriceSpan.textContent = `${totalPrice.toLocaleString()}원`;
+  }
+
   contentContainer.innerHTML = renderCartItems(cartState.items);
+
+  // 렌더링 후 총금액 다시 업데이트 (동적으로 생성된 요소에 대해)
+  requestAnimationFrame(() => {
+    const newTotalPriceSpan = cartModal.querySelector("#cart-modal-total-price");
+    if (newTotalPriceSpan) {
+      newTotalPriceSpan.textContent = `${totalPrice.toLocaleString()}원`;
+    }
+  });
+};
+
+const handleSelectAll = (event) => {
+  const selectAllCheckbox = event.target.closest("#cart-modal-select-all-checkbox");
+  if (!selectAllCheckbox) {
+    return;
+  }
+
+  const isChecked = selectAllCheckbox.checked;
+  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+
+  itemCheckboxes.forEach((checkbox) => {
+    checkbox.checked = isChecked;
+  });
+};
+
+const handleItemCheckboxChange = () => {
+  const selectAllCheckbox = document.querySelector("#cart-modal-select-all-checkbox");
+  if (!selectAllCheckbox) {
+    return;
+  }
+
+  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+  const checkedCount = Array.from(itemCheckboxes).filter((cb) => cb.checked).length;
+
+  // 모든 아이템이 선택되었으면 전체선택 체크박스도 체크
+  selectAllCheckbox.checked = checkedCount === itemCheckboxes.length && itemCheckboxes.length > 0;
 };
 
 let isSetup = false;
@@ -132,7 +197,22 @@ export const setupCartModal = (router) => {
   isSetup = true;
 
   const ensureRendered = () => {
-    requestAnimationFrame(updateCartModalContent);
+    requestAnimationFrame(() => {
+      updateCartModalContent();
+
+      // 이벤트 리스너 재바인딩 (동적으로 생성된 요소에 대해)
+      const selectAllCheckbox = document.querySelector("#cart-modal-select-all-checkbox");
+      if (selectAllCheckbox) {
+        selectAllCheckbox.removeEventListener("change", handleSelectAll);
+        selectAllCheckbox.addEventListener("change", handleSelectAll);
+      }
+
+      const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+      itemCheckboxes.forEach((checkbox) => {
+        checkbox.removeEventListener("change", handleItemCheckboxChange);
+        checkbox.addEventListener("change", handleItemCheckboxChange);
+      });
+    });
   };
 
   subscribe(ensureRendered);
@@ -143,6 +223,7 @@ export const setupCartModal = (router) => {
 
 export const CartModal = ({ cartProducts = [] } = {}) => {
   const initialItems = getInitialItems(cartProducts);
+  const initialItemCount = initialItems.length;
 
   return /*html*/ `
     <div id="cart-modal" class="cart-modal hidden fixed inset-0 z-50 flex min-h-full items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" aria-hidden="true">
@@ -154,6 +235,7 @@ export const CartModal = ({ cartProducts = [] } = {}) => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 2H3m4 11v6a1 1 0 001 1h1a1 1 0 001-1v-6M13 13v6a1 1 0 001 1h1a1 1 0 001-1v-6"></path>
             </svg>
             장바구니 
+            <span id="cart-modal-item-count" class="text-sm font-normal text-gray-600 ml-1">${initialItemCount > 0 ? `(${initialItemCount})` : ""}</span>
           </h2>
           
           <button id="cart-modal-close-btn" class="text-gray-400 hover:text-gray-600 p-1">
