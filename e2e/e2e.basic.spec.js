@@ -281,7 +281,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (기본과제)", () 
       await page.locator(".quantity-increase-btn").first().click();
 
       // 총 금액 업데이트 확인
-      await expect(page.locator("#root")).toMatchAriaSnapshot(`
+      await expect(page.locator(".cart-modal-overlay")).toMatchAriaSnapshot(`
     - text: /총 금액 670원/
     - button "전체 비우기"
     - button "구매하기"

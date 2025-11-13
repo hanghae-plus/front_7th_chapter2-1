@@ -13,6 +13,16 @@ export async function getProducts(params = {}) {
   });
 
   const response = await fetch(`/api/products?${searchParams}`);
+  if (!response.ok) {
+    let errorMessage = "상품 목록을 불러오지 못했습니다.";
+    try {
+      const errorBody = await response.json();
+      errorMessage = errorBody?.message ?? errorBody?.error ?? errorMessage;
+    } catch {
+      // ignore json parsing errors
+    }
+    throw new Error(errorMessage);
+  }
 
   return await response.json();
 }
