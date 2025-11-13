@@ -10,7 +10,9 @@ export class DetailPage extends Component {
     if (e.target.closest("#add-to-cart-btn")) {
       const { loaderData } = this.props;
       const product = loaderData.product;
-      CartUtil.addCard(product);
+      const $quantity = this.$container.querySelector("#quantity-input");
+      $quantity.value = 1;
+      CartUtil.addCard(product, $quantity.value);
     } else if (e.target.closest(".related-product-card")) {
       const productCard = e.target.closest(".related-product-card");
       const productId = productCard.dataset.productId;
@@ -33,11 +35,12 @@ export class DetailPage extends Component {
   }
 
   mount() {
-    this.$container.addEventListener("click", this.handleClick.bind(this));
+    this.boundHandleClick = this.handleClick.bind(this);
+    this.$container.addEventListener("click", this.boundHandleClick);
   }
 
   unmount() {
-    this.$container.removeEventListener("click", this.handleClick.bind(this));
+    this.$container.removeEventListener("click", this.boundHandleClick);
   }
 
   template() {
