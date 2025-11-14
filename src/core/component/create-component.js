@@ -166,7 +166,10 @@ export default function createComponent({
       // Effects setup
       /** @type {Map<string, any>} */
       const prevDepsMap = new Map();
+      /** @type {Map<string, Function>} */
+      const cleanupMap = new Map();
       let isMounted = false;
+      let onMountCleanup = null;
 
       const effectContext = {
         getState,
@@ -174,7 +177,6 @@ export default function createComponent({
         props: currentProps,
       };
 
-      // Subscribe to state changes for effects
       const effectsUnsubscribe = subscribe((state) => {
         if (!isMounted) return;
 
@@ -183,7 +185,6 @@ export default function createComponent({
 
           if (config.dependencies) {
             const currentDeps = config.dependencies.map((key) => {
-              // Support nested paths like "listResponse.filters.sort"
               if (key.includes(".")) {
                 const parts = key.split(".");
                 let value = state;
@@ -198,7 +199,16 @@ export default function createComponent({
 
             if (!prevDeps || !arraysEqual(prevDeps, currentDeps)) {
               prevDepsMap.set(name, currentDeps);
-              config.effect(effectContext);
+
+              const prevCleanup = cleanupMap.get(name);
+              if (prevCleanup) {
+                prevCleanup();
+              }
+
+              const cleanup = config.effect(effectContext);
+              if (cleanup instanceof Function) {
+                cleanupMap.set(name, cleanup);
+              }
             }
           }
         });
@@ -246,6 +256,12 @@ export default function createComponent({
       const observer = new MutationObserver(() => {
         if (isRendering) return;
         if (!document.contains(element)) {
+          if (onMountCleanup) {
+            onMountCleanup();
+          }
+          cleanupMap.forEach((cleanup) => cleanup());
+          cleanupMap.clear();
+
           unsubscribe();
           effectsUnsubscribe();
           window.__componentEventHandlers.delete(instanceId);
@@ -258,10 +274,12 @@ export default function createComponent({
           observer.observe(element.parentNode, { childList: true });
         }
 
-        // Run onMount effect after initial render
         isMounted = true;
         if (effects.onMount) {
-          effects.onMount(effectContext);
+          const cleanup = effects.onMount(effectContext);
+          if (cleanup instanceof Function) {
+            onMountCleanup = cleanup;
+          }
         }
       }, 0);
 
