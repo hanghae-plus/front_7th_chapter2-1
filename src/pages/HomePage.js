@@ -7,9 +7,6 @@ import { getProducts, getCategories } from "../api/productApi";
 
 const HomePage = createComponent({
   id: "home-page",
-  props: {
-    categories: [],
-  },
   initialState: () => {
     const queryParams = Router.getQueryParamsObject();
     const defaultFilters = {
