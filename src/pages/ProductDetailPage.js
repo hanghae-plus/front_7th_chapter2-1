@@ -105,7 +105,10 @@ function setupEventListeners(productId) {
 
     // 목록으로 돌아가기
     if (e.target.closest(".go-to-product-list")) {
-      window.history.back();
+      let productObj = productStore.getState().productDetail.data;
+      console.log("상품목록 돌아가기", productObj);
+      router.navigate(`/?category1=${productObj.category1 || ""}&category2=${productObj.category2 || ""}`);
+      // window.history.back();
       return;
     }
 
