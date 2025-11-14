@@ -207,7 +207,6 @@ const renderHomePage = async () => {
     if (retryButton) {
       retryButton.addEventListener("click", () => renderHomePage());
     }
-    // ⬆️
   }
 };
 
@@ -218,7 +217,6 @@ const renderDetailPage = async () => {
   $root.innerHTML = DetailPage({ loading: true, pageTitle: "상품 상세" });
 
   try {
-    // 데이터 페칭
     const productId = location.pathname.split("/").pop();
     const data = await getProduct(productId);
 
@@ -229,11 +227,10 @@ const renderDetailPage = async () => {
         category2: data.category2,
       });
       responsiveList = responsiveData.products;
-    } catch (relatedError) {
-      console.warn("Could not fetch related products:", relatedError);
+    } catch (error) {
+      console.error(error);
     }
 
-    // 최종 렌더링
     $root.innerHTML = DetailPage({
       pageTitle: "상품 상세",
       loading: false,
@@ -241,7 +238,7 @@ const renderDetailPage = async () => {
       responsiveList: responsiveList,
     });
   } catch (error) {
-    console.error("Failed to render detail page:", error);
+    console.error(error);
 
     const detailErrorUI = /* HTML */ `
       <div class="py-20 flex items-center justify-center">
