@@ -363,6 +363,27 @@ const CartModal = () => {
   const updateModal = () => {
     if (!modalContainer) return;
 
+    const cart = getCartData();
+    const itemCount = cart.items.length;
+
+    // 헤더의 아이템 개수 업데이트
+    const headerTitle = modalContainer.querySelector(".sticky.top-0 h2");
+    if (headerTitle) {
+      headerTitle.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 2H3m4 11v6a1 1 0 001 1h1a1 1 0 001-1v-6M13 13v6a1 1 0 001 1h1a1 1 0 001-1v-6"
+          ></path>
+        </svg>
+        장바구니
+        ${itemCount > 0 ? `<span class="text-sm font-normal text-gray-600 ml-1">(${itemCount})</span>` : ""}
+      `;
+    }
+
+    // 컨텐츠 업데이트
     const contentContainer = modalContainer.querySelector(".cart-modal-content");
     if (contentContainer) {
       contentContainer.innerHTML = render();
