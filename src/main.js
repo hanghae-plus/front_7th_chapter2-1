@@ -22,7 +22,6 @@ const enableMocking = () =>
     }),
   );
 
-// 무한 스크롤 상태를 전역 변수로 관리합니다.
 let globalObserver = null;
 let isLoading = false;
 let current = 1;
