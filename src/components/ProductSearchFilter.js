@@ -29,14 +29,17 @@ const ProductSearchFilter = (targetNode) => {
     store.subscribe("selectedCategory1", onUpdate);
     store.subscribe("selectedCategory2", onUpdate);
     store.subscribe("selectedLimit", onUpdate);
+    store.subscribe("selectedSort", onUpdate);
 
     // URL 쿼리 스트링에서 초기값 설정
     const category1FromURL = getURLParam("category1");
     const category2FromURL = getURLParam("category2");
     const limitFromURL = getURLParam("limit") || "20";
+    const sortFromURL = getURLParam("sort") || "price_asc";
     store.setState("selectedCategory1", category1FromURL);
     store.setState("selectedCategory2", category2FromURL);
     store.setState("selectedLimit", limitFromURL);
+    store.setState("selectedSort", sortFromURL);
   };
 
   const render = () => {
@@ -45,6 +48,7 @@ const ProductSearchFilter = (targetNode) => {
     const selectedCategory1 = store.getState("selectedCategory1");
     const selectedCategory2 = store.getState("selectedCategory2");
     const selectedLimit = store.getState("selectedLimit") || "20";
+    const selectedSort = store.getState("selectedSort") || "price_asc";
 
     targetNode.innerHTML = /* HTML */ `
       <!-- 검색창 -->
@@ -160,12 +164,12 @@ const ProductSearchFilter = (targetNode) => {
             <select
               id="sort-select"
               class="text-sm border border-gray-300 rounded px-2 py-1
-  focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                       focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="price_asc" selected="">가격 낮은순</option>
-              <option value="price_desc">가격 높은순</option>
-              <option value="name_asc">이름순</option>
-              <option value="name_desc">이름 역순</option>
+              <option value="price_asc" ${selectedSort === "price_asc" ? "selected" : ""}>가격 낮은순</option>
+              <option value="price_desc" ${selectedSort === "price_desc" ? "selected" : ""}>가격 높은순</option>
+              <option value="name_asc" ${selectedSort === "name_asc" ? "selected" : ""}>이름순</option>
+              <option value="name_desc" ${selectedSort === "name_desc" ? "selected" : ""}>이름 역순</option>
             </select>
           </div>
         </div>
@@ -243,7 +247,22 @@ const ProductSearchFilter = (targetNode) => {
         // URL 업데이트
         const category1 = store.getState("selectedCategory1");
         const category2 = store.getState("selectedCategory2");
-        updateURLParams({ category1, category2, limit });
+        const sort = store.getState("selectedSort");
+        updateURLParams({ category1, category2, limit, sort });
+      });
+    }
+
+    // sort select 변경
+    const sortSelect = targetNode.querySelector("#sort-select");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", (e) => {
+        const sort = e.target.value;
+        store.setState("selectedSort", sort);
+        // URL 업데이트
+        const category1 = store.getState("selectedCategory1");
+        const category2 = store.getState("selectedCategory2");
+        const limit = store.getState("selectedLimit");
+        updateURLParams({ category1, category2, limit, sort });
       });
     }
   };

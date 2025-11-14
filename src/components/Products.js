@@ -15,10 +15,11 @@ const Products = (targetNode) => {
     store.subscribe("productsData", onUpdate);
     store.setState("productsData", null);
 
-    // 카테고리 및 limit 변경 시 상품 목록 다시 조회
+    // 카테고리, limit, sort 변경 시 상품 목록 다시 조회
     store.subscribe("selectedCategory1", onFilterChange);
     store.subscribe("selectedCategory2", onFilterChange);
     store.subscribe("selectedLimit", onFilterChange);
+    store.subscribe("selectedSort", onFilterChange);
   };
 
   const render = () => {
@@ -126,12 +127,14 @@ const Products = (targetNode) => {
       const category1 = store.getState("selectedCategory1");
       const category2 = store.getState("selectedCategory2");
       const limit = store.getState("selectedLimit") || "20";
+      const sort = store.getState("selectedSort") || "price_asc";
 
       const data = await getProducts({
         page,
         limit: parseInt(limit),
         category1: category1 || "",
         category2: category2 || "",
+        sort,
       });
 
       if (page === 1) {
