@@ -19,7 +19,15 @@ class Cart {
   #observer;
 
   constructor() {
-    this.#state = initialState;
+    // 새로고침해도 데이터 유지시키기
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      const parsedCart = JSON.parse(savedCart);
+      // isCartOpen 상태는 새로고침 시 항상 false로 초기화
+      this.#state = { ...parsedCart, isCartOpen: false };
+    } else {
+      this.#state = initialState;
+    }
     this.#observer = new Set();
   }
 
@@ -29,6 +37,8 @@ class Cart {
 
   #setState(val) {
     this.#state = { ...this.#state, ...val };
+    // 상태가 변경될 때마다 localStorage에 저장
+    localStorage.setItem("cart", JSON.stringify(this.#state));
     // 구독자에게 변화 감지 + 리렌더링 함수 실행
     this.#notify();
   }
