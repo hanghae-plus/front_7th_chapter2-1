@@ -40,7 +40,11 @@ export const router = {
     const base = import.meta.env.BASE_URL || "/";
     const fullPath = base === "/" ? path : base.slice(0, -1) + path;
     history.pushState(null, null, fullPath);
-    this.currentPath = path; // currentPath는 base 없는 경로로 유지
+
+    // currentPath는 쿼리 파라미터 제외하고 경로만 저장
+    const pathWithoutQuery = path.split("?")[0];
+    this.currentPath = pathWithoutQuery;
+
     this.handleRouteChange();
   },
 
@@ -55,7 +59,7 @@ export const router = {
     return params.get(key) || defaultValue;
   },
 
-  // 쿼리 파라미터 업데이트 (기존 파라미터 유지하면서 일부만 변경)
+  // 쿼리 파라미터 업데이트 (기존 파라미터 유지)
   updateQueryParams(newParams, options = { replace: true }) {
     const params = this.getQueryParams();
 
