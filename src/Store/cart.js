@@ -140,7 +140,8 @@ class Cart {
    * 장바구니 비우기
    */
   clearCart() {
-    this.#setState({ ...initialState });
+    console.log("clearCart", this.#state.isCartOpen);
+    this.#setState({ ...initialState, isCartOpen: this.#state.isCartOpen });
   }
 
   /**
