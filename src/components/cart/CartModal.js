@@ -7,7 +7,8 @@ export default function CartModal() {
 
   // Header content
   const renderHeader = () => {
-    const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
+    // const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
+    const totalQuantity = items.length;
     return `
       <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
         <h2 class="text-lg font-bold text-gray-900 flex items-center">

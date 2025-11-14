@@ -13,7 +13,8 @@ export function renderHeader() {
 
   // 장바구니 아이템 개수 업데이트
   const { items } = cartStore.getState();
-  const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
+  // const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
+  const totalQuantity = items.length;
 
   headerContainer.innerHTML = `
     <header class="bg-white shadow-sm sticky top-0 z-40">
