@@ -23,7 +23,7 @@ export const Loading = /*html*/ `
     </div>
 `;
 
-const ProductItem = ({ productId, title, image, lprice }) => {
+const ProductItem = ({ productId, title, image, lprice, brand = "" }) => {
   const contentView = /*html*/ `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden product-card"
             data-product-id="${productId}">
@@ -40,7 +40,7 @@ const ProductItem = ({ productId, title, image, lprice }) => {
             <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
                 ${title}
             </h3>
-            <p class="text-xs text-gray-500 mb-2"></p>
+            <p class="text-xs text-gray-500 mb-2">${brand || ""}</p>
             <p class="text-lg font-bold text-gray-900">
                 ${Number(lprice).toLocaleString()}원 
             </p>
@@ -74,7 +74,7 @@ export const ProductList = ({ products = [], loading = false, pagination = {}, t
     `;
   const contentView = /*html*/ `
         <div class="mb-4 text-sm text-gray-600">
-            총 <span class="font-medium text-gray-900">${displayTotal}</span>개의 상품
+            <span class="font-medium text-gray-900">총 ${displayTotal}개의 상품</span>
         </div>
         <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
             ${renderProductItems(products)}
