@@ -20,7 +20,7 @@ const initialAppState = {
   allSelected: false,
 };
 
-const STORAGE_KEY = "app-store";
+const STORAGE_KEY = "shopping_cart";
 
 const loadStateFromStorage = () => {
   try {
