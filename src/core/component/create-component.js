@@ -9,7 +9,20 @@
  * @typedef {(state: State) => void} RenderCallback
  * @typedef {(key: string, value: any | ((prev: any) => any)) => void} Setter
  * @typedef {(key: string) => any} Getter
+ * @typedef {(props: Props, state: State, setState: Setter, children: string) => string} TemplateFn
+ * @typedef {(context: { getState: Getter, setState: Setter, props: Props }) => void} EffectFn
+ * @typedef {Object<string, { dependencies: string[], effect: EffectFn }>} Effects
  */
+
+/**
+ * @param {any[]} arr1
+ * @param {any[]} arr2
+ * @returns {boolean}
+ */
+const arraysEqual = (arr1, arr2) => {
+  if (arr1.length !== arr2.length) return false;
+  return arr1.every((val, idx) => val === arr2[idx]);
+};
 
 /**
  * @param {State} state
@@ -70,6 +83,7 @@ const createStateMap = (state) => {
  * @property {(props: Props, state: State, setState: Setter, children?: string) => string} templateFn
  * @property {Record<string, (props: Props, getter: Getter, setter: Setter, event: Event) => void>} [eventHandlers={}]
  * @property {HTMLElement[]} [children=[]]
+ * @property {Effects} [effects={}]
  * @returns {{ mount: (props: Props) => HTMLElement }}
  */
 
@@ -84,6 +98,7 @@ export default function createComponent({
   templateFn,
   eventHandlers = {},
   children = [],
+  effects = {}, // { onMount: fn, effectName: { dependencies: [], effect: fn } }
 }) {
   if (!window.__componentEventHandlers) {
     window.__componentEventHandlers = new Map();
@@ -148,6 +163,47 @@ export default function createComponent({
 
       const { getState, setState, subscribe } = createStateMap(initialState(currentProps));
 
+      // Effects setup
+      /** @type {Map<string, any>} */
+      const prevDepsMap = new Map();
+      let isMounted = false;
+
+      const effectContext = {
+        getState,
+        setState,
+        props: currentProps,
+      };
+
+      // Subscribe to state changes for effects
+      const effectsUnsubscribe = subscribe((state) => {
+        if (!isMounted) return;
+
+        Object.entries(effects).forEach(([name, config]) => {
+          if (name === "onMount") return;
+
+          if (config.dependencies) {
+            const currentDeps = config.dependencies.map((key) => {
+              // Support nested paths like "listResponse.filters.sort"
+              if (key.includes(".")) {
+                const parts = key.split(".");
+                let value = state;
+                for (const part of parts) {
+                  value = value?.[part];
+                }
+                return value;
+              }
+              return state[key];
+            });
+            const prevDeps = prevDepsMap.get(name);
+
+            if (!prevDeps || !arraysEqual(prevDeps, currentDeps)) {
+              prevDepsMap.set(name, currentDeps);
+              config.effect(effectContext);
+            }
+          }
+        });
+      });
+
       /** @type {RenderCallback} */
       const render = (_state) => {
         isRendering = true;
@@ -191,6 +247,7 @@ export default function createComponent({
         if (isRendering) return;
         if (!document.contains(element)) {
           unsubscribe();
+          effectsUnsubscribe();
           window.__componentEventHandlers.delete(instanceId);
           observer.disconnect();
         }
@@ -199,6 +256,12 @@ export default function createComponent({
       setTimeout(() => {
         if (element.parentNode) {
           observer.observe(element.parentNode, { childList: true });
+        }
+
+        // Run onMount effect after initial render
+        isMounted = true;
+        if (effects.onMount) {
+          effects.onMount(effectContext);
         }
       }, 0);
 
