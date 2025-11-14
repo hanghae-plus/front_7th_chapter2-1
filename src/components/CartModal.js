@@ -40,6 +40,7 @@ const CartModal = createComponent({
       const currentAllSelected = getter("allSelected");
       setter("allSelected", !currentAllSelected);
       setter("cart", (currentCart) => currentCart.map((_item) => ({ ..._item, isSelected: !currentAllSelected })));
+      appStore.setAllSelected(!currentAllSelected);
     },
   },
   effects: {
@@ -96,8 +97,10 @@ const CartModal = createComponent({
       );
       if (changedCart.every((_item) => _item.isSelected)) {
         setState("allSelected", true);
+        appStore.setAllSelected(true);
       } else {
         setState("allSelected", false);
+        appStore.setAllSelected(false);
       }
     };
 
