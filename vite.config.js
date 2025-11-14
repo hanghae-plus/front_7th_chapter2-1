@@ -3,7 +3,7 @@ import { copyFileSync, existsSync } from "fs";
 import { resolve, join } from "path";
 
 export default defineConfig({
-  base: "/front-7th-chapter2-1/",
+  base: "/front_7th_chapter2-1/",
   server: {
     port: 5174,
   },
@@ -20,7 +20,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    base: "/front-7th-chapter2-1/",
+    base: "/front_7th_chapter2-1/",
     rollupOptions: {
       output: {
         manualChunks: undefined,
@@ -43,8 +43,8 @@ export default defineConfig({
   ],
   preview: {
     port: 4173,
-    base: "/front-7th-chapter2-1/",
+    base: "/front_7th_chapter2-1/",
     strictPort: false,
-    open: "/front-7th-chapter2-1/",
+    open: "/front_7th_chapter2-1/",
   },
 });
