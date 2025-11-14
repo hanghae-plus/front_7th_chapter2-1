@@ -12,7 +12,7 @@ export default defineConfig({
       },
     },
   },
-  base: "/", // Repository 이름과 일치
+  base: "/front_7th_chapter2-1/", // Repository 이름과 일치
   build: {
     outDir: "dist",
   },
