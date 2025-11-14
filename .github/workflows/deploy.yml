@@ -1,10 +1,10 @@
 name: Deploy to GitHub Pages
 
 on: 
-  push: # push trigger
+  push:
     branches:
       - main
-      - feature-*  # Feature 브랜치도 배포
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,8 +22,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
-         with:
+        uses: pnpm/action-setup@v4
+        with:
           version: latest
 
       - name: Setup Node
@@ -37,6 +37,10 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      - name: Create 404.html for SPA routing
+        run: |
+          cp ./dist/index.html ./dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
