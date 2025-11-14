@@ -42,11 +42,17 @@ export default class Router {
    * @param {string} path
    */
   static push(path) {
-    const normalized = Router.#normalize(path);
+    // Separate path and query string
+    const [pathOnly, queryString] = path.split("?");
+    const normalized = Router.#normalize(pathOnly);
     const route = Router.#match(normalized);
     if (!route) throw new Error("Route not found");
 
-    history.pushState(null, "", `${Router.basePath}${path.replace("/", "")}`);
+    const fullUrl = queryString
+      ? `${Router.basePath}${pathOnly.replace("/", "")}?${queryString}`
+      : `${Router.basePath}${pathOnly.replace("/", "")}`;
+
+    history.pushState(null, "", fullUrl);
 
     Router.#render(route, normalized);
   }
@@ -55,12 +61,16 @@ export default class Router {
    * @param {string} path
    */
   static replace(path) {
-    const normalized = Router.#normalize(path);
+    // Separate path and query string
+    const [pathOnly, queryString] = path.split("?");
+    const normalized = Router.#normalize(pathOnly);
     const route = Router.#match(normalized);
     if (!route) throw new Error("Route not found");
 
     const url = Router.#absolute(normalized);
-    history.replaceState(null, "", url);
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+
+    history.replaceState(null, "", fullUrl);
 
     Router.#render(route, normalized);
   }
@@ -70,7 +80,6 @@ export default class Router {
   }
 
   /**
-   * 현재 URL의 query params 가져오기
    * @returns {URLSearchParams}
    */
   static getQueryParams() {
@@ -78,7 +87,6 @@ export default class Router {
   }
 
   /**
-   * Query params 업데이트 (history.replaceState 사용)
    * @param {Record<string, string | number>} params
    */
   static updateQueryParams(params) {
@@ -98,7 +106,6 @@ export default class Router {
   }
 
   /**
-   * Query params를 객체로 변환
    * @returns {Record<string, string>}
    */
   static getQueryParamsObject() {
