@@ -28,12 +28,15 @@ const ProductSearchFilter = (targetNode) => {
     store.setState("categoryListData", null);
     store.subscribe("selectedCategory1", onUpdate);
     store.subscribe("selectedCategory2", onUpdate);
+    store.subscribe("selectedLimit", onUpdate);
 
-    // URL 쿼리 스트링에서 카테고리 초기값 설정
+    // URL 쿼리 스트링에서 초기값 설정
     const category1FromURL = getURLParam("category1");
     const category2FromURL = getURLParam("category2");
+    const limitFromURL = getURLParam("limit") || "20";
     store.setState("selectedCategory1", category1FromURL);
     store.setState("selectedCategory2", category2FromURL);
+    store.setState("selectedLimit", limitFromURL);
   };
 
   const render = () => {
@@ -41,6 +44,7 @@ const ProductSearchFilter = (targetNode) => {
     const categoryListData = store.getState("categoryListData");
     const selectedCategory1 = store.getState("selectedCategory1");
     const selectedCategory2 = store.getState("selectedCategory2");
+    const selectedLimit = store.getState("selectedLimit") || "20";
 
     targetNode.innerHTML = /* HTML */ `
       <!-- 검색창 -->
@@ -144,10 +148,10 @@ const ProductSearchFilter = (targetNode) => {
               id="limit-select"
               class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="10">10개</option>
-              <option value="20" selected="">20개</option>
-              <option value="50">50개</option>
-              <option value="100">100개</option>
+              <option value="10" ${selectedLimit === "10" ? "selected" : ""}>10개</option>
+              <option value="20" ${selectedLimit === "20" ? "selected" : ""}>20개</option>
+              <option value="50" ${selectedLimit === "50" ? "selected" : ""}>50개</option>
+              <option value="100" ${selectedLimit === "100" ? "selected" : ""}>100개</option>
             </select>
           </div>
           <!-- 정렬 -->
@@ -227,6 +231,19 @@ const ProductSearchFilter = (targetNode) => {
         store.setState("selectedCategory2", "");
         // URL 업데이트
         updateURLParams({ category1, category2: "" });
+      });
+    }
+
+    // limit select 변경
+    const limitSelect = targetNode.querySelector("#limit-select");
+    if (limitSelect) {
+      limitSelect.addEventListener("change", (e) => {
+        const limit = e.target.value;
+        store.setState("selectedLimit", limit);
+        // URL 업데이트
+        const category1 = store.getState("selectedCategory1");
+        const category2 = store.getState("selectedCategory2");
+        updateURLParams({ category1, category2, limit });
       });
     }
   };

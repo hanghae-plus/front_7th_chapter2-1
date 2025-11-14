@@ -15,9 +15,10 @@ const Products = (targetNode) => {
     store.subscribe("productsData", onUpdate);
     store.setState("productsData", null);
 
-    // 카테고리 변경 시 상품 목록 다시 조회
-    store.subscribe("selectedCategory1", onCategoryChange);
-    store.subscribe("selectedCategory2", onCategoryChange);
+    // 카테고리 및 limit 변경 시 상품 목록 다시 조회
+    store.subscribe("selectedCategory1", onFilterChange);
+    store.subscribe("selectedCategory2", onFilterChange);
+    store.subscribe("selectedLimit", onFilterChange);
   };
 
   const render = () => {
@@ -99,8 +100,8 @@ const Products = (targetNode) => {
     }
   };
 
-  const onCategoryChange = () => {
-    // 카테고리 변경 시 첫 페이지부터 다시 조회
+  const onFilterChange = () => {
+    // 필터 변경 시 첫 페이지부터 다시 조회
     store.setState("isProductListLoading", true);
     currentPage = 1;
     fetchProducts(1);
@@ -124,9 +125,11 @@ const Products = (targetNode) => {
     try {
       const category1 = store.getState("selectedCategory1");
       const category2 = store.getState("selectedCategory2");
+      const limit = store.getState("selectedLimit") || "20";
 
       const data = await getProducts({
         page,
+        limit: parseInt(limit),
         category1: category1 || "",
         category2: category2 || "",
       });
