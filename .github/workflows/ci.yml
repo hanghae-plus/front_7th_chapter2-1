@@ -26,8 +26,8 @@ jobs:
           cache: 'pnpm'
       - run: |
           pnpm install
-          pnpm exec playwright install
           pnpm run test:e2e:basic
+
   advanced:
     timeout-minutes: 60
     runs-on: ubuntu-latest
