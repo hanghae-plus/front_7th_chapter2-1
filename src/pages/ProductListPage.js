@@ -231,7 +231,7 @@ export function ProductListPage(queryParams) {
     // 초기 데이터 로드
     // setParams는 state를 변경하고
     // setParams의 내부 로직 중 this.#setState에서 notify()를 통해 리렌더링 실시 (handleStoreUpdate)
-    productStore.setParams(queryParams);
+    productStore.setParams({ ...queryParams.params });
     productStore.getCategories();
 
     // unmount 시 옵저버 패턴 구독 취소 함수 리턴 (product 스토어 + intersectionObserver)
