@@ -61,7 +61,7 @@ export function createRouter(routes) {
 
   /**
    * 라우팅 네비게이션 함수
-   * @param {*} path
+   * @param {string} path - 이동할 경로 (예: "/", "/product/123")
    */
   const navigateTo = (path) => {
     const fullPath = basePath + path.replace(/^\//, "");
