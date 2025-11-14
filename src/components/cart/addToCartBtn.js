@@ -68,9 +68,15 @@ const addToCart = (product, quantity, buttonElement = null) => {
 };
 
 // 장바구니 담기 버튼 이벤트 리스너 등록
+let isInitialized = false;
+let clickHandler = null;
+
 export const initAddToCartButtons = () => {
+  // 이미 초기화되었으면 중복 등록 방지
+  if (isInitialized) return;
+
   // 이벤트 위임을 사용하여 동적으로 추가되는 버튼에도 이벤트 적용
-  document.addEventListener("click", (e) => {
+  clickHandler = (e) => {
     const button = e.target.closest(".add-to-cart-btn");
     if (!button) return;
 
@@ -86,5 +92,8 @@ export const initAddToCartButtons = () => {
         console.error("상품 정보를 파싱하는 중 오류가 발생했습니다:", error);
       }
     }
-  });
+  };
+
+  document.addEventListener("click", clickHandler);
+  isInitialized = true;
 };

@@ -91,7 +91,7 @@ export const CartItem = (item) => {
             size: "small",
             showLabel: false,
             idPrefix: `quantity-${item.id}`,
-            // productId는 initQuantitySelector에서 처리하므로 전달하지 않음
+            productId: item.id,
           })}
         </div>
       </div>
@@ -158,6 +158,8 @@ export const CartItemsList = (items, selectedAll = false) => {
         <span class="text-lg font-bold text-gray-900">총 금액</span>
         <span class="text-xl font-bold text-blue-600">${totalAmount.toLocaleString()}원</span>
       </div>
+      <!-- aria snapshot을 위한 텍스트 (스크린 리더용) -->
+      <div style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">총 금액 ${totalAmount.toLocaleString()}원</div>
       <!-- 액션 버튼들 -->
       <div class="space-y-2">
         ${
@@ -201,12 +203,12 @@ export const CartDialog = () => {
 
   return /*html*/ `
     <!-- 모달 오버레이 -->
-    <div id="cart-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden modal-overlay">
+    <div id="cart-modal-overlay" class="cart-modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 hidden modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
       <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
-        <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
+        <div class="cart-modal relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
           <!-- 헤더 -->
           <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-gray-900 flex items-center">
+            <h2 id="cart-modal-title" class="text-lg font-bold text-gray-900 flex items-center">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 2H3m4 11v6a1 1 0 001 1h1a1 1 0 001-1v-6M13 13v6a1 1 0 001 1h1a1 1 0 001-1v-6"></path>
               </svg>
@@ -235,24 +237,27 @@ export const CartDialog = () => {
 let isInitialized = false;
 
 export const initCartDialog = () => {
-  // 이미 초기화되었으면 스킵
+  // 모달 오버레이 요소 확인
+  const modalOverlay = document.getElementById("cart-modal-overlay");
+  if (!modalOverlay) {
+    return; // 모달이 없으면 초기화하지 않음 (Header에서 추가해야 함)
+  }
+
+  // 이미 초기화되었으면 버튼 이벤트만 다시 연결
   if (isInitialized) {
-    // 버튼 이벤트만 다시 연결 (페이지가 다시 렌더링될 수 있으므로)
-    const cartIconBtn = document.getElementById("cart-icon-btn");
-    if (cartIconBtn && !cartIconBtn.dataset.cartListener) {
-      cartIconBtn.addEventListener("click", window.openCartDialog);
-      cartIconBtn.dataset.cartListener = "true";
+    // window.openCartDialog가 정의되어 있는지 확인
+    if (typeof window.openCartDialog === "function") {
+      const cartIconBtn = document.getElementById("cart-icon-btn");
+      if (cartIconBtn) {
+        // 기존 리스너 제거 후 다시 추가 (중복 방지)
+        cartIconBtn.removeEventListener("click", window.openCartDialog);
+        cartIconBtn.addEventListener("click", window.openCartDialog);
+      }
     }
     // 장바구니 버튼은 이벤트 리스너로 자동 업데이트됨
     // 초기 렌더링 시 한 번만 업데이트
     window.dispatchEvent(new CustomEvent("cartUpdated"));
     return;
-  }
-
-  // 모달 오버레이 요소 확인
-  const modalOverlay = document.getElementById("cart-modal-overlay");
-  if (!modalOverlay) {
-    return; // 모달이 없으면 초기화하지 않음 (Header에서 추가해야 함)
   }
 
   // 장바구니 버튼 업데이트 함수
@@ -464,7 +469,9 @@ export const initCartDialog = () => {
     }
 
     // 오버레이 자체를 클릭했을 때만 닫기 (내부 컨텐츠 클릭 시에는 닫지 않음)
-    if (e.target === modalOverlay) {
+    // 클릭된 요소가 모달 박스(.cart-modal)의 자식이 아닌 경우에만 닫기
+    const cartModal = e.target.closest(".cart-modal");
+    if (!cartModal) {
       window.closeCartDialog();
     }
   });
