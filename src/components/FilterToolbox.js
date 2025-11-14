@@ -18,14 +18,6 @@ const FilterToolbox = createComponent({
     handleSetSelectedCategory1: () => {},
     handleSetSelectedCategory2: () => {},
   },
-  //   initialState: (props) => ({
-  //     filters: props.filters || {},
-  //     pagination: props.pagination || {},
-  //     selectedCategory1: props.filters?.category1 || "",
-  //     selectedCategory2: props.filters?.category2 || "",
-  //     categories: props.categories || [],
-  //     searchKeyword: props.filters?.search || "",
-  //   }),
   eventHandlers: {
     "search-input": (props, getter, setter, event) => {
       if (!event.target) return;

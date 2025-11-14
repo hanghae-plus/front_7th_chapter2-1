@@ -14,25 +14,6 @@ export const 상세페이지_로딩 = /* HTML */ `
   </main>
 `;
 
-// /**
-//  * @typedef {import('../types.js').ProductDetailPageProps} ProductDetailPageProps
-//  */
-
-// /**
-//  * @param {ProductDetailPageProps} props
-//  */
-// export default function ProductDetailPage({ loading, productDetailResponse, productDetailListResponse, cart = [] }) {
-//   if (loading) {
-//     return PageLayout.mount({ children: 상세페이지_로딩, isDetailPage: true, cart });
-//   }
-//   return PageLayout.mount({
-//     // children: ProductDetail({ productDetailResponse, productDetailListResponse }),
-//     children: ProductDetail.mount({ productDetailResponse, productDetailListResponse }).outerHTML,
-//     isDetailPage: true,
-//     cart,
-//   });
-// }
-
 const ProductDetailPage = createComponent({
   id: "product-detail-page",
   props: {

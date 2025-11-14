@@ -2,10 +2,6 @@
 import createComponent from "../core/component/create-component";
 import { CategoryViewModel } from "../view-models/CategoryViewModel";
 
-// /**
-//  * @typedef {import('../view-models/CategoryViewModel.js').CategoryViewModel} CategoryViewModel
-//  */
-
 const CategoryFilter = createComponent({
   id: "category-filter",
   props: {

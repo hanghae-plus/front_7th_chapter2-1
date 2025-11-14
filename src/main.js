@@ -6,7 +6,6 @@ const basePath = import.meta.env.BASE_URL;
 
 /** @type {HTMLElement | null} */
 const $root = document.querySelector("#root");
-const $cartModalRoot = document.querySelector("#cart-modal-root");
 
 /* Utils */
 const enableMocking = () =>
@@ -21,7 +20,6 @@ const enableMocking = () =>
 
 async function main() {
   if (!$root) throw new Error("Root element not found");
-  if (!$cartModalRoot) throw new Error("Cart modal root element not found");
 
   Router.init(ROUTES, basePath, $root);
 
