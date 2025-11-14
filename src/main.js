@@ -1,5 +1,3 @@
-import { getProducts } from "./api/productApi";
-import CartModal from "./components/CartModal";
 import { TOAST_MESSAGE_MAP } from "./constants/toast-constant";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
@@ -13,7 +11,7 @@ import Router from "./core/router";
  */
 
 /** @type {HTMLElement | null} */
-let ioSentinel = null;
+// let ioSentinel = null;
 
 /** @type {string} */
 const basePath = import.meta.env.BASE_URL;
@@ -49,19 +47,15 @@ async function main() {
 
   /* Initial Render */
   if (relativePath === homeRoute.path) {
-    $root.replaceChildren(homeRoute.render({ loading: true, cart: appState.cart }));
-
-    const props = await homeRoute.loader();
-    $root.replaceChildren(homeRoute.render(props));
+    $root.replaceChildren(homeRoute.render({}));
   } else if (productDetailRoute.pattern.test(relativePath)) {
     const id = relativePath.split("/")[2];
-    $root.replaceChildren(productDetailRoute.render({ loading: true, cart: appState.cart }));
-    const props = await productDetailRoute.loader({ id });
-    $root.replaceChildren(productDetailRoute.render(props));
+    console.log("[Initial Render] Product Detail", id);
+    $root.replaceChildren(productDetailRoute.render({ id, cart: appState.cart }));
   } else {
     console.log("[Initial Render] Not Found", relativePath);
     history.pushState(null, "", `${basePath}404`);
-    $root.replaceChildren(ROUTES.notFound.render());
+    $root.replaceChildren(ROUTES.notFound.render({}));
   }
 
   /* Event Handlers */
@@ -99,237 +93,235 @@ async function main() {
   $root.addEventListener("click", async (event) => {
     if (!event.target) return;
 
-    if (event.target.id === "category-filter-btn") {
-      console.log("[Click Event] category-filter-btn", event);
-      const value1 = event.target.dataset.category1;
-      const value2 = event.target.dataset.category2;
-      if (value1 === appState.listResponse.filters.category1 && value2 === appState.listResponse.filters.category2)
-        return;
-      appStore.setListLoading(true);
-      appState.listResponse.filters.category1 = value1;
-      appState.listResponse.filters.category2 = value2;
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const props = await homeRoute.loader();
-      $root.innerHTML = `
-        ${homeRoute.render(props)}
-      `;
-      appStore.setListLoading(false);
-    } else if (event.target.dataset.breadcrumb === "reset") {
-      console.log("[Click Event] breadcrumb - reset", event);
-      if (appState.listResponse.filters.category1 === "" && appState.listResponse.filters.category2 === "") return;
-      appStore.setListLoading(true);
-      appState.listResponse.filters.category1 = "";
-      appState.listResponse.filters.category2 = "";
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const props = await homeRoute.loader();
-      $root.innerHTML = `
-        ${homeRoute.render(props)}
-      `;
-      appStore.setListLoading(false);
-    } else if (event.target.dataset.breadcrumb === "category1") {
-      console.log("[Click Event] breadcrumb - category1", event);
-      const value = event.target.dataset.category1;
-      if (value === appState.listResponse.filters.category1 && appState.listResponse.filters.category2 === "") return;
-      appStore.setListLoading(true);
-      appState.listResponse.filters.category1 = value;
-      appState.listResponse.filters.category2 = "";
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: false,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const props = await homeRoute.loader();
-      $root.innerHTML = `
-        ${homeRoute.render(props)}
-      `;
-      appStore.setListLoading(false);
-    } else if (event.target.closest("#cart-icon-btn")) {
-      console.log("[Click Event] cart-icon-btn", event);
-      $cartModalRoot.replaceChildren(
-        CartModal.mount({
-          onClose: () => {
-            $cartModalRoot.replaceChildren();
-            appStore.setSelectedCartIds([]);
-          },
-        }),
-      );
-    } else if (event.target.closest("[data-link]")) {
-      console.log("[Click Event] link", event);
+    // if (event.target.id === "category-filter-btn") {
+    // console.log("[Click Event] category-filter-btn", event);
+    // const value1 = event.target.dataset.category1;
+    // const value2 = event.target.dataset.category2;
+    // if (value1 === appState.listResponse.filters.category1 && value2 === appState.listResponse.filters.category2)
+    //   return;
+    // appStore.setListLoading(true);
+    // appState.listResponse.filters.category1 = value1;
+    // appState.listResponse.filters.category2 = value2;
+    // appState.listResponse.pagination.page = 1;
+    // appState.listResponse.pagination.hasNext = true;
+    // appState.listResponse.pagination.hasPrev = false;
+    // appState.listResponse.products = [];
+    // $root.innerHTML = `
+    //   ${homeRoute.render({
+    //     loading: true,
+    //     productListResponse: appState.listResponse,
+    //     categories: appState.categories,
+    //     cart: appState.cart,
+    //   })}
+    // `;
+    // const props = await homeRoute.loader();
+    // $root.innerHTML = `
+    //   ${homeRoute.render(props)}
+    // `;
+    // appStore.setListLoading(false);
+    // } else if (event.target.dataset.breadcrumb === "reset") {
+    // console.log("[Click Event] breadcrumb - reset", event);
+    // if (appState.listResponse.filters.category1 === "" && appState.listResponse.filters.category2 === "") return;
+    // appStore.setListLoading(true);
+    // appState.listResponse.filters.category1 = "";
+    // appState.listResponse.filters.category2 = "";
+    // appState.listResponse.pagination.page = 1;
+    // appState.listResponse.pagination.hasNext = true;
+    // appState.listResponse.pagination.hasPrev = false;
+    // appState.listResponse.products = [];
+    // $root.innerHTML = `
+    //   ${homeRoute.render({
+    //     loading: true,
+    //     productListResponse: appState.listResponse,
+    //     categories: appState.categories,
+    //     cart: appState.cart,
+    //   })}
+    // `;
+    // const props = await homeRoute.loader();
+    // $root.innerHTML = `
+    //   ${homeRoute.render(props)}
+    // `;
+    // appStore.setListLoading(false);
+    // } else if (event.target.dataset.breadcrumb === "category1") {
+    // console.log("[Click Event] breadcrumb - category1", event);
+    // const value = event.target.dataset.category1;
+    // if (value === appState.listResponse.filters.category1 && appState.listResponse.filters.category2 === "") return;
+    // appStore.setListLoading(true);
+    // appState.listResponse.filters.category1 = value;
+    // appState.listResponse.filters.category2 = "";
+    // appState.listResponse.pagination.page = 1;
+    // appState.listResponse.pagination.hasNext = true;
+    // appState.listResponse.pagination.hasPrev = false;
+    // appState.listResponse.products = [];
+    // $root.innerHTML = `
+    //   ${homeRoute.render({
+    //     loading: false,
+    //     productListResponse: appState.listResponse,
+    //     categories: appState.categories,
+    //     cart: appState.cart,
+    //   })}
+    // `;
+    // const props = await homeRoute.loader();
+    // $root.innerHTML = `
+    //   ${homeRoute.render(props)}
+    // `;
+    // appStore.setListLoading(false);
+    // } else if (event.target.closest("#cart-icon-btn")) {
+    // console.log("[Click Event] cart-icon-btn", event);
+    // $cartModalRoot.replaceChildren(
+    //   CartModal.mount({
+    //     onClose: () => $cartModalRoot.replaceChildren(),
+    //   }),
+    // );
+    // } else
+    // if (event.target.closest("[data-link]")) {
+    //   console.log("[Click Event] link", event);
 
-      const linkElement = event.target.closest("[data-link]");
-      const linkHref = linkElement.dataset.linkHref;
+    //   const linkElement = event.target.closest("[data-link]");
+    //   const linkHref = linkElement.dataset.linkHref;
 
-      if (linkHref) {
-        Router.push(linkHref);
-      } else if (linkElement.closest("[data-go-back]")) {
-        Router.goBack();
-      }
-    }
+    //   if (linkHref) {
+    //     // Router.push(linkHref);
+    //   } else if (linkElement.closest("[data-go-back]")) {
+    //     // Router.goBack();
+    //   }
+    // }
   });
 
-  /**
-   * @param {Event} event
-   */
-  $root.addEventListener("change", async (event) => {
-    if (!event.target || event.target instanceof HTMLElement === false) return;
-    if (event.target.id === "limit-select") {
-      console.log("[Change Event] limit-select", event);
+  // /**
+  //  * @param {Event} event
+  //  */
+  // $root.addEventListener("change", async (event) => {
+  //   if (!event.target || event.target instanceof HTMLElement === false) return;
+  //   if (event.target.id === "limit-select") {
+  //     console.log("[Change Event] limit-select", event);
 
-      const value = parseInt(event.target.value);
-      if (value === appState.listResponse.pagination.limit) {
-        return;
-      }
-      appStore.setListLoading(true);
-      appState.listResponse.pagination.limit = value;
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const props = await homeRoute.loader();
-      $root.innerHTML = `
-        ${homeRoute.render(props)}
-      `;
-      appStore.setListLoading(false);
-    } else if (event.target.id === "sort-select") {
-      console.log("[Change Event] sort-select", event);
-      const value = event.target.value;
-      if (value === appState.listResponse.filters.sort) return;
-      appStore.setListLoading(true);
-      appState.listResponse.filters.sort = value;
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const props = await homeRoute.loader();
-      $root.innerHTML = `
-        ${homeRoute.render(props)}
-      `;
-      appStore.setListLoading(false);
-    }
-  });
+  //     const value = parseInt(event.target.value);
+  //     if (value === appState.listResponse.pagination.limit) {
+  //       return;
+  //     }
+  //     appStore.setListLoading(true);
+  //     appState.listResponse.pagination.limit = value;
+  //     appState.listResponse.pagination.page = 1;
+  //     appState.listResponse.pagination.hasNext = true;
+  //     appState.listResponse.pagination.hasPrev = false;
+  //     appState.listResponse.products = [];
+  //     $root.innerHTML = `
+  //       ${homeRoute.render({
+  //         loading: true,
+  //         productListResponse: appState.listResponse,
+  //         categories: appState.categories,
+  //         cart: appState.cart,
+  //       })}
+  //     `;
+  //     const props = await homeRoute.loader();
+  //     $root.innerHTML = `
+  //       ${homeRoute.render(props)}
+  //     `;
+  //     appStore.setListLoading(false);
+  //   } else if (event.target.id === "sort-select") {
+  //     console.log("[Change Event] sort-select", event);
+  //     const value = event.target.value;
+  //     if (value === appState.listResponse.filters.sort) return;
+  //     appStore.setListLoading(true);
+  //     appState.listResponse.filters.sort = value;
+  //     appState.listResponse.pagination.page = 1;
+  //     appState.listResponse.pagination.hasNext = true;
+  //     appState.listResponse.pagination.hasPrev = false;
+  //     appState.listResponse.products = [];
+  //     $root.innerHTML = `
+  //       ${homeRoute.render({
+  //         loading: true,
+  //         productListResponse: appState.listResponse,
+  //         categories: appState.categories,
+  //         cart: appState.cart,
+  //       })}
+  //     `;
+  //     const props = await homeRoute.loader();
+  //     $root.innerHTML = `
+  //       ${homeRoute.render(props)}
+  //     `;
+  //     appStore.setListLoading(false);
+  //   }
+  // });
 
-  /**
-   * @param {KeyboardEvent} event
-   */
-  $root.addEventListener("keydown", async (event) => {
-    if (!event.target || event.target instanceof HTMLElement === false) return;
+  // /**
+  //  * @param {KeyboardEvent} event
+  //  */
+  // $root.addEventListener("keydown", async (event) => {
+  //   if (!event.target || event.target instanceof HTMLElement === false) return;
 
-    if (event.target.id === "search-input" && event.key === "Enter") {
-      const value = event.target.value;
+  //   if (event.target.id === "search-input" && event.key === "Enter") {
+  //     const value = event.target.value;
 
-      if (value === appState.listResponse.filters.search) return;
+  //     if (value === appState.listResponse.filters.search) return;
 
-      appStore.setListLoading(true);
-      appState.listResponse.filters.search = value;
-      appState.listResponse.pagination.page = 1;
-      appState.listResponse.pagination.hasNext = true;
-      appState.listResponse.pagination.hasPrev = false;
-      appState.listResponse.products = [];
+  //     appStore.setListLoading(true);
+  //     appState.listResponse.filters.search = value;
+  //     appState.listResponse.pagination.page = 1;
+  //     appState.listResponse.pagination.hasNext = true;
+  //     appState.listResponse.pagination.hasPrev = false;
+  //     appState.listResponse.products = [];
 
-      $root.innerHTML = `
-        ${homeRoute.render({
-          loading: true,
-          productListResponse: appState.listResponse,
-          categories: appState.categories,
-          cart: appState.cart,
-        })}
-      `;
-      const props = await homeRoute.loader();
-      $root.innerHTML = `
-        ${homeRoute.render(props)}
-      `;
-      appStore.setListLoading(false);
-      console.log("[Keydown Event] search-input - Enter", value);
-    }
-  });
+  //     $root.innerHTML = `
+  //       ${homeRoute.render({
+  //         loading: true,
+  //         productListResponse: appState.listResponse,
+  //         categories: appState.categories,
+  //         cart: appState.cart,
+  //       })}
+  //     `;
+  //     const props = await homeRoute.loader();
+  //     $root.innerHTML = `
+  //       ${homeRoute.render(props)}
+  //     `;
+  //     appStore.setListLoading(false);
+  //     console.log("[Keydown Event] search-input - Enter", value);
+  //   }
+  // });
 
   /* Intersection Observer */
   // TODO: refactor with component identification structure
-  ioSentinel = document.querySelector("#sentinel");
-  if (!ioSentinel) throw new Error("Sentinel element not found");
+  // ioSentinel = document.querySelector("#sentinel");
+  // if (!ioSentinel) throw new Error("Sentinel element not found");
 
-  const io = new IntersectionObserver(
-    async ([entry]) => {
-      if (relativePath === homeRoute.path) {
-        if (!entry.isIntersecting || !appState.listResponse.pagination.hasNext || appState.listLoading) return;
-        appStore.setListLoading(true);
-        $root.innerHTML = `
-          ${homeRoute.render({ loading: true, cart: appState.cart })}
-        `;
-        const response = await getProducts({
-          limit: appState.listResponse.pagination.limit,
-          page: appState.listResponse.pagination.page + 1,
-        });
-        appStore.setListResponse({ products: [...appState.listResponse.products, ...response.products] });
-        appState.listResponse.pagination.page = response.pagination.page;
-        appState.listResponse.pagination.total = response.pagination.total;
-        appState.listResponse.pagination.totalPages = response.pagination.totalPages;
-        appState.listResponse.pagination.hasNext = response.pagination.hasNext;
-        appState.listResponse.pagination.hasPrev = response.pagination.hasPrev;
-        $root.innerHTML = `
-          ${homeRoute.render({
-            loading: false,
-            productListResponse: appState.listResponse,
-            categories: appState.categories,
-            cart: appState.cart,
-          })}
-        `;
-        appStore.setListLoading(false);
-        console.log("[Intersection Observer] home - next page loaded", appState.listResponse.pagination.page);
-      }
-    },
-    {
-      root: null,
-      rootMargin: "200px",
-      threshold: 0,
-    },
-  );
-  io.observe(ioSentinel);
+  // const io = new IntersectionObserver(
+  //   async ([entry]) => {
+  //     if (relativePath === homeRoute.path) {
+  //       if (!entry.isIntersecting || !appState.listResponse.pagination.hasNext || appState.listLoading) return;
+  //       appStore.setListLoading(true);
+  //       $root.innerHTML = `
+  //         ${homeRoute.render({ loading: true, cart: appState.cart })}
+  //       `;
+  //       const response = await getProducts({
+  //         limit: appState.listResponse.pagination.limit,
+  //         page: appState.listResponse.pagination.page + 1,
+  //       });
+  //       appStore.setListResponse({ products: [...appState.listResponse.products, ...response.products] });
+  //       appState.listResponse.pagination.page = response.pagination.page;
+  //       appState.listResponse.pagination.total = response.pagination.total;
+  //       appState.listResponse.pagination.totalPages = response.pagination.totalPages;
+  //       appState.listResponse.pagination.hasNext = response.pagination.hasNext;
+  //       appState.listResponse.pagination.hasPrev = response.pagination.hasPrev;
+  //       $root.innerHTML = `
+  //         ${homeRoute.render({
+  //           loading: false,
+  //           productListResponse: appState.listResponse,
+  //           categories: appState.categories,
+  //           cart: appState.cart,
+  //         })}
+  //       `;
+  //       appStore.setListLoading(false);
+  //       console.log("[Intersection Observer] home - next page loaded", appState.listResponse.pagination.page);
+  //     }
+  //   },
+  //   {
+  //     root: null,
+  //     rootMargin: "200px",
+  //     threshold: 0,
+  //   },
+  // );
+  // io.observe(ioSentinel);
 }
 
 // 애플리케이션 시작
