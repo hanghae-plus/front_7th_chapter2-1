@@ -180,7 +180,7 @@ const ProductDetail = (targetNode) => {
                           (product) => /* HTML */ `
                             <div
                               class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer"
-                              data-product-id="${product.id}"
+                              data-product-id="${product.productId}"
                             >
                               <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
                                 <img
