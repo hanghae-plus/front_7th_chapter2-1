@@ -3,7 +3,9 @@
 import { formatNumber } from "../utils/formatter.js";
 import createComponent from "../core/component/create-component.js";
 import Router from "../core/router/index.js";
-
+import appStore from "../store/app-store.js";
+import { showToastMessage } from "../utils/toast-utils.js";
+import { TOAST_MESSAGE_MAP } from "../constants/toast-constant.js";
 const ProductCard = createComponent({
   id: "product-card",
   props: {
@@ -20,6 +22,16 @@ const ProductCard = createComponent({
     },
     "add-to-cart": (props, getter, setter, event) => {
       if (!event.target) return;
+      const productId = event.target.dataset.productId;
+      if (!productId) return;
+      appStore.addToCart({
+        id: productId,
+        title: props.title,
+        image: props.image,
+        price: props.lprice,
+        selected: false,
+      });
+      showToastMessage(TOAST_MESSAGE_MAP.ADD_TO_CART, "success");
     },
   },
   templateFn: ({ productId, image, title, brand, lprice }) => {

@@ -102,7 +102,7 @@ const HomePage = createComponent({
         const sentinel = document.querySelector("#sentinel");
         if (!sentinel) return;
 
-        let isLoadingMore = false;
+        // let isLoadingMore = false;
 
         const io = new IntersectionObserver(
           async ([entry]) => {
@@ -110,9 +110,9 @@ const HomePage = createComponent({
 
             const currentListResponse = getState("listResponse");
 
-            if (!currentListResponse.pagination.hasNext || isLoadingMore) return;
+            if (!currentListResponse.pagination.hasNext) return;
 
-            isLoadingMore = true;
+            // isLoadingMore = true;
             setState("isLoading", true);
 
             try {
@@ -132,7 +132,6 @@ const HomePage = createComponent({
             } catch (error) {
               console.error("[HomePage] Infinite scroll error", error);
             } finally {
-              isLoadingMore = false;
               setState("isLoading", false);
             }
           },
