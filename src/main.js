@@ -17,7 +17,9 @@ let categories = [];
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>
     worker.start({
-      url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+      serviceWorker: {
+        url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+      },
       onUnhandledRequest: "bypass",
     }),
   );
