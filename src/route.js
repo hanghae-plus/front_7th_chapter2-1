@@ -1,7 +1,6 @@
 import HomePage from "./pages/HomePage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import { pathToRegex } from "./utils/route";
-import { getCategories } from "./api/productApi";
 import appStore from "./store/app-store";
 import { getProducts } from "./api/productApi";
 import { getProduct } from "./api/productApi";
@@ -22,29 +21,31 @@ export const ROUTES = Object.freeze({
      * @param {object} params
      * @returns {Promise<HomePageProps>}
      */
-    loader: async (params = {}) => {
-      console.log("home loader", params);
-      if (appState.categories.length === 0) {
-        const categoriesResponse = await getCategories();
-        appStore.setCategories(categoriesResponse);
-      }
-      const listResponse = await getProducts({
-        limit: appState.listResponse.pagination.limit,
-        search: appState.listResponse.filters.search,
-        category1: appState.listResponse.filters.category1,
-        category2: appState.listResponse.filters.category2,
-        sort: appState.listResponse.filters.sort,
-      });
+    // loader: async (params = {}, router) => {
+    //   const queryParams = router.getQueryParamsObject();
 
-      appStore.setListResponse(listResponse);
+    //   if (appState.categories.length === 0) {
+    //     const categoriesResponse = await getCategories();
+    //     appStore.setCategories(categoriesResponse);
+    //   }
 
-      return {
-        loading: false,
-        categories: appState.categories,
-        productListResponse: appState.listResponse,
-        cart: appState.cart,
-      };
-    },
+    //   const listResponse = await getProducts({
+    //     limit: queryParams.limit ? parseInt(queryParams.limit) : 20,
+    //     search: queryParams.search || "",
+    //     category1: queryParams.category1 || "",
+    //     category2: queryParams.category2 || "",
+    //     sort: queryParams.sort || "price_asc",
+    //   });
+
+    //   // appStore.setListResponse(listResponse);
+
+    //   return {
+    //     loading: false,
+    //     categories: appState.categories,
+    //     productListResponse: listResponse,
+    //     cart: appState.cart,
+    //   };
+    // },
   },
   productDetail: {
     name: "productDetail",

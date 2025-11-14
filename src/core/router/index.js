@@ -69,6 +69,47 @@ export default class Router {
     history.back();
   }
 
+  /**
+   * 현재 URL의 query params 가져오기
+   * @returns {URLSearchParams}
+   */
+  static getQueryParams() {
+    return new URLSearchParams(window.location.search);
+  }
+
+  /**
+   * Query params 업데이트 (history.replaceState 사용)
+   * @param {Record<string, string | number>} params
+   */
+  static updateQueryParams(params) {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === "" || value === null || value === undefined) {
+        searchParams.delete(key);
+      } else {
+        searchParams.set(key, String(value));
+      }
+    });
+    const queryString = searchParams.toString();
+    const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+
+    history.replaceState(null, "", newUrl);
+  }
+
+  /**
+   * Query params를 객체로 변환
+   * @returns {Record<string, string>}
+   */
+  static getQueryParamsObject() {
+    const params = {};
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    return params;
+  }
+
   static #renderFromLocation() {
     const abs = window.location.pathname;
     const rel = Router.#relative(abs);
@@ -94,8 +135,8 @@ export default class Router {
 
     try {
       const params = extractParams(route.path, path);
-      const props = await route.loader(params);
-      Router.container.replaceChildren(route.render(props));
+      // const props = await route.loader(params);
+      Router.container.replaceChildren(route.render({ ...params }));
     } catch (err) {
       console.error(err);
       Router.container.replaceChildren(Router.routes.notFound.render({}));
