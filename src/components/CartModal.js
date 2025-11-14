@@ -545,7 +545,7 @@ const CartModal = () => {
       </div>
     `;
 
-    document.body.appendChild(modalContainer);
+    document.querySelector("#root").appendChild(modalContainer);
 
     // 닫기 버튼 이벤트
     const closeBtn = modalContainer.querySelector("#cart-modal-close-btn");
