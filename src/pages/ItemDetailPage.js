@@ -90,23 +90,24 @@ export const ItemDetailPage = (productId) => {
 
     if (filteredProducts.length === 0) {
       return /*html*/ `
-        <div class="p-4 text-center text-gray-500">
+        <div class="p-4 text-center text-gray-500" id="products-grid" data-testid="products-grid">
           <p class="text-sm">관련 상품이 없습니다.</p>
         </div>
       `;
     }
 
     return /*html*/ `
-      <div class="grid grid-cols-2 gap-3 responsive-grid">
+      <div class="grid grid-cols-2 gap-3 responsive-grid" id="products-grid" data-testid="products-grid">
         ${filteredProducts
           .map(
             (product) => `
-          <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="${product.productId}">
+          <div class="bg-gray-50 rounded-lg p-3 related-product-card product-card cursor-pointer" data-product-id="${product.productId}">
             <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
               <img src="${product.image}" alt="${product.title}" class="w-full h-full object-cover" loading="lazy">
             </div>
             <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${product.title}</h3>
-            <p class="text-sm font-bold text-blue-600">${parseInt(product.lprice || 0).toLocaleString()}원</p>
+            <p class="text-sm font-bold text-blue-600 mb-2">${parseInt(product.lprice || 0).toLocaleString()}원</p>
+            ${AddToCartBtn(product, 1, "small")}
           </div>
         `,
           )
