@@ -106,6 +106,7 @@ const FilterToolbox = createComponent({
                 id="sort-select"
                 data-event="sort-select"
                 data-event-type="change"
+                value="${props.sort}"
                 class="text-sm border border-gray-300 rounded px-2 py-1
                         focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >

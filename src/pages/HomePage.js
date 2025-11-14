@@ -20,12 +20,12 @@ const HomePage = createComponent({
       sort: queryParams?.sort || "price_asc",
     };
     const defaultPagination = {
-      limit: queryParams?.limit || 20,
+      limit: queryParams?.limit ? parseInt(queryParams.limit) : 20,
       total: 0,
       totalPages: 0,
       hasNext: true,
       hasPrev: false,
-      page: 1,
+      page: queryParams?.current ? parseInt(queryParams.current) : 1,
     };
     const defaultListResponse = {
       products: [],
@@ -68,11 +68,25 @@ const HomePage = createComponent({
             ...response,
             pagination: { ...response.pagination, page: 1 },
           });
+
+          // 필터 변경 시 current 제거
+          Router.updateQueryParams({ current: "" });
         } catch (error) {
           console.error("[HomePage] fetchProducts error", error);
         } finally {
           setState("isLoading", false);
         }
+      },
+    },
+    watchCurrentPage: {
+      dependencies: ["listResponse.pagination.page"],
+      effect: ({ getState }) => {
+        const listResponse = getState("listResponse");
+        const pagination = listResponse?.pagination || {};
+        Router.updateQueryParams({ current: pagination.page > 1 ? pagination.page : "" });
+        return () => {
+          Router.updateQueryParams({ current: "" });
+        };
       },
     },
     onMount: async ({ getState, setState }) => {
@@ -98,13 +112,14 @@ const HomePage = createComponent({
         setState("isLoading", false);
       }
 
+      /** @type {IntersectionObserver | null} */
+      let io = null;
+
       setTimeout(() => {
         const sentinel = document.querySelector("#sentinel");
         if (!sentinel) return;
 
-        // let isLoadingMore = false;
-
-        const io = new IntersectionObserver(
+        io = new IntersectionObserver(
           async ([entry]) => {
             if (!entry.isIntersecting) return;
 
@@ -112,7 +127,6 @@ const HomePage = createComponent({
 
             if (!currentListResponse.pagination.hasNext) return;
 
-            // isLoadingMore = true;
             setState("isLoading", true);
 
             try {
@@ -143,11 +157,11 @@ const HomePage = createComponent({
         );
 
         io.observe(sentinel);
-
-        return () => {
-          io.disconnect();
-        };
       }, 100);
+
+      return () => {
+        if (io) io.disconnect();
+      };
     },
   },
   templateFn: ({ cart = [] }, { listResponse, categories, isLoading }, setState) => {
