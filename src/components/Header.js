@@ -35,7 +35,7 @@ export const Header = () => {
   const cartCount = getCartCount();
 
   const pathname = window.location.pathname;
-  const isListPage = pathname === "/front_7th_chapter2-1/";
+  const isDetailPage = pathname.includes("/product/");
 
   const ListTitle = () => {
     return (
@@ -92,7 +92,7 @@ export const Header = () => {
       <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4">
           <div class="flex items-center justify-between">
-            ${isListPage ? ListTitle() : DetailTitle()}
+            ${isDetailPage ? DetailTitle() : ListTitle()}
             <div class="flex items-center space-x-2">
               <!-- 장바구니 아이콘 -->
               <button id="cart-icon-btn" class="relative p-2 text-gray-700 hover:text-gray-900 transition-colors">
