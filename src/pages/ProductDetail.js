@@ -276,7 +276,22 @@ const ProductDetail = (targetNode) => {
     const goToListButton = targetNode.querySelector(".go-to-product-list");
     if (goToListButton) {
       goToListButton.addEventListener("click", () => {
-        router.push(`${import.meta.env.BASE_URL}`);
+        const category1 = store.getState("selectedCategory1");
+        const category2 = store.getState("selectedCategory2");
+        // const limit = store.getState("selectedLimit");
+        // const sort = store.getState("selectedSort");
+        // const search = store.getState("searchKeyword");
+
+        // 현재 필터 상태를 쿼리 스트링으로 유지
+        const params = new URLSearchParams();
+        if (category1) params.set("category1", category1);
+        if (category2) params.set("category2", category2);
+        // if (limit) params.set("limit", limit);
+        // if (sort) params.set("sort", sort);
+        // if (search) params.set("search", search);
+
+        const queryString = params.toString();
+        router.push(`${import.meta.env.BASE_URL}${queryString ? `?${queryString}` : ""}`);
       });
     }
 
