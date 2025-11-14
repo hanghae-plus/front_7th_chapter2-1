@@ -55,7 +55,6 @@ async function main() {
     if ($cartModalRoot.innerHTML !== "" && event.key === "Escape") {
       console.log("[Keydown Event] Escape", event);
       $cartModalRoot.replaceChildren();
-      appStore.setSelectedCartIds([]);
     }
   });
 

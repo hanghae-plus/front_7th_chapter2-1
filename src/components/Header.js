@@ -1,10 +1,13 @@
 import createComponent from "../core/component/create-component";
 import CartModal from "./CartModal";
 import Router from "../core/router/index.js";
-
+import appStore from "../store/app-store.js";
 const Header = createComponent({
   id: "header",
   props: { isDetailPage: false, cart: [] },
+  initialState: () => ({
+    cart: appStore.getState().cart,
+  }),
   eventHandlers: {
     "open-cart-modal": (props, getter, setter, event) => {
       if (!event.target) return;
@@ -21,7 +24,15 @@ const Header = createComponent({
       Router.goBack();
     },
   },
-  templateFn: ({ isDetailPage, cart }) => {
+  effects: {
+    onMount: ({ setState }) => {
+      const unsubscribe = appStore.subscribe((state) => {
+        setState("cart", state.cart);
+      });
+      return unsubscribe;
+    },
+  },
+  templateFn: ({ isDetailPage }, { cart }) => {
     const cartItemCount = cart.reduce((acc, item) => acc + item.count, 0);
     return /* HTML */ `
       <header class="bg-white shadow-sm sticky top-0 z-40">
