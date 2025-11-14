@@ -12,4 +12,8 @@ export default defineConfig({
       },
     },
   },
+  base: "/", // Repository 이름과 일치
+  build: {
+    outDir: "dist",
+  },
 });
