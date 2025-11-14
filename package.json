@@ -1,9 +1,10 @@
 {
-  "name": "front-chapter1-1",
+  "name": "front-chapter2-1",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "msw:init": "msw init public/",
     "dev": "vite",
     "dev:hash": "vite --open ./index.hash.html",
     "build": "vite build",
