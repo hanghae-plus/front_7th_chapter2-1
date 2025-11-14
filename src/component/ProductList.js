@@ -24,6 +24,9 @@ const Loading = () => /*html*/ `
     </div>`;
 
 const ProductList = ({ isLoading = true, products = { products: [], pagination: {} } }) => {
+  const hasProducts = products?.products?.length > 0;
+  const showSkeletons = isLoading && !hasProducts;
+
   return /*html*/ `
     <div class="mb-6">
         <div>
@@ -34,12 +37,14 @@ const ProductList = ({ isLoading = true, products = { products: [], pagination: 
             <!-- 상품 그리드 -->
             <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
               ${products?.products.map(ProductItem).join("")}
-              ${isLoading ? SkeletonProduct().repeat(4) : ""}
+              ${showSkeletons ? SkeletonProduct().repeat(20) : ""}
             </div>
             ${
               isLoading
                 ? Loading()
-                : /*HTML*/ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`
+                : products?.pagination?.hasNext
+                  ? ""
+                  : /*HTML*/ `<div class="text-center py-4 text-sm text-gray-500">모든 상품을 확인했습니다</div>`
             }
 
             

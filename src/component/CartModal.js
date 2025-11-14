@@ -26,13 +26,14 @@ const CartModal = ({ checkedCartItems }) => {
     .reduce((acc, item) => acc + item.lprice * item.quantity, 0);
 
   return /*html*/ `
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 cart-modal">
+  <div class="cart-modal">
       <!-- 배경 오버레이 -->
-      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay"></div>
+      <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay" style="z-index: 50;"></div>
       <!-- 모달 컨테이너 -->
-      <div style="position: relative; z-index: 1; width: 100%; max-width: 32rem; display: flex; justify-content: center;">
-        <div
-          class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="pointer-events: none;">
+        <div style="pointer-events: auto; position: relative; width: 100%; max-width: 32rem; display: flex; justify-content: center;">
+          <div
+            class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
           <!-- 헤더 -->
           <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
             <h2 class="text-lg font-bold text-gray-900 flex items-center">
@@ -113,6 +114,7 @@ const CartModal = ({ checkedCartItems }) => {
           </div>
           
         
+          </div>
         </div>
       </div>
     </div>

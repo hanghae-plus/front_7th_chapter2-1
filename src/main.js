@@ -26,9 +26,9 @@ async function main() {
 
   const { showToast } = toastModule($root);
 
-  const renderProduct = await ProductPage(render, { showToast });
   const renderHome = await HomePage(render, { showToast });
   const renderNotFound = () => render(NotFoundPage());
+  const renderProduct = await ProductPage(render, { showToast });
 
   const handleRoute = async () => {
     // 상태값 전체 렌더링
@@ -82,8 +82,8 @@ async function main() {
       return;
     }
 
-    // 카트 닫기 - 배경 클릭 (오버레이 또는 모달 바깥 영역 직접 클릭)
-    if (e.target.classList.contains("cart-modal-overlay") || e.target.classList.contains("cart-modal")) {
+    // 카트 닫기 - 배경 클릭 (오버레이 직접 클릭)
+    if (e.target.classList.contains("cart-modal-overlay")) {
       e.stopPropagation();
       hideCartModal();
       return;

@@ -10,6 +10,16 @@ export class E2EHelpers {
       const text = document.body.textContent;
       return text.includes("총") && text.includes("개");
     });
+    // 실제 상품 카드가 렌더링될 때까지 대기
+    await this.page.waitForSelector(".product-card", { timeout: 10000 });
+    // 로딩이 완료될 때까지 대기
+    await this.page.waitForFunction(
+      () => {
+        const loadingText = document.body.textContent;
+        return !loadingText.includes("카테고리 로딩 중");
+      },
+      { timeout: 10000 },
+    );
   }
 
   // 상품을 장바구니에 추가
