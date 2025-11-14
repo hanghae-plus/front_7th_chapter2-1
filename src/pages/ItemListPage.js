@@ -1,7 +1,7 @@
 import { AddToCartBtn } from "../components/cart/addToCartBtn.js";
 import { router } from "../router.js";
 
-const ProductListStatus = (isLoading = true) => {
+const ProductListStatus = (isLoading = true, hasMore = false) => {
   if (isLoading) {
     return /*html*/ `
       <div class="inline-flex items-center">
@@ -15,9 +15,15 @@ const ProductListStatus = (isLoading = true) => {
     `;
   }
 
-  return /*html*/ `
-    <span class="text-sm text-gray-600">모든 상품을 확인했습니다</span>
-  `;
+  // 더 불러올 데이터가 없을 때만 완료 메시지 표시
+  if (!hasMore) {
+    return /*html*/ `
+      <span class="text-sm text-gray-600">모든 상품을 확인했습니다</span>
+    `;
+  }
+
+  // 더 불러올 데이터가 있으면 빈 상태 (Observer가 감지할 수 있도록)
+  return /*html*/ ``;
 };
 
 const searchAndFilter = () => {
@@ -113,6 +119,11 @@ export const ItemListPage = (query = {}) => {
   let currentLimit = query.limit ? parseInt(query.limit) : 20;
   let currentPage = 1;
   let searchTimeout = null;
+  // 무한 스크롤 관련 상태
+  let isLoadingMore = false;
+  let hasMore = true;
+  let allProducts = [];
+  let scrollObserver = null;
 
   // URL 쿼리 파라미터 업데이트 함수
   const updateURL = () => {
@@ -185,19 +196,21 @@ export const ItemListPage = (query = {}) => {
         selectedCategory1 = null;
         selectedCategory2 = null;
         currentPage = 1;
+        hasMore = true;
         updateBreadcrumb();
         renderCategory1Buttons();
         updateURL();
-        loadProducts();
+        loadProducts(false);
       } else if (breadcrumbType === "category1") {
         const category1 = target.getAttribute("data-category1");
         selectedCategory1 = category1;
         selectedCategory2 = null;
         currentPage = 1;
+        hasMore = true;
         updateBreadcrumb();
         renderCategory2Buttons(category1);
         updateURL();
-        loadProducts();
+        loadProducts(false);
       }
     });
   };
@@ -227,10 +240,11 @@ export const ItemListPage = (query = {}) => {
         selectedCategory1 = category1;
         selectedCategory2 = null;
         currentPage = 1;
+        hasMore = true;
         updateBreadcrumb();
         renderCategory2Buttons(category1);
         updateURL();
-        loadProducts();
+        loadProducts(false);
       });
     });
   };
@@ -263,9 +277,10 @@ export const ItemListPage = (query = {}) => {
         selectedCategory1 = category1;
         selectedCategory2 = category2;
         currentPage = 1;
+        hasMore = true;
         updateBreadcrumb();
         updateURL();
-        loadProducts();
+        loadProducts(false);
       });
     });
   };
@@ -275,16 +290,17 @@ export const ItemListPage = (query = {}) => {
     if (!statusContainer) return;
 
     // 최상위 div는 유지하고 내부 내용만 업데이트
-    statusContainer.innerHTML = ProductListStatus(isLoading);
+    statusContainer.innerHTML = ProductListStatus(isLoading, hasMore);
   };
 
-  const renderProducts = (products, total) => {
+  const renderProducts = (products, total, isAppend = false) => {
     const productsGrid = document.getElementById("products-grid");
     if (!productsGrid) return;
 
-    if (products.length === 0) {
+    if (products.length === 0 && !isAppend) {
       productsGrid.innerHTML = '<div class="col-span-2 text-center py-8 text-gray-500">상품이 없습니다.</div>';
       updateProductListStatus(false);
+      hasMore = false;
       return;
     }
 
@@ -319,7 +335,13 @@ export const ItemListPage = (query = {}) => {
       )
       .join("");
 
-    productsGrid.innerHTML = productsHTML;
+    if (isAppend) {
+      // 기존 목록에 추가
+      productsGrid.insertAdjacentHTML("beforeend", productsHTML);
+    } else {
+      // 전체 교체
+      productsGrid.innerHTML = productsHTML;
+    }
 
     // 상품 개수 정보 업데이트
     const productCountInfo = document.getElementById("product-count-info");
@@ -327,8 +349,10 @@ export const ItemListPage = (query = {}) => {
       productCountInfo.innerHTML = `총 <span class="font-medium text-gray-900">${total}개</span>의 상품`;
     }
 
-    // 상태를 완료로 업데이트
-    updateProductListStatus(false);
+    // 상태 업데이트
+    if (!isLoadingMore) {
+      updateProductListStatus(false);
+    }
   };
 
   const showLoading = () => {
@@ -346,8 +370,21 @@ export const ItemListPage = (query = {}) => {
     updateProductListStatus(true);
   };
 
-  const loadProducts = async () => {
-    showLoading();
+  const loadProducts = async (isAppend = false) => {
+    // 추가 로딩 중이면 중복 요청 방지
+    if (isLoadingMore) return;
+
+    if (!isAppend) {
+      // 초기 로드
+      showLoading();
+      allProducts = [];
+      hasMore = true;
+    } else {
+      // 추가 로드
+      updateProductListStatus(true);
+    }
+
+    isLoadingMore = true;
 
     try {
       const { getProducts } = await import("../api/productApi.js");
@@ -360,15 +397,66 @@ export const ItemListPage = (query = {}) => {
         sort: currentSort,
       });
 
-      renderProducts(response.products || [], response.pagination?.total || 0);
+      const newProducts = response.products || [];
+      hasMore = response.pagination?.hasNext || false;
+
+      if (isAppend) {
+        // 기존 목록에 추가
+        allProducts = [...allProducts, ...newProducts];
+      } else {
+        // 초기 로드
+        allProducts = newProducts;
+      }
+
+      renderProducts(allProducts, response.pagination?.total || 0, isAppend);
+
+      // 무한 스크롤 Observer 설정/재설정
+      setupInfiniteScroll();
     } catch (error) {
       console.error("상품 로딩 실패:", error);
       const productsGrid = document.getElementById("products-grid");
-      if (productsGrid) {
+      if (productsGrid && !isAppend) {
         productsGrid.innerHTML =
           '<div class="col-span-2 text-center py-8 text-red-500">상품을 불러오는데 실패했습니다.</div>';
       }
+      updateProductListStatus(false);
+      hasMore = false;
+    } finally {
+      isLoadingMore = false;
     }
+  };
+
+  const setupInfiniteScroll = () => {
+    const statusContainer = document.getElementById("product-list-status");
+    if (!statusContainer) return;
+
+    // 기존 Observer가 있으면 해제
+    if (scrollObserver) {
+      scrollObserver.disconnect();
+    }
+
+    // 더 불러올 데이터가 없으면 Observer 설정하지 않음
+    if (!hasMore) return;
+
+    // Intersection Observer 생성
+    scrollObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // 요소가 화면에 보이고, 더 불러올 데이터가 있고, 로딩 중이 아닐 때
+        if (entry.isIntersecting && hasMore && !isLoadingMore) {
+          currentPage++;
+          loadProducts(true); // 추가 로드
+        }
+      },
+      {
+        root: null, // viewport 기준
+        rootMargin: "100px", // 100px 전에 미리 로드
+        threshold: 0.1,
+      },
+    );
+
+    // ProductListStatus 요소를 감시
+    scrollObserver.observe(statusContainer);
   };
 
   const setupFilterEvents = () => {
@@ -380,8 +468,9 @@ export const ItemListPage = (query = {}) => {
         searchTimeout = setTimeout(() => {
           currentSearch = e.target.value.trim();
           currentPage = 1;
+          hasMore = true;
           updateURL();
-          loadProducts();
+          loadProducts(false);
         }, 300);
       });
     }
@@ -392,8 +481,9 @@ export const ItemListPage = (query = {}) => {
       sortSelect.addEventListener("change", (e) => {
         currentSort = e.target.value;
         currentPage = 1;
+        hasMore = true;
         updateURL();
-        loadProducts();
+        loadProducts(false);
       });
     }
 
@@ -403,8 +493,9 @@ export const ItemListPage = (query = {}) => {
       limitSelect.addEventListener("change", (e) => {
         currentLimit = parseInt(e.target.value);
         currentPage = 1;
+        hasMore = true;
         updateURL();
-        loadProducts();
+        loadProducts(false);
       });
     }
   };
@@ -449,8 +540,8 @@ export const ItemListPage = (query = {}) => {
         limitSelect.value = currentLimit.toString();
       }
 
-      // 초기 상품 목록 로드
-      loadProducts();
+      // 초기 상품 목록 로드 (내부에서 setupInfiniteScroll 호출됨)
+      loadProducts(false);
     } catch (error) {
       console.error("카테고리 로딩 실패:", error);
       categoryContainer.innerHTML = '<div class="text-sm text-red-500">카테고리 로딩 실패</div>';
