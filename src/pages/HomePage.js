@@ -64,7 +64,10 @@ const HomePage = createComponent({
             sort: filters.sort || "price_asc",
           });
 
-          setState("listResponse", response);
+          setState("listResponse", {
+            ...response,
+            pagination: { ...response.pagination, page: 1 },
+          });
         } catch (error) {
           console.error("[HomePage] fetchProducts error", error);
         } finally {
@@ -94,6 +97,58 @@ const HomePage = createComponent({
       } finally {
         setState("isLoading", false);
       }
+
+      setTimeout(() => {
+        const sentinel = document.querySelector("#sentinel");
+        if (!sentinel) return;
+
+        let isLoadingMore = false;
+
+        const io = new IntersectionObserver(
+          async ([entry]) => {
+            if (!entry.isIntersecting) return;
+
+            const currentListResponse = getState("listResponse");
+
+            if (!currentListResponse.pagination.hasNext || isLoadingMore) return;
+
+            isLoadingMore = true;
+            setState("isLoading", true);
+
+            try {
+              const response = await getProducts({
+                limit: currentListResponse.pagination.limit || 20,
+                search: currentListResponse.filters.search || "",
+                category1: currentListResponse.filters.category1 || "",
+                category2: currentListResponse.filters.category2 || "",
+                sort: currentListResponse.filters.sort || "price_asc",
+                page: currentListResponse.pagination.page + 1,
+              });
+
+              setState("listResponse", (current) => ({
+                ...response,
+                products: [...current.products, ...response.products],
+              }));
+            } catch (error) {
+              console.error("[HomePage] Infinite scroll error", error);
+            } finally {
+              isLoadingMore = false;
+              setState("isLoading", false);
+            }
+          },
+          {
+            root: null,
+            rootMargin: "200px",
+            threshold: 0,
+          },
+        );
+
+        io.observe(sentinel);
+
+        return () => {
+          io.disconnect();
+        };
+      }, 100);
     },
   },
   templateFn: ({ cart = [] }, { listResponse, categories, isLoading }, setState) => {
