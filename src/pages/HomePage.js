@@ -8,8 +8,6 @@ import { getProducts, getCategories } from "../api/productApi";
 const HomePage = createComponent({
   id: "home-page",
   props: {
-    // loading: false,
-    // productListResponse: null,
     categories: [],
     cart: [],
   },

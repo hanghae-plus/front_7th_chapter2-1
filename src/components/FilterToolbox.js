@@ -44,7 +44,6 @@ const FilterToolbox = createComponent({
     },
   },
   templateFn: (props) => {
-    console.log("[Template] props", props);
     return /* HTML */ `
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
         <!-- 검색창 -->
