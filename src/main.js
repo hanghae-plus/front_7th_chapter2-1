@@ -505,6 +505,26 @@ function main() {
       cartState.toggleItemSelect(targetId); // 상태 변경 → 자동 재렌더링
       return;
     }
+
+    // 상세 페이지 브레드크럼 클릭 이벤트
+    const breadcrumbLink = e.target.closest(".breadcrumb-link");
+    if (breadcrumbLink) {
+      const productId = location.pathname.split("/").pop();
+      const data = await getProduct(productId);
+      const { category1, category2 } = data;
+      const { searchParams } = getQueryParams();
+
+      if (breadcrumbLink.dataset.category1) {
+        searchParams.set("category1", category1);
+        push(`${import.meta.env.BASE_URL}?${searchParams}`);
+      }
+
+      if (breadcrumbLink.dataset.category2) {
+        searchParams.set("category1", category1);
+        searchParams.set("category2", category2);
+        push(`${import.meta.env.BASE_URL}?${searchParams}`);
+      }
+    }
   });
 
   // 초기 렌더링
