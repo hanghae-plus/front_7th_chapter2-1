@@ -9,6 +9,7 @@
     "build": "vite build",
     "lint:fix": "eslint --fix",
     "prettier:write": "prettier --write ./src",
+    "build": "vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:basic": "playwright test basic",
