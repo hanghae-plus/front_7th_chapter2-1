@@ -165,7 +165,6 @@ const renderHomePage = async () => {
   const $root = document.querySelector("#root");
   const { category1, category2, search, limit, sort } = getQueryParams();
 
-  // 무한 스크롤 상태 초기화
   resetInfiniteScroll();
 
   $root.innerHTML = HomePage({ loading: true });
@@ -523,11 +522,9 @@ function main() {
     }
   });
 
-  // 초기 렌더링
   render();
 }
 
-// 애플리케이션 시작
 if (import.meta.env.MODE !== "test") {
   enableMocking().then(main);
 } else {
