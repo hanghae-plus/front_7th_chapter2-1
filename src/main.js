@@ -390,6 +390,8 @@ function main() {
 
     const cartIconBtn = e.target.closest("#cart-icon-btn");
     if (cartIconBtn) {
+      console.log(cartIconBtn);
+
       if (!getLocalStorage(ADD_CART_LIST).items) setLocalStorage(ADD_CART_LIST, { items: [], selectedAll: false });
 
       const cartModal = document.querySelector(".cart-modal");
