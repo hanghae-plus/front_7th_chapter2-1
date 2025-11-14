@@ -1,8 +1,10 @@
 import { ProductDetail } from "../components/index.js";
 import { PageLayout } from "./PageLayout";
 import { store } from "../core/store.js";
+import { router } from "../core/router.js";
 
 let renderFn = null;
+let eventHandlers = [];
 
 export const DetailPage = {
   productId: null,
@@ -19,8 +21,55 @@ export const DetailPage = {
     store.subscribe(renderFn, "detail.error");
     store.subscribe(renderFn, "detail.relatedProducts");
 
-    // 상품 상세 정보 가져오기
-    store.fetchProductDetail(this.productId);
+    // 관련 상품 리스트 구독
+    store.subscribe(renderFn, "list.products");
+
+    this.setupEventListeners();
+    this.loadProductAndRelated();
+  },
+
+  // 상품 상세, 관련 상품 로드
+  async loadProductAndRelated() {
+    await store.fetchProductDetail(this.productId);
+
+    // 상품 상세 -> 관련 상품 가져오기
+    const product = store.state.detail.product;
+    if (product && product.category2) {
+      await store.fetchProducts({
+        category2: product.category2,
+        limit: 20,
+      });
+    }
+  },
+
+  // 이벤트 위임 함수
+  setupEventListeners() {
+    // 관련 상품 카드 클릭 이벤트
+    const relatedProductClickHandler = (e) => {
+      if (e.target.closest(".related-product-card")) {
+        const productId = e.target.closest(".related-product-card").dataset.productId;
+        router.navigate(`/product/${productId}`);
+      }
+    };
+    document.addEventListener("click", relatedProductClickHandler);
+    eventHandlers.push({ type: "click", handler: relatedProductClickHandler });
+
+    // 카테고리 브레드크럼 이벤트
+    const breadcrumbClickHandler = (e) => {
+      const breadcrumbLink = e.target.closest(".breadcrumb-link");
+      if (breadcrumbLink) {
+        const category1 = breadcrumbLink.dataset.category1;
+        const category2 = breadcrumbLink.dataset.category2;
+
+        if (category1 && !category2) {
+          router.navigate(`/?category1=${encodeURIComponent(category1)}`);
+        } else if (category1 && category2) {
+          router.navigate(`/?category1=${encodeURIComponent(category1)}&category2=${encodeURIComponent(category2)}`);
+        }
+      }
+    };
+    document.addEventListener("click", breadcrumbClickHandler);
+    eventHandlers.push({ type: "click", handler: breadcrumbClickHandler });
   },
 
   // 페이지 정리
@@ -31,7 +80,14 @@ export const DetailPage = {
       store.unsubscribe(renderFn, "detail.loading");
       store.unsubscribe(renderFn, "detail.error");
       store.unsubscribe(renderFn, "detail.relatedProducts");
+      store.unsubscribe(renderFn, "list.products");
       renderFn = null;
+
+      // 이벤트 핸들러 해제
+      eventHandlers.forEach(({ type, handler }) => {
+        document.removeEventListener(type, handler);
+      });
+      eventHandlers = [];
     }
   },
 
@@ -39,10 +95,10 @@ export const DetailPage = {
   render() {
     console.log("🎨 DetailPage render 호출");
     const { loading, product } = store.state.detail;
-    //console.log("product", product);
+    const { products } = store.state.list;
     return PageLayout({
       children: `
-        ${ProductDetail({ loading, product })}
+        ${ProductDetail({ loading, product, relatedProducts: products })}
       `,
     });
   },
@@ -50,38 +106,5 @@ export const DetailPage = {
   // 렌더링 후 실행
   mounted() {
     console.log("✨ DetailPage mounted 호출");
-
-    // // 장바구니 담기 버튼
-    // const addToCartBtn = document.querySelector("#add-to-cart-btn");
-    // if (addToCartBtn) {
-    //   addToCartBtn.addEventListener("click", () => {
-    //     console.log("장바구니에 추가!");
-    //     alert("장바구니에 추가되었습니다!");
-    //   });
-    // }
-
-    // // 수량 증가/감소 버튼
-    // const decreaseBtn = document.querySelector("#quantity-decrease");
-    // const increaseBtn = document.querySelector("#quantity-increase");
-    // const quantityInput = document.querySelector("#quantity-input");
-
-    // if (decreaseBtn && quantityInput) {
-    //   decreaseBtn.addEventListener("click", () => {
-    //     const current = parseInt(quantityInput.value);
-    //     if (current > 1) {
-    //       quantityInput.value = current - 1;
-    //     }
-    //   });
-    // }
-
-    // if (increaseBtn && quantityInput) {
-    //   increaseBtn.addEventListener("click", () => {
-    //     const current = parseInt(quantityInput.value);
-    //     const max = parseInt(quantityInput.max);
-    //     if (current < max) {
-    //       quantityInput.value = current + 1;
-    //     }
-    //   });
-    // }
   },
 };

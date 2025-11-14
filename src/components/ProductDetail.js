@@ -7,7 +7,7 @@ const Loading = /*html*/ `
   </div>
 `;
 
-const navigation = () => {
+const navigation = ({ category1, category2 }) => {
   return /* html */ `
   <!-- 브레드크럼 -->
   <nav class="mb-4">
@@ -16,14 +16,14 @@ const navigation = () => {
       <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       </svg>
-      <button class="breadcrumb-link" data-category1="생활/건강">
-        생활/건강
+      <button class="breadcrumb-link hover:text-blue-600 transition-colors" data-category1="${category1}">
+        ${category1}
       </button>
       <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       </svg>
-      <button class="breadcrumb-link" data-category2="생활용품">
-        생활용품
+      <button class="breadcrumb-link hover:text-blue-600 transition-colors" data-category1="${category1}" data-category2="${category2}">
+        ${category2}
       </button>
     </div>
   </nav>
@@ -112,15 +112,51 @@ const detailItem = ({ productId, title, description, image, brand, lprice, stock
     `;
 };
 
-export const ProductDetail = ({ loading, product }) => {
+// 관련 상품 개별 카드
+const RelatedProductCard = ({ title, productId, lprice, image }) => {
+  return /* html */ `
+  <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="${productId}">
+    <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
+      <img src="${image}" alt="${title}" class="w-full h-full object-cover" loading="lazy">
+    </div>
+    <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">${title}</h3>
+    <p class="text-sm font-bold text-blue-600">${Number(lprice).toLocaleString()}원</p>
+  </div>
+  `;
+};
+
+export const ProductDetail = ({ loading, product, relatedProducts }) => {
+  // 현재 상품 제외
+  const filteredRelatedProducts = relatedProducts
+    ? relatedProducts.filter((p) => p.productId !== product?.productId)
+    : [];
+
   return /* html */ `
     <main class="max-w-md mx-auto px-4 py-4">
       ${
         loading
           ? Loading
           : /* html */ `
-        ${navigation()}
+        ${navigation({ category1: product.category1, category2: product.category2 })}
         ${detailItem({ ...product })}
+        <!-- 관련 상품 -->
+        ${
+          filteredRelatedProducts.length > 0
+            ? /* html */ `
+        <div class="bg-white rounded-lg shadow-sm">
+          <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-bold text-gray-900">관련 상품</h2>
+            <p class="text-sm text-gray-600">같은 카테고리의 다른 상품들</p>
+          </div>
+          <div class="p-4">
+            <div class="grid grid-cols-2 gap-3 responsive-grid">
+              ${filteredRelatedProducts.map(RelatedProductCard).join("")}
+            </div>
+          </div>
+        </div>
+        `
+            : ""
+        }
         `
       }
     </main>
