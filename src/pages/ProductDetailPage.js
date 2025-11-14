@@ -125,23 +125,23 @@ function setupEventListeners(productId) {
 }
 
 export function ProductDetailPage({ params }) {
-  const onMount = async () => {
+  const onMount = () => {
     console.log("ProductDetailPage onMount, params:", params);
     setupEventListeners(params.id);
     const unsubscribe = productStore.subscribe(render);
 
     // 1. 현재 상품 상세 정보 가져오기
-    await productStore.fetchProductById(params.id);
-
-    // 2. 상세 정보 로드 후, 관련 상품 목록 가져오기
-    const { data: productDetail } = productStore.getState().productDetail;
-    if (productDetail) {
-      productStore.setParams({
-        // category1: productDetail.category1,
-        category2: productDetail.category2,
-        limit: 20, // 현재 상품 포함 20개
-      });
-    }
+    productStore.fetchProductById(params.id).then(() => {
+      // 2. 상세 정보 로드 후, 관련 상품 목록 가져오기
+      const { data: productDetail } = productStore.getState().productDetail;
+      if (productDetail) {
+        productStore.setParams({
+          // category1: productDetail.category1,
+          category2: productDetail.category2,
+          limit: 20, // 현재 상품 포함 20개
+        });
+      }
+    });
 
     return () => {
       unsubscribe();
