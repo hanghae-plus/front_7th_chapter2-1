@@ -1,6 +1,8 @@
 import { cartStore } from "../Store/cart.js";
 import { cartModalControl } from "../utils/cartEventListeners.js";
 
+const baseUrl = "/front_7th_chapter2-1";
+
 /**
  * 헤더 렌더링
  */
@@ -11,7 +13,9 @@ export function renderHeader() {
     return;
   }
 
-  const path = window.location.pathname;
+  const path = window.location.pathname.startsWith(baseUrl)
+    ? window.location.pathname.slice(baseUrl.length) || "/"
+    : window.location.pathname;
   const isDetailPage = /^\/product\/\w+$/.test(path);
 
   let headerTitleContent;
@@ -29,7 +33,7 @@ export function renderHeader() {
   } else {
     headerTitleContent = `
       <h1 class="text-xl font-bold text-gray-900">
-        <a href="/" data-link="">쇼핑몰</a>
+        <a href="${baseUrl}/" data-link="">쇼핑몰</a>
       </h1>
     `;
   }
