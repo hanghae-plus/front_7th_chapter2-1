@@ -17,7 +17,7 @@ export const ROUTES = Object.freeze({
     name: "home",
     path: "/",
     pattern: pathToRegex("/"),
-    render: HomePage,
+    render: HomePage.mount,
     /**
      * @param {object} params
      * @returns {Promise<HomePageProps>}
