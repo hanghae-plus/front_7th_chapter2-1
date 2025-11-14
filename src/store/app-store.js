@@ -20,7 +20,29 @@ const initialAppState = {
   allSelected: false,
 };
 
-let appState = initialAppState;
+const STORAGE_KEY = "app-store";
+
+const loadStateFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error("[Store] Failed to load from localStorage:", error);
+  }
+  return initialAppState;
+};
+
+const saveStateToStorage = (state) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error("[Store] Failed to save to localStorage:", error);
+  }
+};
+
+let appState = loadStateFromStorage();
 
 const observers = new Set();
 
@@ -31,6 +53,7 @@ const appStore = {
   },
   _notify: () => {
     observers.forEach((observer) => observer(appState));
+    saveStateToStorage(appState);
   },
   // State
   getState: () => appState,
@@ -43,6 +66,7 @@ const appStore = {
   setAllSelected: (/** @type {boolean} */ newAllSelected) => {
     console.log("[Store - Mutation] setAllSelected", { BEFORE: appState.allSelected, AFTER: newAllSelected });
     appState.allSelected = newAllSelected;
+    appStore._notify();
   },
   // Actions
   /**

@@ -17,7 +17,7 @@ const CartModal = createComponent({
   },
   initialState: () => ({
     cart: appStore.getState().cart,
-    allSelected: false,
+    allSelected: appStore.getState().allSelected,
   }),
   eventHandlers: {
     "cart-modal-close": (props) => {
@@ -38,8 +38,10 @@ const CartModal = createComponent({
     },
     "select-all-cart-items": (props, getter, setter) => {
       const currentAllSelected = getter("allSelected");
+      const currentCart = getter("cart");
       setter("allSelected", !currentAllSelected);
-      setter("cart", (currentCart) => currentCart.map((_item) => ({ ..._item, isSelected: !currentAllSelected })));
+      setter("cart", (_currentCart) => _currentCart.map((_item) => ({ ..._item, isSelected: !currentAllSelected })));
+      appStore.setCart(currentCart.map((_item) => ({ ..._item, isSelected: !currentAllSelected })));
       appStore.setAllSelected(!currentAllSelected);
     },
   },
@@ -90,6 +92,9 @@ const CartModal = createComponent({
     const handleSelectCartItem = (productId) => {
       setState("cart", (currentCart) =>
         currentCart.map((_item) => (_item.id === productId ? { ..._item, isSelected: !_item.isSelected } : _item)),
+      );
+      appStore.setCart(
+        cart.map((_item) => (_item.id === productId ? { ..._item, isSelected: !_item.isSelected } : _item)),
       );
 
       const changedCart = cart.map((_item) =>
