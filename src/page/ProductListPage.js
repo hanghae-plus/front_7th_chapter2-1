@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/index.js";
 import { closeModal, openModal } from "@/components/modal/core.js";
 import { ProductList } from "@/components/product-list/index.js";
 import { actions, dispatch, store } from "@/store/store.js";
+import { toast } from "../store/toast";
 
 export function ProductListPage(router) {
   let unsubscribe = null;
@@ -23,8 +24,8 @@ export function ProductListPage(router) {
     // success.className = "toast fixed bottom-10 left-[50%] translate-x-[-50%] z-[100]";
     // success.innerHTML = Success();
     // document.querySelector("#root").appendChild(success);
-
     container.innerHTML = `${Filter()}${ProductList()}`;
+
     const sentinel = document.createElement("div");
     sentinel.id = "product-list-sentinel";
     sentinel.setAttribute("aria-hidden", "true");
@@ -107,6 +108,7 @@ export function ProductListPage(router) {
       if (target.nodeName === "BUTTON") {
         const target = store.state.products.find((product) => product.productId === productId);
         openModal(target);
+        toast.success("장바구니에 추가되었습니다", { id: "toast-success" });
         return;
       }
 

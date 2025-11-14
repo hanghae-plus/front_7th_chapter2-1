@@ -13,7 +13,7 @@ export async function getProducts(params = {}) {
   });
 
   const response = await fetch(`/api/products?${searchParams}`);
-
+  console.log(response);
   return await response.json();
 }
 

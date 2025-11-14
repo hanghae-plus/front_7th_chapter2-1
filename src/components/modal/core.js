@@ -1,5 +1,6 @@
 // src/modal/modalManager.js
 import { ModalLayout } from "@/components/modal/Layout.js";
+import { toast } from "../../store/toast";
 import { CartFooter } from "./Footer";
 
 let currentModal = null;
@@ -50,8 +51,6 @@ export function openModal(product) {
 export function handelClick(event) {
   const { productId } = event.target.dataset;
 
-  console.log(event.target.closest("#cart-modal-close-btn"));
-
   if (event.target.closest("#cart-modal-close-btn")) {
     closeModal();
     return;
@@ -65,18 +64,17 @@ export function handelClick(event) {
     currentModal.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
       checkbox.checked = false;
     });
+    toast.info("선택된 상품들이 삭제되었습니다", { id: "toast-remove-selected" });
     return;
   }
 
   if (event.target.closest("#cart-modal-select-all-checkbox")) {
     const checkbox = event.target.closest("#cart-modal-select-all-checkbox");
     const checked = checkbox.checked;
-    console.log(checked);
+
     selectedItems.clear();
     if (checked) {
       carts.map((cart) => selectedItems.add(cart.productId));
-    } else {
-      // selectedItems.clear();
     }
 
     currentModal.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
@@ -113,6 +111,7 @@ export function handelClick(event) {
   if (event.target.matches(".cart-item-remove-btn")) {
     carts = carts.filter((cart) => cart.productId !== productId);
     selectedItems.delete(productId);
+    toast.info("선택된 상품이 삭제되었습니다", { id: "toast-remove-selected" });
   }
 
   if (event.target.closest(".quantity-decrease-btn")) {
@@ -134,7 +133,7 @@ export function handelClick(event) {
   if (event.target.closest("#cart-modal-clear-cart-btn")) {
     carts = [];
     selectedItems.clear();
-    // currentModal.innerHTML = ModalLayout();
+    toast.info("장바구니가 비워졌습니다", { id: "toast-clear-cart" });
   }
 
   if (carts.length === 0) {
@@ -142,7 +141,6 @@ export function handelClick(event) {
     count.removeChild(count.lastChild);
   }
 
-  console.log(currentModal);
   if (!currentModal) return;
   currentModal.innerHTML = ModalLayout();
 }

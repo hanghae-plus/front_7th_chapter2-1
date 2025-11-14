@@ -1,5 +1,6 @@
 import { NotFoundPage, ProductDetailPage, ProductListPage } from "@/page/index.js";
 import Router from "@/router.js";
+import { toastCore } from "./components/toast/core.js";
 import { BASE_URL } from "./constants.js";
 
 const enableMocking = () =>
@@ -1131,6 +1132,7 @@ function createApp() {
   });
 
   router.init();
+  toastCore.mount();
 }
 
 // 애플리케이션 시작
