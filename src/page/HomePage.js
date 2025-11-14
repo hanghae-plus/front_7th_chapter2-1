@@ -4,6 +4,7 @@ import { getProducts, getCategories } from "../api/productApi";
 import { addToCart } from "../module/cartModule";
 import State from "../store/stateStore";
 import urlParamsModule from "../module/urlParamsModule";
+import Error from "../component/Error";
 
 const HomePage = async (render, { showToast }) => {
   const { setParams, getParams, getAllParams, deleteParams } = urlParamsModule();
@@ -121,11 +122,23 @@ const HomePage = async (render, { showToast }) => {
 
       showToast({ message: "장바구니에 추가되었습니다", type: "success" });
     }
+
+    if (e.target.id === "retry-btn") {
+      getProductsData();
+      pageRender();
+    }
   });
 
   // 상품목록 가져오기
   const getProductsData = async () => {
-    const productData = await getProducts({ ...getAllParams(), page: page.get() });
+    const productData = await getProducts({ ...getAllParams(), page: page.get() }).catch((e) => e.response);
+    if (!productData) {
+      products.set({ products: [], pagination: {} }, pageRender);
+      isLoading.set(false);
+      render(Error());
+      return;
+    }
+
     page.get() === 1
       ? products.set(productData, pageRender)
       : products.set(
