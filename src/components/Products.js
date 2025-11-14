@@ -111,12 +111,15 @@ const Products = (targetNode) => {
 
   const addEventListeners = () => {
     const $productsGrid = document.getElementById("products-grid");
+
     if (!$productsGrid) return;
 
     $productsGrid.addEventListener("click", (ev) => {
       const productCard = ev.target.closest(".product-card");
+      const productImage = ev.target.closest(".product-image");
+      const productInfo = ev.target.closest(".product-info");
 
-      if (productCard) {
+      if (productCard && (productImage || productInfo)) {
         const productId = productCard.dataset.productId;
         router.push(`${import.meta.env.BASE_URL}product/${productId}`);
       }
