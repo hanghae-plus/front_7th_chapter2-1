@@ -16,17 +16,20 @@ const HomePage = async (render, { showToast }) => {
 
   const page = new State(1);
   let io = null; // IntersectionObserver 인스턴스 저장
+  let isInitialized = false; // 초기화 여부 체크
 
-  function pageRender() {
-    render(
-      /*HTML*/ `
+  async function pageRender() {
+    // 첫 렌더링 시에만 데이터 로드
+    if (!isInitialized) {
+      isInitialized = true;
+      await Promise.all([getProductsData(), getCategoriesData()]);
+    }
+    render(/*HTML*/ `
       <!-- 검색 및 필터 -->
-     ${SearchForm({ isLoading: isCategoryLoading.get(), categories: categories.get(), limit: getParams("limit"), sort: getParams("sort"), search: getParams("search") || "", category1: getParams("category1"), category2: getParams("category2") })}
+     ${SearchForm({ isLoading: isCategoryLoading.get(), categories: categories.get(), limit: getParams("limit") || "20", sort: getParams("sort") || "price_asc", search: getParams("search") || "", category1: getParams("category1") || "", category2: getParams("category2") || "" })}
       <!-- 상품 목록 -->
      ${ProductList({ isLoading: isLoading.get(), products: products.get() })}
-    `,
-      pageRender,
-    );
+    `);
 
     // 렌더링 후 IntersectionObserver 재설정
     setupIntersectionObserver();
@@ -39,6 +42,7 @@ const HomePage = async (render, { showToast }) => {
       page.set(1, pageRender);
       setParams("limit", value);
       getProductsData();
+      pageRender();
     }
 
     // 정렬
@@ -47,6 +51,7 @@ const HomePage = async (render, { showToast }) => {
       page.set(1, pageRender);
       setParams("sort", value);
       getProductsData();
+      pageRender();
     }
   });
 
@@ -55,8 +60,9 @@ const HomePage = async (render, { showToast }) => {
     if (e.target.id === "search-input" && e.key === "Enter") {
       const value = e.target.value;
       page.set(1, pageRender);
-      setParams("search", value);
+      value ? setParams("search", value) : deleteParams("search");
       getProductsData();
+      pageRender();
     }
   });
 
@@ -68,12 +74,15 @@ const HomePage = async (render, { showToast }) => {
       history.pushState(null, "", newUrl);
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
+
     // 카테고리 선택
     if (e.target.dataset.category1) {
       const value = e.target.dataset.category1;
       page.set(1, pageRender);
+      deleteParams("category2");
       setParams("category1", value);
       getProductsData();
+      pageRender();
     }
 
     if (e.target.dataset.category2) {
@@ -81,6 +90,7 @@ const HomePage = async (render, { showToast }) => {
       page.set(1, pageRender);
       setParams("category2", value);
       getProductsData();
+      pageRender();
     }
 
     // 브레드크럼 선택
@@ -89,14 +99,16 @@ const HomePage = async (render, { showToast }) => {
       deleteParams("category1");
       deleteParams("category2");
       getProductsData();
+      pageRender();
     }
 
     if (e.target.classList.contains("breadcrumb-btn1")) {
-      const value = e.target.dataset.breadcrumb;
+      const category1 = e.target.dataset.breadcrumb;
       page.set(1, pageRender);
-      setParams("category1", value);
       deleteParams("category2");
+      setParams("category1", category1);
       getProductsData();
+      pageRender();
     }
 
     // 장바구니 담기
@@ -113,7 +125,6 @@ const HomePage = async (render, { showToast }) => {
 
   // 상품목록 가져오기
   const getProductsData = async () => {
-    // error.set(null, pageRender);
     const productData = await getProducts({ ...getAllParams(), page: page.get() });
     page.get() === 1
       ? products.set(productData, pageRender)
@@ -121,7 +132,8 @@ const HomePage = async (render, { showToast }) => {
           { products: [...products.get().products, ...productData.products], pagination: productData.pagination },
           pageRender,
         );
-    isLoading.set(false, pageRender);
+    isLoading.set(false);
+    pageRender();
   };
 
   // 카테고리목록 가져오기
@@ -131,9 +143,6 @@ const HomePage = async (render, { showToast }) => {
     categories.set(categoryData, pageRender);
     isCategoryLoading.set(false, pageRender);
   };
-
-  await getProductsData();
-  await getCategoriesData();
 
   // 무한스크롤 설정
   function setupIntersectionObserver() {
@@ -167,6 +176,8 @@ const HomePage = async (render, { showToast }) => {
 
   // 초기 observer 설정
   setupIntersectionObserver();
+
+  return { pageRender };
 };
 
 export default HomePage;

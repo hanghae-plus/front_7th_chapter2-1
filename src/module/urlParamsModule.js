@@ -1,23 +1,28 @@
 const urlParamsModule = () => {
-  const url = new URL(window.location.href);
-  const params = url.searchParams;
-
   const setParams = (key, value) => {
-    params.set(key, value);
-    window.history.replaceState({}, "", `${url.pathname}?${params}`);
+    // undefined, null, 빈 문자열은 설정하지 않음
+    if (value === undefined || value === null || value === "") {
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    window.history.replaceState({}, "", `${url.pathname}?${url.searchParams}`);
   };
 
   const deleteParams = (key) => {
-    params.delete(key);
-    window.history.replaceState({}, "", `${url.pathname}?${params}`);
+    const url = new URL(window.location.href);
+    url.searchParams.delete(key);
+    window.history.replaceState({}, "", `${url.pathname}?${url.searchParams}`);
   };
 
   const getParams = (key) => {
-    return params.get(key);
+    const url = new URL(window.location.href);
+    return url.searchParams.get(key);
   };
 
   const getAllParams = () => {
-    return Object.fromEntries(params.entries());
+    const url = new URL(window.location.href);
+    return Object.fromEntries(url.searchParams.entries());
   };
 
   return { setParams, getParams, getAllParams, deleteParams };

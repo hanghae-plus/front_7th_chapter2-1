@@ -1,6 +1,6 @@
 const CategoryItem = ({ category, type, isSelect }) => {
   return /*HTML*/ `
-  <button data-category${type}=${category} class="category1-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
+  <button data-category${type}=${category} class="category${type}-filter-btn text-left px-3 py-2 text-sm rounded-md border transition-colors
        ${isSelect ? "bg-blue-100 border-blue-300 text-blue-800" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"} ">
       ${category}
     </button>

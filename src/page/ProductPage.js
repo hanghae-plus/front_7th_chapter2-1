@@ -15,18 +15,29 @@ const Loading = /*HTML*/ `
 `;
 
 const ProductPage = async (render, { showToast }) => {
-  const productId = window.location.pathname.split("/").pop();
+  const productId = new State("");
 
   const isLoading = new State(true);
   const product = new State({});
   const relatedProducts = new State({ products: [] });
   const quantity = new State(1);
+  let isInitialized = false; // 초기화 여부 체크
 
-  const pageRender = () => {
+  async function pageRender() {
+    // 첫 렌더링 시에만 데이터 로드
+    if (!isInitialized) {
+      isInitialized = true;
+      const id = window.location.pathname.split("/").pop();
+      if (id && id !== "") {
+        productId.set(id);
+        await Promise.all([getProductData(), getRelatedProducts()]);
+      }
+      return;
+    }
     isLoading.get()
       ? render(Loading)
       : render(/*html*/ `
-    ${BreadCrumb()}
+    ${BreadCrumb({ category1: product.get().category1, category2: product.get().category2 })}
     <!-- 상품 상세 정보 -->
     ${Product({ product: product.get(), quantity: quantity.get() })}  
     <!-- 상품 목록으로 이동 -->
@@ -38,13 +49,23 @@ const ProductPage = async (render, { showToast }) => {
     </div>
     ${RelatedList({ relatedProducts: relatedProducts.get().products })}
 `);
-  };
+  }
+
+  window.addEventListener("popstate", () => {
+    const id = window.location.pathname.includes("/product") ? window.location.pathname.split("/").pop() : "";
+    if (id) {
+      productId.set(id);
+      getProductData();
+      getRelatedProducts();
+    }
+  });
 
   addEventListener("click", (e) => {
     // 장바구니 담기
     if (e.target.closest("#add-to-cart-btn")) {
       addToCart(product.get(), quantity.get());
-      showToast({ message: "장바구니에 추가되었습니다", type: "success" }, pageRender);
+      pageRender();
+      showToast({ message: "장바구니에 추가되었습니다", type: "success" });
     }
 
     //수량 증가/감소
@@ -67,15 +88,13 @@ const ProductPage = async (render, { showToast }) => {
       const category1 = e.target.dataset.category1;
       const newUrl = `${import.meta.env.BASE_URL}?category1=${encodeURIComponent(category1)}`;
       history.pushState(null, "", newUrl);
-      window.dispatchEvent(new PopStateEvent("popstate"));
     }
 
-    if (e.target.dataset.category2) {
+    if (e.target.dataset.category2 && window.location.pathname.includes("/product")) {
       const category1 = product.get().category1;
       const category2 = e.target.dataset.category2;
       const newUrl = `${import.meta.env.BASE_URL}?category1=${encodeURIComponent(category1)}&category2=${encodeURIComponent(category2)}`;
       history.pushState(null, "", newUrl);
-      window.dispatchEvent(new PopStateEvent("popstate"));
     }
   });
 
@@ -86,10 +105,11 @@ const ProductPage = async (render, { showToast }) => {
   });
 
   const getProductData = async () => {
-    isLoading.set(true, pageRender);
-    const productData = await getProduct(productId);
-    product.set(productData, pageRender);
-    isLoading.set(false, pageRender);
+    isLoading.set(true);
+    const productData = await getProduct(productId.get());
+    product.set(productData);
+    isLoading.set(false);
+    pageRender();
   };
 
   const getRelatedProducts = async () => {
@@ -99,12 +119,13 @@ const ProductPage = async (render, { showToast }) => {
     });
     const filteredRelatedProductsData = {
       ...relatedProductsData,
-      products: relatedProductsData.products.filter((product) => product.productId !== productId),
+      products: relatedProductsData.products.filter((product) => product.productId !== productId.get()),
     };
-    relatedProducts.set(filteredRelatedProductsData, pageRender);
+    relatedProducts.set(filteredRelatedProductsData);
+    pageRender();
   };
 
-  Promise.all([getProductData(), getRelatedProducts()]);
+  return { pageRender };
 };
 
 export default ProductPage;

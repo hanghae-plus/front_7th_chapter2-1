@@ -22,33 +22,29 @@ const enableMocking = () =>
 async function main() {
   const $root = document.querySelector("#root");
   const checkedCartItems = new stateStore([]);
-  const { showToast } = toastModule($root);
-
   const render = (HTML) => ($root.innerHTML = layout({ children: () => HTML }));
 
-  const renderHome = async () => await HomePage(render, { showToast });
-  const renderProduct = async () => await ProductPage(render, { showToast });
-  const renderNotFound = async () => render(NotFoundPage());
+  const { showToast } = toastModule($root);
 
-  const handleRoute = () => {
+  const renderProduct = await ProductPage(render, { showToast });
+  const renderHome = await HomePage(render, { showToast });
+  const renderNotFound = () => render(NotFoundPage());
+
+  const handleRoute = async () => {
+    // 상태값 전체 렌더링
     const pathName = window.location.pathname;
     const currentPath = pathName.replace(basePath, "/").replace(/\/$/, "") || "/";
 
-    if (currentPath === "/") {
-      renderHome();
-    } else if (currentPath.includes("/product")) {
-      renderProduct();
-    } else {
-      renderNotFound();
-    }
+    if (currentPath.includes("/product")) return renderProduct.pageRender();
+    if (currentPath === "/") return renderHome.pageRender();
+
+    renderNotFound();
   };
 
   window.addEventListener("popstate", handleRoute);
   handleRoute();
 
   const showCartModal = () => {
-    // 이미 열려있으면 열지 않음
-    if (document.querySelector(".cart-modal")) return;
     $root.insertAdjacentHTML("beforeend", CartModal({ checkedCartItems: checkedCartItems.get() }));
   };
 
@@ -68,75 +64,98 @@ async function main() {
     }
   });
 
-  addEventListener("click", (e) => {
+  addEventListener("click", async (e) => {
     // 카트 열기
     if (e.target.closest("#cart-icon-btn")) {
-      showCartModal();
+      e.stopPropagation();
+      // 이미 열려있지 않으면 열기
+      if (!document.querySelector(".cart-modal")) {
+        showCartModal();
+      }
+      return;
     }
 
     // 카트 닫기 - X 버튼
     if (e.target.closest("#cart-modal-close-btn")) {
+      e.stopPropagation();
       hideCartModal();
+      return;
     }
 
     // 카트 닫기 - 배경 클릭 (오버레이 또는 모달 바깥 영역 직접 클릭)
     if (e.target.classList.contains("cart-modal-overlay") || e.target.classList.contains("cart-modal")) {
+      e.stopPropagation();
       hideCartModal();
+      return;
     }
 
     // 카트 수량 증가
     if (e.target.closest(".quantity-increase-btn")) {
+      e.stopPropagation();
       const btn = e.target.closest(".quantity-increase-btn");
-      editCartQuantity(btn.dataset.productId, "increase");
+      const productId = btn.dataset.productId;
+      editCartQuantity(productId, "increase");
+
       renderCartModal();
+      return;
     }
 
     // 카트 수량 감소
     if (e.target.closest(".quantity-decrease-btn")) {
+      e.stopPropagation();
       const btn = e.target.closest(".quantity-decrease-btn");
-      editCartQuantity(btn.dataset.productId, "decrease");
+      const productId = btn.dataset.productId;
+      editCartQuantity(productId, "decrease");
+
       renderCartModal();
+      return;
     }
 
     // 카트 전체 비우기
     if (e.target.closest("#cart-modal-clear-cart-btn")) {
+      e.stopPropagation();
       removeAllFromCart();
       checkedCartItems.set([]);
-      showToast({ message: "장바구니가 비워졌습니다", type: "info" });
       handleRoute();
       renderCartModal();
+      showToast({ message: "장바구니가 비워졌습니다", type: "info" });
+      return;
     }
 
     // 선택한 상품 삭제
     if (e.target.closest("#cart-modal-remove-selected-btn")) {
+      e.stopPropagation();
       checkedCartItems.get().forEach((productId) => {
         removeFromCart(productId);
       });
       checkedCartItems.set([]);
-      showToast({ message: "선택한 상품들이 삭제되었습니다", type: "info" });
       handleRoute();
       renderCartModal();
+      showToast({ message: "선택한 상품들이 삭제되었습니다", type: "info" });
+      return;
     }
 
     // 단일 상품 삭제
     if (e.target.closest(".cart-item-remove-btn")) {
+      e.stopPropagation();
       const btn = e.target.closest(".cart-item-remove-btn");
       removeFromCart(btn.dataset.productId);
       checkedCartItems.set(checkedCartItems.get().filter((id) => id !== btn.dataset.productId));
-      showToast({ message: "선택한 상품이 삭제되었습니다", type: "info" });
       handleRoute();
       renderCartModal();
+      showToast({ message: "선택한 상품이 삭제되었습니다", type: "info" });
+      return;
     }
 
     // 상품 목록으로 돌아가기
     if (e.target.closest(".go-to-product-list")) {
       history.pushState(null, "", basePath);
-      window.dispatchEvent(new PopStateEvent("popstate"));
     }
   });
 
   addEventListener("change", (e) => {
     if (e.target.classList.contains("cart-item-checkbox")) {
+      e.stopPropagation();
       const isChecked = e.target.checked;
       const productId = e.target.dataset.productId;
 
@@ -146,18 +165,29 @@ async function main() {
         checkedCartItems.set(checkedCartItems.get().filter((id) => id !== productId));
       }
       renderCartModal();
+      return;
     }
 
     if (e.target.id === "cart-modal-select-all-checkbox") {
+      e.stopPropagation();
       const isChecked = e.target.checked;
       const cart = getCart();
 
       if (isChecked) {
         checkedCartItems.set(cart.flatMap((item) => item.productId));
+        // 전체 선택 시 개별 체크박스 업데이트
+        document.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
+          checkbox.checked = true;
+        });
       } else {
         checkedCartItems.set([]);
+        // 전체 해제 시 개별 체크박스 업데이트
+        document.querySelectorAll(".cart-item-checkbox").forEach((checkbox) => {
+          checkbox.checked = false;
+        });
       }
       renderCartModal();
+      return;
     }
   });
 }

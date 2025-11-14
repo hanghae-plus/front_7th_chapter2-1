@@ -18,7 +18,6 @@ export const addToCart = (product, quantity = 1) => {
  * @param {string} type - 수정 타입 (increase, decrease)
  */
 export const editCartQuantity = (productId, type) => {
-  console.log(productId, type);
   const currentCart = getCart();
   const index = currentCart.findIndex((item) => item.productId === productId);
   const newCart = [...currentCart];
@@ -27,7 +26,9 @@ export const editCartQuantity = (productId, type) => {
 
   if (type === "increase") {
     newCart[index].quantity += 1;
-  } else {
+  }
+
+  if (type === "decrease" && newCart[index].quantity > 1) {
     newCart[index].quantity -= 1;
   }
 

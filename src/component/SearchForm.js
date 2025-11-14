@@ -7,7 +7,7 @@ const options = ({ isSelect, value, label }) =>
 const SearchForm = ({
   isLoading = true,
   categories = {},
-  limit = 20,
+  limit = "20",
   sort = "price_asc",
   search = "",
   category1 = "",
