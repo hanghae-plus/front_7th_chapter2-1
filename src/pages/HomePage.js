@@ -36,7 +36,7 @@ const HomePage = createComponent({
     return {
       listResponse: defaultListResponse,
       categories: [],
-      isLoading: false,
+      isLoading: true,
     };
   },
   effects: {

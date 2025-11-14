@@ -254,7 +254,17 @@ const ProductDetail = createComponent({
       productDetailResponse?.category4,
     ].filter(Boolean);
     console.log("[ProductDetail] categoryPath", categoryPath);
-    const { productId = "", image = "", title = "", description = "", lprice = 0 } = productDetailResponse || {};
+    const {
+      productId = "",
+      brand = "",
+      image = "",
+      title = "",
+      description = "",
+      lprice = 0,
+      stock = 0,
+      rating = 0,
+      reviewCount = 0,
+    } = productDetailResponse || {};
 
     const relatedProducts = productDetailListResponse?.products?.filter((product) => product.productId !== productId);
 
@@ -263,7 +273,7 @@ const ProductDetail = createComponent({
         <!-- 브레드크럼 -->
         <nav class="mb-4">
           <div class="flex items-center space-x-2 text-sm text-gray-600">
-            <a href="/" data-link="" class="hover:text-blue-600 transition-colors">홈</a>
+            <a href="${Router.basePath}" data-link="" class="hover:text-blue-600 transition-colors">홈</a>
             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
@@ -301,7 +311,7 @@ const ProductDetail = createComponent({
             </div>
             <!-- 상품 정보 -->
             <div>
-              <p class="text-sm text-gray-600 mb-1"></p>
+              <p class="text-sm text-gray-600 mb-1">${brand}</p>
               <h1 class="text-xl font-bold text-gray-900 mb-3">${title}</h1>
               <!-- 평점 및 리뷰 -->
               <div class="flex items-center mb-3">
@@ -332,14 +342,14 @@ const ProductDetail = createComponent({
                     ></path>
                   </svg>
                 </div>
-                <span class="ml-2 text-sm text-gray-600">4.0 (749개 리뷰)</span>
+                <span class="ml-2 text-sm text-gray-600">${rating}.0 (${reviewCount}개 리뷰)</span>
               </div>
               <!-- 가격 -->
               <div class="mb-4">
                 <span class="text-2xl font-bold text-blue-600">${formatNumber(lprice)}원</span>
               </div>
               <!-- 재고 -->
-              <div class="text-sm text-gray-600 mb-4">재고 107개</div>
+              <div class="text-sm text-gray-600 mb-4">재고 ${stock}개</div>
               <!-- 설명 -->
               <div class="text-sm text-gray-700 leading-relaxed mb-6">${description}</div>
             </div>

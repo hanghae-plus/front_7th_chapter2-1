@@ -1,4 +1,5 @@
 import createComponent from "../core/component/create-component";
+import Router from "../core/router/index.js";
 
 const NotFoundPage = createComponent({
   id: "not-found-page",
@@ -54,7 +55,7 @@ const NotFoundPage = createComponent({
           </svg>
 
           <a
-            href="/"
+            href="${Router.basePath}"
             data-link
             class="inline-block px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >홈으로</a
