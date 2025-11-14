@@ -515,9 +515,9 @@ const CartModal = () => {
     modalContainer.innerHTML = /* HTML */ `
       <!-- 배경 오버레이 -->
       <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay"></div>
-      <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
+      <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 cart-modal-wrapper">
         <div
-          class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden"
+          class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden cart-modal-content-wrapper"
         >
           <!-- 헤더 -->
           <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
@@ -553,12 +553,22 @@ const CartModal = () => {
       closeBtn.addEventListener("click", close);
     }
 
-    // 오버레이 클릭 시 닫기
-    modalContainer.addEventListener("click", (e) => {
-      if (e.target === modalContainer) {
-        close();
-      }
-    });
+    // 오버레이 또는 wrapper 클릭 시 닫기 (모달 컨텐츠 제외)
+    const overlay = modalContainer.querySelector(".cart-modal-overlay");
+    const wrapper = modalContainer.querySelector(".cart-modal-wrapper");
+
+    if (overlay) {
+      overlay.addEventListener("click", close);
+    }
+
+    if (wrapper) {
+      wrapper.addEventListener("click", (e) => {
+        // wrapper를 직접 클릭했을 때만 닫기 (자식 요소 클릭은 제외)
+        if (e.target === wrapper) {
+          close();
+        }
+      });
+    }
 
     // 이벤트 리스너 추가
     addEventListeners();
