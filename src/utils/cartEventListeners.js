@@ -60,8 +60,10 @@ export function cartProductControl() {
     // 수량 증가
     const increaseBtn = e.target.closest(".quantity-increase-btn");
     if (increaseBtn) {
-      const productId = increaseBtn.dataset.productId;
-      const item = cartStore.getState().items.find((item) => item.id === productId);
+      const cartItem = increaseBtn.closest(".cart-item");
+      const productId = cartItem.dataset.productId;
+
+      const item = cartStore.getState().items.find((item) => item.productId === productId);
       if (item) {
         cartStore.updateItemQuantity(productId, item.quantity + 1);
       }
@@ -71,8 +73,10 @@ export function cartProductControl() {
     // 수량 감소
     const decreaseBtn = e.target.closest(".quantity-decrease-btn");
     if (decreaseBtn) {
-      const productId = decreaseBtn.dataset.productId;
-      const item = cartStore.getState().items.find((item) => item.id === productId);
+      const cartItem = decreaseBtn.closest(".cart-item");
+      const productId = cartItem.dataset.productId;
+
+      const item = cartStore.getState().items.find((item) => item.productId === productId);
       if (item && item.quantity > 1) {
         cartStore.updateItemQuantity(productId, item.quantity - 1);
       }
