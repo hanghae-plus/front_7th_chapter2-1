@@ -19,7 +19,6 @@ const PageLayout = createComponent({
   props: {
     children: "",
     isDetailPage: false,
-    cart: [],
   },
   templateFn: ({ children, isDetailPage, cart }) => {
     const header = Header.mount({ isDetailPage, cart });
@@ -29,7 +28,7 @@ const PageLayout = createComponent({
       <div class="min-h-screen bg-gray-50">${header.outerHTML} ${children} ${footer.outerHTML}</div>
     `;
   },
-  children: [Header.mount({ isDetailPage: false, cart: [] }), Footer.mount({})],
+  children: [Header.mount({ isDetailPage: false }), Footer.mount({})],
 });
 
 export default PageLayout;

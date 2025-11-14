@@ -1,5 +1,4 @@
 import { ROUTES } from "./route";
-import appStore from "./store/app-store";
 import Router from "./core/router";
 
 /** @type {string} */
@@ -32,15 +31,13 @@ async function main() {
   const homeRoute = ROUTES.home;
   const productDetailRoute = ROUTES.productDetail;
 
-  const appState = appStore.getState();
-
   /* Initial Render */
   if (relativePath === homeRoute.path) {
     $root.replaceChildren(homeRoute.render({}));
   } else if (productDetailRoute.pattern.test(relativePath)) {
     const id = relativePath.split("/")[2];
     console.log("[Initial Render] Product Detail", id);
-    $root.replaceChildren(productDetailRoute.render({ id, cart: appState.cart }));
+    $root.replaceChildren(productDetailRoute.render({ id }));
   } else {
     console.log("[Initial Render] Not Found", relativePath);
     history.pushState(null, "", `${basePath}404`);

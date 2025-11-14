@@ -36,9 +36,6 @@ export const 상세페이지_로딩 = /* HTML */ `
 const ProductDetailPage = createComponent({
   id: "product-detail-page",
   props: {
-    productDetailResponse: null,
-    productDetailListResponse: null,
-    cart: [],
     id: "",
   },
   initialState: (props) => {
@@ -68,13 +65,12 @@ const ProductDetailPage = createComponent({
       }
     },
   },
-  templateFn: ({ cart = [] }, { productDetailResponse, productDetailListResponse, isLoading }) => {
+  templateFn: (_, { productDetailResponse, productDetailListResponse, isLoading }) => {
     return PageLayout.mount({
       children: isLoading
         ? 상세페이지_로딩
         : ProductDetail.mount({ productDetailResponse, productDetailListResponse }).outerHTML,
       isDetailPage: true,
-      cart,
     }).outerHTML;
   },
 });

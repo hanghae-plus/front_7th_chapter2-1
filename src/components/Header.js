@@ -4,7 +4,7 @@ import Router from "../core/router/index.js";
 import appStore from "../store/app-store.js";
 const Header = createComponent({
   id: "header",
-  props: { isDetailPage: false, cart: [] },
+  props: { isDetailPage: false },
   initialState: () => ({
     cart: appStore.getState().cart,
   }),

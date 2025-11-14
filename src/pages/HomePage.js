@@ -9,7 +9,6 @@ const HomePage = createComponent({
   id: "home-page",
   props: {
     categories: [],
-    cart: [],
   },
   initialState: () => {
     const queryParams = Router.getQueryParamsObject();
@@ -164,7 +163,7 @@ const HomePage = createComponent({
       };
     },
   },
-  templateFn: ({ cart = [] }, { listResponse, categories, isLoading }, setState) => {
+  templateFn: (_, { listResponse, categories, isLoading }, setState) => {
     const syncToUrl = (updates) => {
       Router.updateQueryParams(updates);
     };
@@ -214,7 +213,6 @@ const HomePage = createComponent({
               syncToUrl({ category2: value });
             },
           }).outerHTML,
-      cart,
     }).outerHTML;
   },
 });
