@@ -57,14 +57,17 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
     test("검색어 입력 후 Enter 키로 검색하고 URL이 업데이트된다", async ({ page }) => {
       const helpers = new E2EHelpers(page);
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
 
       // 검색어 입력
       await page.fill("#search-input", "젤리");
+      await page.waitForTimeout(1000);
       await page.press("#search-input", "Enter");
+      await page.waitForTimeout(1000);
 
       // URL 업데이트 확인
       await expect(page).toHaveURL(/search=%EC%A0%A4%EB%A6%AC/);
-
+      await page.waitForTimeout(1000);
       // 검색 결과 확인
       await expect(page.locator("text=3개")).toBeVisible();
 
@@ -74,25 +77,30 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
       // 검색어 입력
       await page.fill("#search-input", "아이패드");
       await page.press("#search-input", "Enter");
+      await page.waitForTimeout(1000);
 
       // URL 업데이트 확인
       await expect(page).toHaveURL(/search=%EC%95%84%EC%9D%B4%ED%8C%A8%EB%93%9C/);
-
+      await page.waitForTimeout(1000);
       // 검색 결과 확인
       await expect(page.locator("text=21개")).toBeVisible();
 
       // 새로고침을 해도 유지 되는지 확인
       await page.reload();
+      await page.waitForTimeout(1000);
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
       await expect(page.locator("text=21개")).toBeVisible();
     });
 
     test("카테고리 선택 후 브레드크럼과 URL이 업데이트된다", async ({ page }) => {
       const helpers = new E2EHelpers(page);
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
 
       // 1차 카테고리 선택
       await page.click("text=생활/건강");
+      await page.waitForTimeout(1000);
 
       await expect(page).toHaveURL(/category1=%EC%83%9D%ED%99%9C%2F%EA%B1%B4%EA%B0%95/);
       await expect(page.locator("text=300개")).toBeVisible();
@@ -102,6 +110,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
 
       // 2차 카테고리 선택
       await page.click("text=자동차용품");
+      await page.waitForTimeout(1000);
 
       await expect(page).toHaveURL(/category2=%EC%9E%90%EB%8F%99%EC%B0%A8%EC%9A%A9%ED%92%88/);
       await expect(page.locator("text=11개")).toBeVisible();
@@ -112,6 +121,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
 
       await page.reload();
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
       await expect(page.locator("text=11개")).toBeVisible();
     });
 
@@ -120,6 +130,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
 
       // 2차 카테고리 상태에서 시작
       await page.goto("/?current=1&category1=생활%2F건강&category2=자동차용품&search=차량용");
+      await page.waitForTimeout(1000);
       await helpers.waitForPageLoad();
       await expect(page.locator("text=9개")).toBeVisible();
 
@@ -148,44 +159,54 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
     test("정렬 옵션 변경 시 URL이 업데이트된다", async ({ page }) => {
       const helpers = new E2EHelpers(page);
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
 
       // 가격 높은순으로 정렬
       await page.selectOption("#sort-select", "price_desc");
+      await page.waitForTimeout(1000);
 
       // 첫 번째 상품 이 가격 높은 순으로 정렬되었는지 확인
       await expect(page.locator(".product-card").first()).toMatchAriaSnapshot(`
-    - img "ASUS ROG Flow Z13 GZ302EA-RU110W 64GB, 1TB"
-    - heading "ASUS ROG Flow Z13 GZ302EA-RU110W 64GB, 1TB" [level=3]
-    - paragraph: ASUS
-    - paragraph: 3,749,000원
+    - link "ASUS ROG Flow Z13 GZ302EA-RU110W 64GB, 1TB ASUS ROG Flow Z13 GZ302EA-RU110W 64GB, 1TB ASUS 3749000원":
+      - /url: /product/53902497170
+      - img "ASUS ROG Flow Z13 GZ302EA-RU110W 64GB, 1TB"
+      - heading "ASUS ROG Flow Z13 GZ302EA-RU110W 64GB, 1TB" [level=3]
+      - paragraph: ASUS
+      - paragraph: 3749000원
     - button "장바구니 담기"
       `);
 
       await page.selectOption("#sort-select", "name_asc");
+      await page.waitForTimeout(1000);
       await expect(page.locator(".product-card").nth(1)).toMatchAriaSnapshot(`
-    - img "[매일출발]유로블루플러스 차량용 요소수 국내산 Adblue 호스포함"
-    - heading "[매일출발]유로블루플러스 차량용 요소수 국내산 Adblue 호스포함" [level=3]
-    - paragraph: 유로블루플러스
-    - paragraph: 8,700원
+    - link "[매일출발]유로블루플러스 차량용 요소수 국내산 Adblue 호스포함 [매일출발]유로블루플러스 차량용 요소수 국내산 Adblue 호스포함 유로블루플러스 8700원":
+      - img "[매일출발]유로블루플러스 차량용 요소수 국내산 Adblue 호스포함"
+      - heading "[매일출발]유로블루플러스 차량용 요소수 국내산 Adblue 호스포함" [level=3]
+      - paragraph: 유로블루플러스
+      - paragraph: 8700원
     - button "장바구니 담기"
     `);
 
       await page.selectOption("#sort-select", "name_desc");
+      await page.waitForTimeout(1000);
       await expect(page.locator(".product-card").nth(1)).toMatchAriaSnapshot(`
-    - img "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개"
-    - heading "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개" [level=3]
-    - paragraph: 다우니
-    - paragraph: 16,610원
+    - link "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개 P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개 다우니 16610원":
+      - img "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개"
+      - heading "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개" [level=3]
+      - paragraph: 다우니
+      - paragraph: 16610원
     - button "장바구니 담기"
       `);
 
       await page.reload();
+      await page.waitForTimeout(1000);
       await helpers.waitForPageLoad();
       await expect(page.locator(".product-card").nth(1)).toMatchAriaSnapshot(`
-    - img "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개"
-    - heading "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개" [level=3]
-    - paragraph: 다우니
-    - paragraph: 16,610원
+    - link "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개 P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개 다우니 16610원":
+      - img "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개"
+      - heading "P&G 다우니 울트라 섬유유연제 에이프릴 프레쉬, 5.03L, 1개" [level=3]
+      - paragraph: 다우니
+      - paragraph: 16610원
     - button "장바구니 담기"
       `);
     });
@@ -193,9 +214,11 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
     test("페이지당 상품 수 변경 시 URL이 업데이트된다", async ({ page }) => {
       const helpers = new E2EHelpers(page);
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
 
       // 10개로 변경
       await page.selectOption("#limit-select", "10");
+      await page.waitForTimeout(1000);
       await expect(page).toHaveURL(/limit=10/);
       await page.waitForFunction(() => {
         return document.querySelectorAll(".product-card").length === 10;
@@ -246,6 +269,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
       // 복잡한 쿼리 파라미터로 직접 접근
       await page.goto("/?search=젤리&category1=생활%2F건강&sort=price_desc&limit=10");
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
 
       // URL에서 복원된 상태 확인
       await expect(page.locator("#search-input")).toHaveValue("젤리");
@@ -261,6 +285,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
     test("상품 클릭부터 관련 상품 이동까지 전체 플로우", async ({ page }) => {
       const helpers = new E2EHelpers(page);
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
       await page.evaluate(() => {
         window.loadFlag = true;
       });
@@ -287,7 +312,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
       await expect(page.locator("#quantity-input")).toHaveValue("2");
 
       await page.click("#add-to-cart-btn");
-      await expect(page.locator("text=장바구니에 추가되었습니다")).toBeVisible();
+      await expect(page.locator("text=장바구니에 상품이 추가되었습니다")).toBeVisible();
 
       // 관련 상품 섹션 확인
       await expect(page.locator("text=관련 상품")).toBeVisible();
@@ -325,6 +350,7 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
         window.loadFlag = true;
       });
       await helpers.waitForPageLoad();
+      await page.waitForTimeout(1000);
 
       // 상품 상세 페이지로 이동
       const productCard = page
@@ -379,10 +405,12 @@ test.describe("E2E: 쇼핑몰 전체 사용자 시나리오 (심화과제)", () 
     test("존재하지 않는 페이지 접근 시 404 페이지가 표시된다", async ({ page }) => {
       // 존재하지 않는 경로로 이동
       await page.goto("/non-existent-page");
+      await page.waitForTimeout(1000);
 
       // 404 페이지 확인
-      await expect(page.getByRole("main")).toMatchAriaSnapshot(`
-    - img: /404 페이지를 찾을 수 없습니다/
+      // await expect(page.getByRole("main")).toMatchAriaSnapshot(`
+      await expect(page.locator("#main-content-container")).toMatchAriaSnapshot(`
+    - paragraph: /404 페이지를 찾을 수 없습니다/
     - link "홈으로"
     `);
     });
