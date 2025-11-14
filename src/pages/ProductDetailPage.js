@@ -11,13 +11,15 @@ let quantity = 1;
 
 /**
  * 상품 상세 정보 렌더링
- * @param {object} productData - 상품 상세 정보 객체
+ * @param {object} detail - 현재 상품의 상세 정보
+ * @param {Array} products - 관련 상품 후보 목록
  */
-function renderProductDetail(productData) {
-  const detail = productData;
-  // TODO: 관련 상품 API 구현 후 수정 필요
-  const relatedProducts = [];
+function renderProductDetail(detail, products) {
   quantity = 1; // 상세 페이지 진입 시 수량을 1로 초기화
+
+  // 현재 상품을 제외한 관련 상품 목록 생성 (최대 20개)
+  const relatedProducts = products.filter((p) => p.productId !== detail.productId).slice(0, 20);
+  console.log("relatedProducts", relatedProducts);
 
   return `
     ${DetailBreadcrumb(detail)}
@@ -30,7 +32,8 @@ function render() {
   const pageContainer = document.getElementById("product-detail-page");
   if (!pageContainer) return;
 
-  const { loading, data, error } = productStore.getState().productDetail;
+  const { productDetail, products } = productStore.getState();
+  const { loading, data, error } = productDetail;
 
   if (loading) {
     pageContainer.innerHTML = `
@@ -50,7 +53,7 @@ function render() {
       </div>
     `;
   } else if (data) {
-    pageContainer.innerHTML = renderProductDetail(data);
+    pageContainer.innerHTML = renderProductDetail(data, products);
   }
 }
 
@@ -69,17 +72,12 @@ function setupEventListeners(productId) {
 
     // 수량 조절
     const quantityInput = document.getElementById("quantity-input");
-    if (!quantityInput) return;
-
-    const stock = parseInt(quantityInput.max, 10);
-
-    if (e.target.closest("#quantity-increase")) {
-      if (quantity < stock) {
+    if (quantityInput) {
+      const stock = parseInt(quantityInput.max, 10);
+      if (e.target.closest("#quantity-increase") && quantity < stock) {
         quantity++;
         quantityInput.value = quantity;
-      }
-    } else if (e.target.closest("#quantity-decrease")) {
-      if (quantity > 1) {
+      } else if (e.target.closest("#quantity-decrease") && quantity > 1) {
         quantity--;
         quantityInput.value = quantity;
       }
@@ -124,15 +122,26 @@ function setupEventListeners(productId) {
 }
 
 export function ProductDetailPage({ params }) {
-  const onMount = () => {
+  const onMount = async () => {
     console.log("ProductDetailPage onMount, params:", params);
     setupEventListeners(params.id);
     const unsubscribe = productStore.subscribe(render);
-    productStore.fetchProductById(params.id);
+
+    // 1. 현재 상품 상세 정보 가져오기
+    await productStore.fetchProductById(params.id);
+
+    // 2. 상세 정보 로드 후, 관련 상품 목록 가져오기
+    const { data: productDetail } = productStore.getState().productDetail;
+    if (productDetail) {
+      productStore.setParams({
+        // category1: productDetail.category1,
+        category2: productDetail.category2,
+        limit: 20, // 현재 상품 포함 20개
+      });
+    }
 
     return () => {
       unsubscribe();
-      // eventsInitialized = false; // 페이지 전환 시 이벤트 리스너를 유지하므로 주석 처리
     };
   };
 
