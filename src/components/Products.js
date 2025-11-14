@@ -256,7 +256,7 @@ const Products = (targetNode) => {
               image: product.image,
               price: product.lprice,
               quantity: 1,
-              selected: true,
+              selected: false,
             });
           }
 

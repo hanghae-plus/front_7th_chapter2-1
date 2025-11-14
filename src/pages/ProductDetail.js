@@ -481,7 +481,7 @@ const ProductDetail = (targetNode) => {
               image: productData.image,
               price: productData.lprice,
               quantity: quantity,
-              selected: true,
+              selected: false,
             });
           }
 
