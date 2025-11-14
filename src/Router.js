@@ -1,3 +1,5 @@
+import { store } from "./store/Store.js";
+
 class Router {
   constructor() {
     this.routes = [];
@@ -13,13 +15,15 @@ class Router {
           return false;
         }
 
-        return route.path.split("/").every((fragment, idx) => {
-          const pathFragments = path.split("/");
+        const routeFragments = route.path.split("/");
+        const pathFragments = path.split("/");
 
-          if (pathFragments[idx] === undefined) {
-            return false;
-          }
+        // 경로 세그먼트 개수가 다르면 매칭 실패
+        if (routeFragments.length !== pathFragments.length) {
+          return false;
+        }
 
+        return routeFragments.every((fragment, idx) => {
           if (fragment.startsWith(":")) {
             return true;
           }
@@ -40,6 +44,9 @@ class Router {
     console.log(route);
 
     if (route) {
+      // 이전 페이지의 구독 정리
+      store.clearObservers();
+
       const $root = document.getElementById("root");
       route.component($root);
     }

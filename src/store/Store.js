@@ -36,6 +36,10 @@ class Store {
       callbacks.forEach((callback) => callback(this.state[key]));
     }
   }
+
+  clearObservers() {
+    this.observers.clear();
+  }
 }
 
 export const store = new Store();
