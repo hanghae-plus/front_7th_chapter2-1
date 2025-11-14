@@ -79,8 +79,8 @@ class PaginationDTO {
     this.limit = parseInt(data.limit.toString()) || 20;
     this.total = parseInt(data.total.toString()) || 0;
     this.totalPages = parseInt(data.totalPages.toString()) || 0;
-    this.hasNext = data.hasNext || true;
-    this.hasPrev = data.hasPrev || false;
+    this.hasNext = data.hasNext ?? false;
+    this.hasPrev = data.hasPrev ?? false;
   }
 
   /**
