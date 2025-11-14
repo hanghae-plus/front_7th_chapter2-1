@@ -53,9 +53,6 @@ importers:
       msw:
         specifier: ^2.10.2
         version: 2.10.2
-      prettier:
-        specifier: ^3.4.2
-        version: 3.5.3
       vite:
         specifier: npm:rolldown-vite@latest
         version: rolldown-vite@6.3.21(esbuild@0.25.1)(yaml@2.7.0)

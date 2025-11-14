@@ -1,0 +1,35 @@
+export const AddToCartToast = () => {
+  return /* HTML */ `
+    <div class="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
+      <div class="flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <p class="text-sm font-medium">장바구니에 추가되었습니다</p>
+      <button id="toast-close-btn" class="flex-shrink-0 ml-2 text-white hover:text-gray-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  `;
+};
+
+// 토스트 보여주고, 3초 후 사라지게
+export const showToast = (children) => {
+  const $root = document.getElementById("root");
+  const $toast = document.createElement("div");
+  $toast.className = "fixed bottom-0 left-0 right-0 p-4 flex justify-center";
+  $toast.innerHTML = children;
+  $root.appendChild($toast);
+
+  const $toastCloseBtn = $toast.querySelector("#toast-close-btn");
+  $toastCloseBtn.addEventListener("click", () => {
+    $toast.remove();
+  });
+
+  setTimeout(() => {
+    $toast.remove();
+  }, 3000);
+};
