@@ -1,4 +1,4 @@
-import { getProducts, getCategories } from "../api/productApi.js";
+import { getProducts, getCategories, getProduct } from "../api/productApi.js";
 
 /**
  * 옵저버 패턴 상세 내용
@@ -32,6 +32,11 @@ const initialState = {
     category2: "",
   },
   categories: {},
+  productDetail: {
+    loading: false,
+    data: null,
+    error: null,
+  },
 };
 
 class Product {
@@ -164,6 +169,26 @@ class Product {
       this.#setState({ categories: data });
     } catch (err) {
       this.#setState({ loading: false, error: err.message });
+    }
+  }
+
+  /**
+   * 상품 상세 정보 가져오기
+   * @param {string} productId - 상품 ID
+   */
+  async fetchProductById(productId) {
+    this.#setState({
+      productDetail: { loading: true, data: null, error: null },
+    });
+    try {
+      const product = await getProduct(productId);
+      this.#setState({
+        productDetail: { loading: false, data: product, error: null },
+      });
+    } catch (err) {
+      this.#setState({
+        productDetail: { loading: false, data: null, error: err.message },
+      });
     }
   }
 }

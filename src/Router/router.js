@@ -42,7 +42,7 @@ const createRouter = () => {
     let pageComponent;
     if (route) {
       const pathParams = path.match(route.path)?.groups || {};
-      pageComponent = route.component({ ...pathParams, ...currentQueryParams });
+      pageComponent = route.component({ params: { ...pathParams, ...currentQueryParams } });
     } else {
       pageComponent = notFoundComponent();
     }
