@@ -1,7 +1,5 @@
-import { TOAST_MESSAGE_MAP } from "./constants/toast-constant";
 import { ROUTES } from "./route";
 import appStore from "./store/app-store";
-import { showToastMessage } from "./utils/toast-utils";
 import Router from "./core/router";
 
 /** @type {string} */
@@ -48,33 +46,6 @@ async function main() {
     history.pushState(null, "", `${basePath}404`);
     $root.replaceChildren(ROUTES.notFound.render({}));
   }
-
-  /* Event Handlers */
-  window.addEventListener("keydown", async (event) => {
-    if (!event.target) return;
-    if ($cartModalRoot.innerHTML !== "" && event.key === "Escape") {
-      console.log("[Keydown Event] Escape", event);
-      $cartModalRoot.replaceChildren();
-    }
-  });
-
-  // Cart Modal Event Handlers
-  /**
-   * @param {MouseEvent} event
-   */
-  $cartModalRoot.addEventListener("click", async (event) => {
-    if (!event.target) return;
-
-    if (event.target.closest("#cart-modal-remove-selected-btn")) {
-      console.log("[Click Event] cart-modal-remove-selected-btn", event);
-      appStore.removeSelectedCartItems();
-      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
-    } else if (event.target.closest("#cart-modal-clear-cart-btn")) {
-      console.log("[Click Event] cart-modal-clear-cart-btn", event);
-      appStore.removeAllCartItems();
-      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
-    }
-  });
 }
 
 // 애플리케이션 시작

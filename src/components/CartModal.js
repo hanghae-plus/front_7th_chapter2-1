@@ -28,14 +28,29 @@ const CartModal = createComponent({
     },
     "remove-selected-cart-items": (props, getter, setter) => {
       setter("cart", (currentCart) => currentCart.filter((_item) => !_item.isSelected));
+      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
+      appStore.setCart(getter("cart").filter((_item) => !_item.isSelected));
     },
     "clear-cart": (props, getter, setter) => {
       setter("cart", []);
+      showToastMessage(TOAST_MESSAGE_MAP.REMOVE_SELECTED_CART_ITEMS, "info");
+      appStore.removeAllCartItems();
     },
     "select-all-cart-items": (props, getter, setter) => {
       const currentAllSelected = getter("allSelected");
       setter("allSelected", !currentAllSelected);
       setter("cart", (currentCart) => currentCart.map((_item) => ({ ..._item, isSelected: !currentAllSelected })));
+    },
+  },
+  effects: {
+    onMount: ({ props }) => {
+      const handleKeyDownEscape = (event) => {
+        if (event.key === "Escape") {
+          props.onClose();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDownEscape);
+      return () => window.removeEventListener("keydown", handleKeyDownEscape);
     },
   },
   templateFn: (_, { cart, allSelected }, setState) => {
@@ -50,6 +65,9 @@ const CartModal = createComponent({
           _item.id === productId ? { ..._item, count: Math.min(_item.count + 1, 999) } : _item,
         ),
       );
+      appStore.setCart(
+        cart.map((_item) => (_item.id === productId ? { ..._item, count: Math.min(_item.count + 1, 999) } : _item)),
+      );
     };
 
     const handleDecreaseQuantity = (productId) => {
@@ -58,10 +76,14 @@ const CartModal = createComponent({
           _item.id === productId ? { ..._item, count: Math.max(_item.count - 1, 1) } : _item,
         ),
       );
+      appStore.setCart(
+        cart.map((_item) => (_item.id === productId ? { ..._item, count: Math.max(_item.count - 1, 1) } : _item)),
+      );
     };
 
     const handleRemoveFromCart = (productId) => {
       setState("cart", (currentCart) => currentCart.filter((_item) => _item.id !== productId));
+      appStore.setCart(cart.filter((_item) => _item.id !== productId));
     };
 
     const handleSelectCartItem = (productId) => {
@@ -80,7 +102,11 @@ const CartModal = createComponent({
     };
 
     return /* HTML */ `
-      <div class="fixed inset-0 z-50 overflow-y-auto cart-modal">
+      <div
+        class="fixed inset-0 z-50 overflow-y-auto cart-modal"
+        data-event="cart-modal-keydown-escape"
+        data-event-type="keydown"
+      >
         <!-- 배경 오버레이 -->
         <div
           class="fixed inset-0 bg-black bg-opacity-50 transition-opacity cart-modal-overlay"

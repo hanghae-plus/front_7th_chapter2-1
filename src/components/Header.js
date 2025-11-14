@@ -11,11 +11,17 @@ const Header = createComponent({
   eventHandlers: {
     "open-cart-modal": (props, getter, setter, event) => {
       if (!event.target) return;
-      const $cartModalRoot = document.querySelector("#cart-modal-root");
-      if (!$cartModalRoot) return;
-      $cartModalRoot.replaceChildren(
+      // const $cartModalRoot = document.querySelector("#cart-modal-root");
+      // if (!$cartModalRoot) return;
+      const $root = document.querySelector("#root");
+      $root?.appendChild(
         CartModal.mount({
-          onClose: () => $cartModalRoot.replaceChildren(),
+          onClose: () => {
+            const modal = document.querySelector(".cart-modal");
+            if (modal) {
+              modal.remove();
+            }
+          },
         }),
       );
     },
