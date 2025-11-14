@@ -15,11 +15,12 @@ const Products = (targetNode) => {
     store.subscribe("productsData", onUpdate);
     store.setState("productsData", null);
 
-    // 카테고리, limit, sort 변경 시 상품 목록 다시 조회
+    // 카테고리, limit, sort, search 변경 시 상품 목록 다시 조회
     store.subscribe("selectedCategory1", onFilterChange);
     store.subscribe("selectedCategory2", onFilterChange);
     store.subscribe("selectedLimit", onFilterChange);
     store.subscribe("selectedSort", onFilterChange);
+    store.subscribe("searchKeyword", onFilterChange);
   };
 
   const render = () => {
@@ -128,6 +129,7 @@ const Products = (targetNode) => {
       const category2 = store.getState("selectedCategory2");
       const limit = store.getState("selectedLimit") || "20";
       const sort = store.getState("selectedSort") || "price_asc";
+      const search = store.getState("searchKeyword") || "";
 
       const data = await getProducts({
         page,
@@ -135,6 +137,7 @@ const Products = (targetNode) => {
         category1: category1 || "",
         category2: category2 || "",
         sort,
+        search,
       });
 
       if (page === 1) {

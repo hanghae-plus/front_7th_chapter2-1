@@ -30,16 +30,19 @@ const ProductSearchFilter = (targetNode) => {
     store.subscribe("selectedCategory2", onUpdate);
     store.subscribe("selectedLimit", onUpdate);
     store.subscribe("selectedSort", onUpdate);
+    store.subscribe("searchKeyword", onUpdate);
 
     // URL 쿼리 스트링에서 초기값 설정
     const category1FromURL = getURLParam("category1");
     const category2FromURL = getURLParam("category2");
     const limitFromURL = getURLParam("limit") || "20";
     const sortFromURL = getURLParam("sort") || "price_asc";
+    const searchFromURL = getURLParam("search") || "";
     store.setState("selectedCategory1", category1FromURL);
     store.setState("selectedCategory2", category2FromURL);
     store.setState("selectedLimit", limitFromURL);
     store.setState("selectedSort", sortFromURL);
+    store.setState("searchKeyword", searchFromURL);
   };
 
   const render = () => {
@@ -49,6 +52,7 @@ const ProductSearchFilter = (targetNode) => {
     const selectedCategory2 = store.getState("selectedCategory2");
     const selectedLimit = store.getState("selectedLimit") || "20";
     const selectedSort = store.getState("selectedSort") || "price_asc";
+    const searchKeyword = store.getState("searchKeyword") || "";
 
     targetNode.innerHTML = /* HTML */ `
       <!-- 검색창 -->
@@ -58,7 +62,7 @@ const ProductSearchFilter = (targetNode) => {
             type="text"
             id="search-input"
             placeholder="상품명을 검색해보세요..."
-            value=""
+            value="${searchKeyword}"
             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
@@ -262,7 +266,25 @@ const ProductSearchFilter = (targetNode) => {
         const category1 = store.getState("selectedCategory1");
         const category2 = store.getState("selectedCategory2");
         const limit = store.getState("selectedLimit");
-        updateURLParams({ category1, category2, limit, sort });
+        const search = store.getState("searchKeyword");
+        updateURLParams({ category1, category2, limit, sort, search });
+      });
+    }
+
+    // search input 변경 (Enter 키 또는 입력 완료 후)
+    const searchInput = targetNode.querySelector("#search-input");
+    if (searchInput) {
+      searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          const search = e.target.value.trim();
+          store.setState("searchKeyword", search);
+          // URL 업데이트
+          const category1 = store.getState("selectedCategory1");
+          const category2 = store.getState("selectedCategory2");
+          const limit = store.getState("selectedLimit");
+          const sort = store.getState("selectedSort");
+          updateURLParams({ category1, category2, limit, sort, search });
+        }
       });
     }
   };
