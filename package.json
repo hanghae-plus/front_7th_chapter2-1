@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:hash": "vite --open ./index.hash.html",
-    "build": "vite build",
+    "build": "vite build && cp dist/index.html dist/404.html",
     "lint:fix": "eslint --fix",
     "prettier:write": "prettier --write ./src",
     "preview": "vite preview",
@@ -41,6 +41,7 @@
     "lint-staged": "^15.2.11",
     "msw": "^2.10.2",
     "prettier": "^3.4.2",
+    "prettier-plugin-embed": "^0.5.0",
     "vite": "npm:rolldown-vite@latest",
     "vitest": "latest"
   },
