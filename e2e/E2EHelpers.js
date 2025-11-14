@@ -14,10 +14,12 @@ export class E2EHelpers {
 
   // 상품을 장바구니에 추가
   async addProductToCart(productName) {
+    await this.page.waitForTimeout(500);
     await this.page.click(
       `text=${productName} >> xpath=ancestor::*[contains(@class, 'product-card')] >> .add-to-cart-btn`,
     );
-    await this.page.waitForSelector("text=장바구니에 추가되었습니다", { timeout: 5000 });
+    await this.page.waitForTimeout(500);
+    await this.page.waitForSelector("text=장바구니에 상품이 추가되었습니다", { timeout: 5000 });
   }
 
   // 장바구니 모달 열기
