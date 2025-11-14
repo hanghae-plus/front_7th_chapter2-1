@@ -296,7 +296,7 @@ export const ItemListPage = (query = {}) => {
                 <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
                   ${product.title}
                 </h3>
-                <p class="text-xs text-gray-500 mb-2">${product.mallName || ""}</p>
+                <p class="text-xs text-gray-500 mb-2">${product.brand || product.mallName || ""}</p>
                 <p class="text-lg font-bold text-gray-900">
                   ${Number(product.lprice || product.price || 0).toLocaleString()}원
                 </p>
