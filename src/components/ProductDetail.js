@@ -238,19 +238,25 @@ const ProductDetail = createComponent({
       if (!productId) return;
       Router.push(`/product/${productId}`);
     },
+    "navigate-to-category": (props, getter, setter, event) => {
+      if (!event.target) return;
+      const category1 = event.target.closest("[data-link]")?.dataset.category1;
+      console.log("[ProductDetail] category1", category1);
+      if (!category1) return;
+      Router.push(`/?category1=${category1}`);
+    },
   },
   templateFn: ({ productDetailResponse, productDetailListResponse }, { count }) => {
     const categoryPath = [
-      productDetailResponse.category1,
-      productDetailResponse.category2,
-      productDetailResponse.category3,
-      productDetailResponse.category4,
+      productDetailResponse?.category1,
+      productDetailResponse?.category2,
+      productDetailResponse?.category3,
+      productDetailResponse?.category4,
     ].filter(Boolean);
-    const { image, title, description, lprice } = productDetailResponse;
+    console.log("[ProductDetail] categoryPath", categoryPath);
+    const { productId = "", image = "", title = "", description = "", lprice = 0 } = productDetailResponse || {};
 
-    const relatedProducts = productDetailListResponse.products.filter(
-      (product) => product.productId !== productDetailResponse.productId,
-    );
+    const relatedProducts = productDetailListResponse?.products?.filter((product) => product.productId !== productId);
 
     return /* HTML */ `
       <main class="max-w-md mx-auto px-4 py-4">
@@ -264,7 +270,16 @@ const ProductDetail = createComponent({
             ${categoryPath
               .map(
                 (category, index) => /* HTML */ `
-                  <button class="breadcrumb-link" data-category1="${category}">${category}</button>
+                  <button
+                    class="breadcrumb-link"
+                    data-link
+                    data-link-href="/"
+                    data-event="navigate-to-category"
+                    data-event-type="click"
+                    data-category1="${category}"
+                  >
+                    ${category}
+                  </button>
                   ${index < categoryPath.length - 1
                     ? /* HTML */ `
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +385,7 @@ const ProductDetail = createComponent({
             <!-- 액션 버튼 -->
             <button
               id="add-to-cart-btn"
-              data-product-id="${productDetailResponse.productId}"
+              data-product-id="${productId}"
               data-event="add-to-cart"
               data-event-type="click"
               class="w-full bg-blue-600 text-white py-3 px-4 rounded-md
@@ -401,7 +416,7 @@ const ProductDetail = createComponent({
           </div>
           <div class="p-4">
             <div class="grid grid-cols-2 gap-3 responsive-grid">
-              ${relatedProducts
+              ${(relatedProducts || [])
                 .map(
                   (product) => /* HTML */ `
                     <div

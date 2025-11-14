@@ -51,7 +51,7 @@ export const ROUTES = Object.freeze({
     name: "productDetail",
     path: "/product/:id",
     pattern: pathToRegex("/product/:id"),
-    render: ProductDetailPage,
+    render: ProductDetailPage.mount,
     /**
      * @param {{ id: string }} params
      * @returns {Promise<ProductDetailPageProps>}
