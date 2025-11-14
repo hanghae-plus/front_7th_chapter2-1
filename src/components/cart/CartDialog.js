@@ -123,6 +123,15 @@ export const CartItemsList = (items, selectedAll = false) => {
     return sum + price * quantity;
   }, 0);
 
+  // 선택된 아이템 정보 계산
+  const selectedItems = items.filter((item) => item.selected);
+  const selectedCount = selectedItems.length;
+  const selectedAmount = selectedItems.reduce((sum, item) => {
+    const price = parseInt(item.price) || 0;
+    const quantity = item.quantity || 1;
+    return sum + price * quantity;
+  }, 0);
+
   return /*html*/ `
     <!-- 전체 선택 섹션 -->
     <div class="p-4 border-b border-gray-200 bg-gray-50">
@@ -139,6 +148,17 @@ export const CartItemsList = (items, selectedAll = false) => {
     </div>
     <!-- 하단 액션 -->
     <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+      ${
+        selectedCount > 0
+          ? `
+      <!-- 선택된 아이템 정보 -->
+      <div class="flex justify-between items-center mb-3 text-sm">
+        <span class="text-gray-600">선택한 상품 (${selectedCount}개)</span>
+        <span class="font-medium">${selectedAmount.toLocaleString()}원</span>
+      </div>
+      `
+          : ""
+      }
       <!-- 총 금액 -->
       <div class="flex justify-between items-center mb-4">
         <span class="text-lg font-bold text-gray-900">총 금액</span>
@@ -146,6 +166,16 @@ export const CartItemsList = (items, selectedAll = false) => {
       </div>
       <!-- 액션 버튼들 -->
       <div class="space-y-2">
+        ${
+          selectedCount > 0
+            ? `
+        <button id="cart-modal-remove-selected-btn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md
+                   hover:bg-red-700 transition-colors text-sm">
+          선택한 상품 삭제 (${selectedCount}개)
+        </button>
+        `
+            : ""
+        }
         <div class="flex gap-2">
           <button id="cart-modal-clear-cart-btn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md
                    hover:bg-gray-700 transition-colors text-sm">
@@ -330,6 +360,58 @@ export const initCartDialog = () => {
 
   // 오버레이 클릭 이벤트 (오버레이 닫기, 삭제 버튼, 수량 조절 버튼, 전체 비우기 버튼 처리)
   modalOverlay.addEventListener("click", (e) => {
+    // 전체 선택 체크박스 클릭 처리
+    const selectAllCheckbox = e.target.closest("#cart-modal-select-all-checkbox");
+    if (selectAllCheckbox) {
+      const cartData = getCartData();
+      const isChecked = selectAllCheckbox.checked;
+
+      // 모든 아이템의 선택 상태 업데이트
+      cartData.items.forEach((item) => {
+        item.selected = isChecked;
+      });
+      cartData.selectedAll = isChecked;
+
+      saveCartData(cartData);
+      window.updateCartContent();
+      return;
+    }
+
+    // 개별 아이템 체크박스 클릭 처리
+    const itemCheckbox = e.target.closest(".cart-item-checkbox");
+    if (itemCheckbox) {
+      const productId = itemCheckbox.getAttribute("data-product-id");
+      if (productId) {
+        const cartData = getCartData();
+        const item = cartData.items.find((item) => item.id === productId);
+
+        if (item) {
+          item.selected = itemCheckbox.checked;
+
+          // 전체 선택 상태 업데이트
+          const allSelected = cartData.items.every((item) => item.selected);
+          cartData.selectedAll = allSelected;
+
+          saveCartData(cartData);
+          window.updateCartContent();
+        }
+      }
+      return;
+    }
+
+    // 선택된 아이템 삭제 버튼 클릭 처리
+    const removeSelectedBtn = e.target.closest("#cart-modal-remove-selected-btn");
+    if (removeSelectedBtn) {
+      const cartData = getCartData();
+      // 선택된 아이템 제거
+      cartData.items = cartData.items.filter((item) => !item.selected);
+      cartData.selectedAll = false;
+
+      saveCartData(cartData);
+      window.updateCartContent();
+      return;
+    }
+
     // 전체 비우기 버튼 클릭 처리
     const clearCartBtn = e.target.closest("#cart-modal-clear-cart-btn");
     if (clearCartBtn) {
@@ -386,11 +468,9 @@ export const initCartDialog = () => {
         if (cartData.items.length === 0) {
           cartData.selectedAll = false;
         } else {
-          // 선택된 아이템이 있는지 확인하여 selectedAll 업데이트
-          const hasSelected = cartData.items.some((item) => item.selected);
-          if (!hasSelected) {
-            cartData.selectedAll = false;
-          }
+          // 전체 선택 상태 업데이트
+          const allSelected = cartData.items.every((item) => item.selected);
+          cartData.selectedAll = allSelected;
         }
 
         // 로컬 스토리지에 저장
