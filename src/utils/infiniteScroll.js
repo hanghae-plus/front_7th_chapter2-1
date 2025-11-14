@@ -132,7 +132,8 @@ async function loadNextPage(nextPage) {
 
     // URL 업데이트 (히스토리 변경 없음)
     searchParams.set("page", nextPage);
-    history.replaceState("", "", `/?${searchParams.toString()}`);
+    const basePath = import.meta.env.BASE_URL;
+    history.replaceState("", "", `${basePath}?${searchParams.toString()}`);
 
     // 더 이상 다음 페이지가 없으면 트리거 제거
     if (!newData.pagination?.hasNext) {
