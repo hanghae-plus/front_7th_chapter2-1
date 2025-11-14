@@ -498,6 +498,12 @@ const CartModal = () => {
     });
   };
 
+  const handleEscapeKey = (e) => {
+    if (e.key === "Escape") {
+      close();
+    }
+  };
+
   const open = () => {
     // 기존 모달이 있으면 제거
     const existingModal = document.getElementById("cart-modal-overlay");
@@ -570,6 +576,9 @@ const CartModal = () => {
       });
     }
 
+    // ESC 키로 모달 닫기
+    document.addEventListener("keydown", handleEscapeKey);
+
     // 이벤트 리스너 추가
     addEventListeners();
 
@@ -582,6 +591,8 @@ const CartModal = () => {
       modalContainer.remove();
       modalContainer = null;
       document.body.style.overflow = "";
+      // ESC 키 이벤트 리스너 제거
+      document.removeEventListener("keydown", handleEscapeKey);
     }
   };
 
