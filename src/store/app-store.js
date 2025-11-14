@@ -14,7 +14,6 @@
  * @property {ProductListResponse} listResponse
  * @property {CategoryTreeNode[]} categories
  * @property {CartItem[]} cart
- * @property {string[]} selectedCartIds
  * @property {number} cartItemCount
  * @property {boolean} isCartModalOpen
  * @property {Product | null} productDetail
@@ -44,7 +43,6 @@ const initialAppState = {
   categories: [],
   isCartModalOpen: false,
   cart: [],
-  selectedCartIds: [],
   cartItemCount: 1,
   productDetail: null,
   productDetailListResponse: {
@@ -68,7 +66,17 @@ const initialAppState = {
 
 let appState = initialAppState;
 
+const observers = new Set();
+
 const appStore = {
+  subscribe: (observer) => {
+    observers.add(observer);
+    return () => observers.delete(observer);
+  },
+  _notify: () => {
+    observers.forEach((observer) => observer(appState));
+  },
+  // State
   getState: () => appState,
   // Mutations
   setListResponse: (/** @type {Partial<ProductListResponse>} */ newListResponse) => {
@@ -85,17 +93,11 @@ const appStore = {
   setCart: (/** @type {CartItem[]} */ newCart) => {
     console.log("[Store - Mutation] setCart", { BEFORE: appState.cart, AFTER: newCart });
     appState.cart = newCart;
+    appStore._notify();
   },
   setCartItemCount: (/** @type {number} */ newCartItemCount) => {
     console.log("[Store - Mutation] setCartItemCount", { BEFORE: appState.cartItemCount, AFTER: newCartItemCount });
     appState.cartItemCount = newCartItemCount;
-  },
-  setSelectedCartIds: (/** @type {string[]} */ newSelectedCartIds) => {
-    console.log("[Store - Mutation] setSelectedCartIds", {
-      BEFORE: appState.selectedCartIds,
-      AFTER: newSelectedCartIds,
-    });
-    appState.selectedCartIds = newSelectedCartIds;
   },
   setProductDetail: (/** @type {Product} */ newProductDetail) => {
     console.log("[Store - Mutation] setProductDetail", { BEFORE: appState.productDetail, AFTER: newProductDetail });
@@ -131,10 +133,15 @@ const appStore = {
     console.log("[Store - Action] addToCart", { BEFORE: appState.cart, count, cartItem });
     const existingCartItem = appState.cart.find((item) => item.id === cartItem.id);
     if (existingCartItem) {
-      existingCartItem.count += count;
+      appStore.setCart(
+        appState.cart.map((item) =>
+          item.id === cartItem.id ? { ...item, count: existingCartItem.count + count } : item,
+        ),
+      );
       console.log("[Store - Action] addToCart - 2", existingCartItem.count);
     } else {
-      appState.cart = [...appState.cart, { ...cartItem, count }];
+      // appState.cart = [...appState.cart, { ...cartItem, count }];
+      appStore.setCart([...appState.cart, { ...cartItem, count }]);
       console.log("[Store - Action] addToCart - 3", appState.cart);
     }
   },
@@ -143,8 +150,8 @@ const appStore = {
       BEFORE: appState.cart,
       AFTER: appState.cart.find((item) => item.id === productId)?.count,
     });
-    appState.cart = appState.cart.map((item) =>
-      item.id === productId ? { ...item, count: Math.min(item.count + 1, 999) } : item,
+    appStore.setCart(
+      appState.cart.map((item) => (item.id === productId ? { ...item, count: Math.min(item.count + 1, 999) } : item)),
     );
   },
   subtractCartItemCountByProductId: (/** @type {string} */ productId) => {
@@ -152,8 +159,8 @@ const appStore = {
       BEFORE: appState.cart,
       AFTER: appState.cart.find((item) => item.id === productId)?.count,
     });
-    appState.cart = appState.cart.map((item) =>
-      item.id === productId ? { ...item, count: Math.max(item.count - 1, 1) } : item,
+    appStore.setCart(
+      appState.cart.map((item) => (item.id === productId ? { ...item, count: Math.max(item.count - 1, 1) } : item)),
     );
   },
   addCartItemCount: () => {
@@ -173,25 +180,23 @@ const appStore = {
   removeSelectedCartItems: () => {
     console.log("[Store - Action] removeSelectedCartItems", {
       BEFORE: appState.cart,
-      AFTER: appState.cart.filter((item) => !appState.selectedCartIds.includes(item.id)),
+      AFTER: appState.cart.map((item) => ({ ...item, selected: false })),
     });
-    appState.cart = appState.cart.filter((item) => !appState.selectedCartIds.includes(item.id));
-    appState.selectedCartIds = [];
+    appStore.setCart(appState.cart.map((item) => ({ ...item, selected: false })));
   },
   removeCartItemByProductId: (/** @type {string} */ productId) => {
     console.log("[Store - Action] removeCartItemByProductId", {
       BEFORE: appState.cart,
       AFTER: appState.cart.filter((item) => item.id !== productId),
     });
-    appState.cart = appState.cart.filter((item) => item.id !== productId);
+    appStore.setCart(appState.cart.filter((item) => item.id !== productId));
   },
   removeAllCartItems: () => {
     console.log("[Store - Action] removeAllCartItems", {
       BEFORE: appState.cart,
       AFTER: [],
     });
-    appState.cart = [];
-    appState.selectedCartIds = [];
+    appStore.setCart([]);
   },
   reset: () => {
     console.log("[Store - Action] reset", { BEFORE: appState, AFTER: initialAppState });
