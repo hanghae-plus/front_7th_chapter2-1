@@ -7,7 +7,7 @@ export const Header = () => {
 
       const cart = JSON.parse(cartData);
       // items 배열의 각 상품의 quantity를 합산
-      return cart.items?.reduce((total, item) => total + (item.quantity || 0), 0) || 0;
+      return cart.items.length;
     } catch (error) {
       console.error("장바구니 데이터 로드 실패:", error);
       return 0;
