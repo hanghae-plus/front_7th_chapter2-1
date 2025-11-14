@@ -64,7 +64,6 @@ const ProductPage = async (render, { showToast }) => {
     // 장바구니 담기
     if (e.target.closest("#add-to-cart-btn")) {
       addToCart(product.get(), quantity.get());
-      pageRender();
       showToast({ message: "장바구니에 추가되었습니다", type: "success" });
     }
 
