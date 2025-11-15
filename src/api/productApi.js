@@ -19,6 +19,7 @@ export async function getProducts(params = {}) {
 
 // 상품 상세 조회
 export async function getProduct(productId) {
+  console.log("productId", productId);
   const response = await fetch(`/api/products/${productId}`);
   return await response.json();
 }
