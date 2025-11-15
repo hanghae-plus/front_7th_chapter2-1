@@ -428,7 +428,7 @@ const renderDetailPage = async (productId) => {
       category2: product.category2,
       limit: 10,
     });
-    relatedProducts = (relatedData.products || []).filter((p) => p.productId !== productId).slice(0, 2);
+    relatedProducts = (relatedData.products || []).filter((p) => p.productId !== productId);
   }
 
   // 완료 상태로 렌더링
