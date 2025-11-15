@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "dev:hash": "vite --open ./index.hash.html",
-    "build": "vite build",
+    "build": "vite build && cp dist/index.html dist/404.html",
     "lint:fix": "eslint --fix",
     "prettier:write": "prettier --write ./src",
     "preview": "vite preview",
+    "predeploy": "pnpm run build",
+    "deploy": "gh-pages -d dist",
     "test:e2e": "playwright test",
     "test:e2e:basic": "playwright test basic",
     "test:e2e:advanced": "playwright test advanced",
@@ -48,5 +50,8 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "dependencies": {
+    "gh-pages": "^6.3.0"
   }
 }

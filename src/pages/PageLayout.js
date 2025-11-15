@@ -1,0 +1,16 @@
+import { Footer, Header } from "../components";
+
+export const PageLayout = ({ children }) => {
+  return `
+    <div class="min-h-screen bg-gray-50"> 
+  
+  ${Header()}
+    <main class="max-w-md mx-auto px-4 py-4" id='modal-root'>
+  ${children}
+  </main>
+  ${Footer()}
+  
+  
+  </div>
+  `;
+};
