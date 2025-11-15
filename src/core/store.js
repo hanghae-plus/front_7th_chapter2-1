@@ -1,6 +1,15 @@
 // 전역 상태 관리
 import { createObserver } from "./observer.js";
 import { getProducts, getProduct, getCategories } from "../api/productApi.js";
+import {
+  loadCartFromStorage,
+  addToCart as addToCartUtil,
+  updateCartItemQuantity,
+  removeFromCart as removeFromCartUtil,
+  clearCart as clearCartUtil,
+  getCartTotal,
+  getCartItemCount,
+} from "../utils/cart.js";
 
 const observer = createObserver(); // 옵저버 인스턴스 생성
 
@@ -24,6 +33,11 @@ export const store = {
       loading: false,
       relatedProducts: [],
       error: null,
+    },
+    cart: {
+      items: [],
+      total: 0,
+      count: 0,
     },
   },
   subscribe: observer.subscribe,
@@ -51,7 +65,7 @@ export const store = {
       this.setState("list.loading", true);
       this.setState("list.error", null);
       const response = await getProducts(this.state.list);
-      // response의 각 필드를 개별적으로 업데이트
+
       Object.keys(response).forEach((key) => {
         this.setState(`list.${key}`, response[key]);
       });
@@ -77,6 +91,7 @@ export const store = {
 
   async fetchCategories() {
     try {
+      this.setState("list.loading", true);
       this.setState("list.categories", true);
       this.setState("list.error", null);
       const response = await getCategories();
@@ -86,5 +101,47 @@ export const store = {
       this.setState("list.error", error);
       this.setState("list.loading", false);
     }
+  },
+
+  // 장바구니 초기화 (localStorage에서 로드)
+  initCart() {
+    const cartItems = loadCartFromStorage();
+    this.setState("cart.items", cartItems);
+    this.setState("cart.total", getCartTotal(cartItems));
+    this.setState("cart.count", getCartItemCount(cartItems));
+    console.log("🛒 장바구니 초기화 완료:", cartItems);
+  },
+
+  // 장바구니에 상품 추가
+  addToCart(product, quantity) {
+    const updatedCart = addToCartUtil(product, quantity);
+    this.setState("cart.items", updatedCart);
+    this.setState("cart.total", getCartTotal(updatedCart));
+    this.setState("cart.count", getCartItemCount(updatedCart));
+    console.log("🛒 장바구니 상태 업데이트:", this.state.cart);
+  },
+
+  // 장바구니 상품 수량 변경
+  updateCartQuantity(productId, quantity) {
+    const updatedCart = updateCartItemQuantity(productId, quantity);
+    this.setState("cart.items", updatedCart);
+    this.setState("cart.total", getCartTotal(updatedCart));
+    this.setState("cart.count", getCartItemCount(updatedCart));
+  },
+
+  // 장바구니에서 상품 제거
+  removeFromCart(productId) {
+    const updatedCart = removeFromCartUtil(productId);
+    this.setState("cart.items", updatedCart);
+    this.setState("cart.total", getCartTotal(updatedCart));
+    this.setState("cart.count", getCartItemCount(updatedCart));
+  },
+
+  // 장바구니 비우기
+  clearCart() {
+    const updatedCart = clearCartUtil();
+    this.setState("cart.items", updatedCart);
+    this.setState("cart.total", 0);
+    this.setState("cart.count", 0);
   },
 };

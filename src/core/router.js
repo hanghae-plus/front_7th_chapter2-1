@@ -41,7 +41,6 @@ export const router = {
     const fullPath = base === "/" ? path : base.slice(0, -1) + path;
     history.pushState(null, null, fullPath);
 
-    // currentPath는 쿼리 파라미터 제외하고 경로만 저장
     const pathWithoutQuery = path.split("?")[0];
     this.currentPath = pathWithoutQuery;
 
@@ -110,6 +109,7 @@ export const router = {
   // 경로 변경 시 페이지 라이프사이클 관리
   handleRouteChange() {
     const { page, props } = this.getPageConfig();
+
     // 이전 페이지 정리 (destroy 호출)
     if (this.currentPage && this.currentPage.destroy) {
       console.log("🔄 이전 페이지 destroy 호출");
@@ -123,7 +123,6 @@ export const router = {
       console.log("🔄 새 페이지 init 호출");
       this.currentPage.init(() => this.notify(), props);
     }
-
     // 렌더링
     this.notify();
   },
