@@ -1,5 +1,7 @@
 import { PageLayout } from "./PageLayout";
 import { ProductList, SearchForm } from "../components/index.js";
+import { showToast } from "../utils/Toast.js";
+import { openCartModal } from "../utils/CartModal.js";
 import { store } from "../core/store.js";
 import { router } from "../core/router.js";
 
@@ -52,10 +54,10 @@ export const HomePage = {
     store.subscribe(renderFn, "list.limit");
     store.subscribe(renderFn, "list.sort");
     store.subscribe(renderFn, "list.search");
+    store.subscribe(renderFn, "cart.items");
 
     // URL에서 필터 상태 복원
     this.initFromURL();
-
     this.setupEventListeners();
 
     // 초기 데이터 가져오기
@@ -65,9 +67,41 @@ export const HomePage = {
 
   // 이벤트 위임 함수
   setupEventListeners() {
-    // 상품 카드 클릭 이벤트
+    // 장바구니 아이콘 클릭 이벤트
+    const cartIconHandler = (e) => {
+      if (e.target.closest("#cart-icon-btn")) {
+        console.log("장바구니 모달 열기");
+        openCartModal();
+      }
+    };
+    document.addEventListener("click", cartIconHandler);
+    eventHandlers.push({ type: "click", handler: cartIconHandler });
+
+    // 장바구니 담기 버튼 클릭 이벤트
+    const addToCartHandler = (e) => {
+      if (e.target.closest(".add-to-cart-btn")) {
+        e.stopPropagation(); // 상품 카드 클릭 이벤트 전파 방지
+        const productId = e.target.closest(".add-to-cart-btn").dataset.productId;
+        const product = store.state.list.products.find((p) => p.productId === productId);
+
+        if (product) {
+          // store를 통해 장바구니에 추가 (수량 1개)
+          store.addToCart(product, 1);
+          console.log("장바구니에 상품 추가:", productId);
+          showToast.success("장바구니에 추가되었습니다");
+        } else {
+          console.error("상품을 찾을 수 없습니다:", productId);
+          showToast.error("상품 추가에 실패했습니다");
+        }
+      }
+    };
+    document.addEventListener("click", addToCartHandler);
+    eventHandlers.push({ type: "click", handler: addToCartHandler });
+
+    // 상품 카드 클릭 이벤트 (상품 이미지나 정보 클릭 시)
     const clickHandler = (e) => {
-      if (e.target.closest(".product-card")) {
+      // 장바구니 버튼이 아닌 경우에만 상세 페이지로 이동
+      if (e.target.closest(".product-card") && !e.target.closest(".add-to-cart-btn")) {
         const productId = e.target.closest(".product-card").dataset.productId;
         router.navigate(`/product/${productId}`);
       }
@@ -179,6 +213,7 @@ export const HomePage = {
       store.unsubscribe(renderFn, "list.limit");
       store.unsubscribe(renderFn, "list.sort");
       store.unsubscribe(renderFn, "list.search");
+      store.unsubscribe(renderFn, "cart.items");
       renderFn = null;
 
       // 이벤트 핸들러 해제
