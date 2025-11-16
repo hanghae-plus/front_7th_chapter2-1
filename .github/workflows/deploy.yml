@@ -47,6 +47,12 @@ jobs:
 
       - name: Build
         run: pnpm run build
+      
+      # SPA fallback: GitHub Pages는 정적 파일만 서빙하므로
+      # 클라이언트 라우팅 경로로 새로고침 시 404를 방지하기 위해
+      # dist/404.html을 dist/index.html 복사본으로 생성한다.
+      - name: Create SPA fallback (404.html)
+        run: cp dist/index.html dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
